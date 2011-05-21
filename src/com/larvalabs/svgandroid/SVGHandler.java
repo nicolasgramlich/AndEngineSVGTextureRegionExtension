@@ -127,12 +127,12 @@ public class SVGHandler extends DefaultHandler {
 			final float width = SVGParser.getFloatAttribute(pAttributes, "width", 0f);
 			final float height = SVGParser.getFloatAttribute(pAttributes, "height", 0f);
 			this.pushTransform(pAttributes);
-			final Properties props = new Properties(pAttributes);
-			if (this.doFill(props, this.mGradientShaderMap)) {
+			final Properties properties = new Properties(pAttributes);
+			if (this.setFill(properties)) {
 				this.setLimits(x, y, width, height);
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
-			if (this.doStroke(props)) {
+			if (this.setStroke(properties)) {
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
 			this.popTransform();
@@ -141,8 +141,8 @@ public class SVGHandler extends DefaultHandler {
 			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
 			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
 			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
-			final Properties props = new Properties(pAttributes);
-			if (this.doStroke(props)) {
+			final Properties properties = new Properties(pAttributes);
+			if (this.setStroke(properties)) {
 				this.pushTransform(pAttributes);
 				this.setLimits(x1, y1);
 				this.setLimits(x2, y2);
@@ -155,13 +155,13 @@ public class SVGHandler extends DefaultHandler {
 			final Float radius = SVGParser.getFloatAttribute(pAttributes, "r");
 			if (centerX != null && centerY != null && radius != null) {
 				this.pushTransform(pAttributes);
-				final Properties props = new Properties(pAttributes);
-				if (this.doFill(props, this.mGradientShaderMap)) {
+				final Properties properties = new Properties(pAttributes);
+				if (this.setFill(properties)) {
 					this.setLimits(centerX - radius, centerY - radius);
 					this.setLimits(centerX + radius, centerY + radius);
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
-				if (this.doStroke(props)) {
+				if (this.setStroke(properties)) {
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
 				this.popTransform();
@@ -173,14 +173,14 @@ public class SVGHandler extends DefaultHandler {
 			final Float radiusY = SVGParser.getFloatAttribute(pAttributes, "ry");
 			if (centerX != null && centerY != null && radiusX != null && radiusY != null) {
 				this.pushTransform(pAttributes);
-				final Properties props = new Properties(pAttributes);
+				final Properties properties = new Properties(pAttributes);
 				this.mRect.set(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY);
-				if (this.doFill(props, this.mGradientShaderMap)) {
+				if (this.setFill(properties)) {
 					this.setLimits(centerX - radiusX, centerY - radiusY);
 					this.setLimits(centerX + radiusX, centerY + radiusY);
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
-				if (this.doStroke(props)) {
+				if (this.setStroke(properties)) {
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
 				this.popTransform();
@@ -192,7 +192,7 @@ public class SVGHandler extends DefaultHandler {
 				final ArrayList<Float> points = numberParserResult.getNumbers();
 				if (points.size() > 1) {
 					this.pushTransform(pAttributes);
-					final Properties props = new Properties(pAttributes);
+					final Properties properties = new Properties(pAttributes);
 					p.moveTo(points.get(0), points.get(1));
 					for (int i = 2; i < points.size(); i += 2) {
 						final float x = points.get(i);
@@ -203,11 +203,11 @@ public class SVGHandler extends DefaultHandler {
 					if (pLocalName.equals("polygon")) {
 						p.close();
 					}
-					if (this.doFill(props, this.mGradientShaderMap)) {
+					if (this.setFill(properties)) {
 						this.setLimits(p);
 						this.mCanvas.drawPath(p, this.mPaint);
 					}
-					if (this.doStroke(props)) {
+					if (this.setStroke(properties)) {
 						this.mCanvas.drawPath(p, this.mPaint);
 					}
 					this.popTransform();
@@ -216,18 +216,22 @@ public class SVGHandler extends DefaultHandler {
 		} else if (!this.mHidden && pLocalName.equals("path")) {
 			final Path p = PathParser.parse(SAXUtils.getAttribute(pAttributes, "d", null));
 			this.pushTransform(pAttributes);
-			final Properties props = new Properties(pAttributes);
-			if (this.doFill(props, this.mGradientShaderMap)) {
+			final Properties properties = new Properties(pAttributes);
+			if (this.setFill(properties)) {
 				this.setLimits(p);
 				this.mCanvas.drawPath(p, this.mPaint);
 			}
-			if (this.doStroke(props)) {
+			if (this.setStroke(properties)) {
 				this.mCanvas.drawPath(p, this.mPaint);
 			}
 			this.popTransform();
 		} else if (!this.mHidden) {
 			Debug.d("Unexpected SVG tag: '" + pLocalName +"'!");
 		}
+	}
+
+	private boolean displayNone(final Properties pProperties) {
+		return "none".equals(pProperties.getString("display"));
 	}
 
 	private void parseStop(final Attributes pAttributes) {
@@ -288,15 +292,12 @@ public class SVGHandler extends DefaultHandler {
 	// Methods
 	// ===========================================================
 
-	private boolean doFill(final Properties atts, final HashMap<String, Shader> gradients) {
-		if ("none".equals(atts.getString("display"))) {
-			return false;
-		}
-		final String fillString = atts.getString("fill");
+	private boolean setFill(final Properties pProperties) {
+		final String fillString = pProperties.getString("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
 			// It's a gradient fill, look it up in our map
 			final String id = fillString.substring("url(#".length(), fillString.length() - 1);
-			final Shader shader = gradients.get(id);
+			final Shader shader = this.mGradientShaderMap.get(id);
 			if (shader != null) {
 				//Util.debug("Found shader!");
 				this.mPaint.setShader(shader);
@@ -308,12 +309,12 @@ public class SVGHandler extends DefaultHandler {
 			}
 		} else {
 			this.mPaint.setShader(null);
-			final Integer color = atts.getHex("fill");
+			final Integer color = pProperties.getHex("fill");
 			if (color != null) {
-				this.setPaintColor(atts, color, true);
+				this.setPaintColor(pProperties, color, true);
 				this.mPaint.setStyle(Paint.Style.FILL);
 				return true;
-			} else if (atts.getString("fill") == null && atts.getString("stroke") == null) {
+			} else if (pProperties.getString("fill") == null && pProperties.getString("stroke") == null) {
 				// Default is black fill
 				this.mPaint.setStyle(Paint.Style.FILL);
 				this.mPaint.setColor(0xFF000000);
@@ -323,8 +324,8 @@ public class SVGHandler extends DefaultHandler {
 		return false;
 	}
 
-	private boolean doStroke(final Properties pProperties) {
-		if ("none".equals(pProperties.getString("display"))) {
+	private boolean setStroke(final Properties pProperties) {
+		if(displayNone(pProperties)) {
 			return false;
 		}
 		final Integer color = pProperties.getHex("stroke");
@@ -355,8 +356,9 @@ public class SVGHandler extends DefaultHandler {
 			}
 			this.mPaint.setStyle(Paint.Style.STROKE);
 			return true;
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	private Gradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
@@ -368,7 +370,7 @@ public class SVGHandler extends DefaultHandler {
 				xlink = xlink.substring(1);
 			}
 		}
-		
+
 		if (pLinear) {
 			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
 			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
@@ -451,7 +453,7 @@ public class SVGHandler extends DefaultHandler {
 					this.mCurrentGradient.setXLinkUnresolved(false);
 				}
 			}
-			final Shader shader = mCurrentGradient.createShader();
+			final Shader shader = this.mCurrentGradient.createShader();
 			this.mGradientShaderMap.put(this.mCurrentGradient.getID(), shader);
 			this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
 		}
