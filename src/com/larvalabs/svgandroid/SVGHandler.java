@@ -293,6 +293,10 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 
 	private boolean setFill(final Properties pProperties) {
+		if(this.displayNone(pProperties)) {
+			return false;
+		}
+
 		final String fillString = pProperties.getString("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
 			// It's a gradient fill, look it up in our map
@@ -325,9 +329,10 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private boolean setStroke(final Properties pProperties) {
-		if(displayNone(pProperties)) {
+		if(this.displayNone(pProperties)) {
 			return false;
 		}
+
 		final Integer color = pProperties.getHex("stroke");
 		if (color != null) {
 			this.setPaintColor(pProperties, color, false);
