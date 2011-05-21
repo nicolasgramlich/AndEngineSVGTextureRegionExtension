@@ -34,19 +34,23 @@ public class TransformParser {
 	// Methods
 	// ===========================================================
 
-	public static Matrix parseTransform(final String s) {
-		if (s.startsWith("matrix(")) {
-			return TransformParser.parseTransformMatrix(s);
-		} else if (s.startsWith("translate(")) {
-			return TransformParser.parseTransformTranslate(s);
-		} else if (s.startsWith("scale(")) {
-			return 	TransformParser.parseTransformScale(s);
-		} else if (s.startsWith("skewX(")) {
-			return TransformParser.parseTransformSkewX(s);
-		} else if (s.startsWith("skewY(")) {
-			return TransformParser.parseTransformSkewY(s);
-		} else if (s.startsWith("rotate(")) {
-			return TransformParser.parseTransformRotate(s);
+	public static Matrix parseTransform(final String pString) {
+		if(pString == null) {
+			return null;
+		}
+		
+		if (pString.startsWith("matrix(")) {
+			return TransformParser.parseTransformMatrix(pString);
+		} else if (pString.startsWith("translate(")) {
+			return TransformParser.parseTransformTranslate(pString);
+		} else if (pString.startsWith("scale(")) {
+			return 	TransformParser.parseTransformScale(pString);
+		} else if (pString.startsWith("skewX(")) {
+			return TransformParser.parseTransformSkewX(pString);
+		} else if (pString.startsWith("skewY(")) {
+			return TransformParser.parseTransformSkewY(pString);
+		} else if (pString.startsWith("rotate(")) {
+			return TransformParser.parseTransformRotate(pString);
 		} else {
 			return null;
 		}

@@ -26,8 +26,6 @@ public class SVGParser {
 	// Constants
 	// ===========================================================
 
-	static final String TAG = "SVGAndroid";
-
 	// ===========================================================
 	// Fields
 	// ===========================================================
@@ -95,7 +93,6 @@ public class SVGParser {
 			if (v.endsWith("px")) {
 				v = v.substring(0, v.length() - 2);
 			}
-			//            Log.d(TAG, "Float parsing '" + name + "=" + v + "'");
 			return Float.parseFloat(v);
 		}
 	}
@@ -108,24 +105,23 @@ public class SVGParser {
 			if (v.endsWith("px")) {
 				v = v.substring(0, v.length() - 2);
 			}
-			//            Log.d(TAG, "Float parsing '" + name + "=" + v + "'");
 			return Float.parseFloat(v);
 		}
 	}
 
-//	private static Integer getHexAttribute(final Attributes pAttributes, final String pAttributeName)  {
-//		final String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
-//		if (v == null) {
-//			return null;
-//		} else {
-//			try {
-//				return Integer.parseInt(v.substring(1), 16);
-//			} catch (final NumberFormatException nfe) {
-//				// TODO - parse word-based color here
-//				return null;
-//			}
-//		}
-//	}
+	//	private static Integer getHexAttribute(final Attributes pAttributes, final String pAttributeName)  {
+	//		final String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
+	//		if (v == null) {
+	//			return null;
+	//		} else {
+	//			try {
+	//				return Integer.parseInt(v.substring(1), 16);
+	//			} catch (final NumberFormatException nfe) {
+	//				// TODO - parse word-based color here
+	//				return null;
+	//			}
+	//		}
+	//	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

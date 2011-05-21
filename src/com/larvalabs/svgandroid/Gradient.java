@@ -3,13 +3,14 @@ package com.larvalabs.svgandroid;
 import java.util.ArrayList;
 
 import android.graphics.Matrix;
+import android.graphics.Shader;
 
 /**
  * @author Larva Labs, LLC
  * @author Nicolas Gramlich
  * @since 16:50:09 - 21.05.2011
  */
-public class Gradient {
+public abstract class Gradient {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -18,33 +19,28 @@ public class Gradient {
 	// Fields
 	// ===========================================================
 
-	String mID;
-	private boolean mXLinkUnresolved;
-	String mXLink;
-	boolean isLinear;
-	float x1, y1, x2, y2;
-	float x, y, radius;
-	ArrayList<Float> mPositions = new ArrayList<Float>();
-	ArrayList<Integer> mColors = new ArrayList<Integer>();
-	Matrix mMatrix = null;
+	protected String mID;
+	protected Matrix mMatrix = null;
+	protected String mXLink;
+
+	protected boolean mXLinkUnresolved;
+	
+	protected ArrayList<Float> mOffsets = new ArrayList<Float>();
+	protected ArrayList<Integer> mColors = new ArrayList<Integer>();
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public Gradient createChild(final Gradient pGradient) {
-		final Gradient child = new Gradient();
-		child.mID = pGradient.mID;
-		child.mXLink = this.mID;
-		child.isLinear = pGradient.isLinear;
-		child.x1 = pGradient.x1;
-		child.x2 = pGradient.x2;
-		child.y1 = pGradient.y1;
-		child.y2 = pGradient.y2;
-		child.x = pGradient.x;
-		child.y = pGradient.y;
-		child.radius = pGradient.radius;
-		child.mPositions = this.mPositions;
+	public Gradient(String pID, Matrix pMatrix, String pXLink) {
+		this.mID = pID;
+		this.mMatrix = pMatrix;
+		this.mXLink = pXLink;
+	}
+	
+	public Gradient deriveChild(final Gradient pGradient) {
+		final Gradient child = pGradient.copy(pGradient.mID, mMatrix, mXLink);
+		child.mOffsets = this.mOffsets;
 		child.mColors = this.mColors;
 		child.mMatrix = this.mMatrix;
 		if (pGradient.mMatrix != null) {
@@ -63,21 +59,65 @@ public class Gradient {
 	// Getter & Setter
 	// ===========================================================
 
-	public void markXLinkUnresolved() {
-		this.mXLinkUnresolved = true;
+	public boolean hasXLink() {
+		return this.mXLink != null;
+	}
+
+	public String getXLink() {
+		return this.mXLink;
 	}
 
 	public boolean isXLinkUnresolved() {
 		return this.mXLinkUnresolved;
 	}
 
+	public void setXLinkUnresolved(final boolean pXLinkUnresolved) {
+		this.mXLinkUnresolved = pXLinkUnresolved;
+	}
+
+	public void setMatrix(final Matrix pMatrix) {
+		this.mMatrix = pMatrix;
+	}
+
+	public boolean hasID() {
+		return this.mID != null;
+	}
+
+	public String getID() {
+		return this.mID;
+	}
+
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces
 	// ===========================================================
 
+	protected abstract Gradient copy(final String pID, final Matrix pMatrix, final String pXLink);
+	public abstract Shader createShader();
+
 	// ===========================================================
 	// Methods
 	// ===========================================================
+
+	protected int[] getColorArray() {
+		final int[] colors = new int[this.mColors.size()];
+		for (int i = 0; i < colors.length; i++) {
+			colors[i] = this.mColors.get(i);
+		}
+		return colors;
+	}
+
+	protected float[] getPositionArray() {
+		final float[] positions = new float[this.mOffsets.size()];
+		for (int i = 0; i < positions.length; i++) {
+			positions[i] = this.mOffsets.get(i);
+		}
+		return positions;
+	}
+
+	public void addStop(final float pOffset, final int pColor) {
+		this.mOffsets.add(pOffset);
+		this.mColors.add(pColor);
+	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

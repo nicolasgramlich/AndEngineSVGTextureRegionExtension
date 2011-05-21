@@ -3,6 +3,7 @@ package com.larvalabs.svgandroid;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.anddev.andengine.util.Debug;
 import org.anddev.andengine.util.SAXUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -10,15 +11,12 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Picture;
-import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
-import android.util.Log;
 
 import com.larvalabs.svgandroid.NumberParser.NumberParserResult;
 
@@ -45,7 +43,7 @@ public class SVGHandler extends DefaultHandler {
 
 	private boolean mPushed;
 
-	private final HashMap<String, Shader> mShaderMap = new HashMap<String, Shader>();
+	private final HashMap<String, Shader> mGradientShaderMap = new HashMap<String, Shader>();
 	private final HashMap<String, Gradient> mGradientMap = new HashMap<String, Gradient>();
 	private Gradient mCurrentGradient;
 
@@ -130,7 +128,7 @@ public class SVGHandler extends DefaultHandler {
 			final float height = SVGParser.getFloatAttribute(pAttributes, "height", 0f);
 			this.pushTransform(pAttributes);
 			final Properties props = new Properties(pAttributes);
-			if (this.doFill(props, this.mShaderMap)) {
+			if (this.doFill(props, this.mGradientShaderMap)) {
 				this.setLimits(x, y, width, height);
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
@@ -158,7 +156,7 @@ public class SVGHandler extends DefaultHandler {
 			if (centerX != null && centerY != null && radius != null) {
 				this.pushTransform(pAttributes);
 				final Properties props = new Properties(pAttributes);
-				if (this.doFill(props, this.mShaderMap)) {
+				if (this.doFill(props, this.mGradientShaderMap)) {
 					this.setLimits(centerX - radius, centerY - radius);
 					this.setLimits(centerX + radius, centerY + radius);
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
@@ -177,7 +175,7 @@ public class SVGHandler extends DefaultHandler {
 				this.pushTransform(pAttributes);
 				final Properties props = new Properties(pAttributes);
 				this.mRect.set(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY);
-				if (this.doFill(props, this.mShaderMap)) {
+				if (this.doFill(props, this.mGradientShaderMap)) {
 					this.setLimits(centerX - radiusX, centerY - radiusY);
 					this.setLimits(centerX + radiusX, centerY + radiusY);
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
@@ -205,7 +203,7 @@ public class SVGHandler extends DefaultHandler {
 					if (pLocalName.equals("polygon")) {
 						p.close();
 					}
-					if (this.doFill(props, this.mShaderMap)) {
+					if (this.doFill(props, this.mGradientShaderMap)) {
 						this.setLimits(p);
 						this.mCanvas.drawPath(p, this.mPaint);
 					}
@@ -219,7 +217,7 @@ public class SVGHandler extends DefaultHandler {
 			final Path p = PathParser.parse(SAXUtils.getAttribute(pAttributes, "d", null));
 			this.pushTransform(pAttributes);
 			final Properties props = new Properties(pAttributes);
-			if (this.doFill(props, this.mShaderMap)) {
+			if (this.doFill(props, this.mGradientShaderMap)) {
 				this.setLimits(p);
 				this.mCanvas.drawPath(p, this.mPaint);
 			}
@@ -228,7 +226,7 @@ public class SVGHandler extends DefaultHandler {
 			}
 			this.popTransform();
 		} else if (!this.mHidden) {
-			Log.d(SVGParser.TAG, "UNRECOGNIZED SVG COMMAND: " + pLocalName);
+			Debug.d("Unexpected SVG tag: '" + pLocalName +"'!");
 		}
 	}
 
@@ -254,8 +252,7 @@ public class SVGHandler extends DefaultHandler {
 			} else {
 				color |= 0xFF000000;
 			}
-			this.mCurrentGradient.mPositions.add(offset);
-			this.mCurrentGradient.mColors.add(color);
+			this.mCurrentGradient.addStop(offset, color);
 		}
 	}
 
@@ -269,10 +266,8 @@ public class SVGHandler extends DefaultHandler {
 	throws SAXException {
 		if (pLocalName.equals("svg")) {
 			this.mPicture.endRecording();
-		} else if (pLocalName.equals("linearGradient")) {
-			this.endLinearGradient();
-		} else if (pLocalName.equals("radialGradient")) {
-			this.endRadialGradient();
+		} else if (pLocalName.equals("linearGradient") || pLocalName.equals("radialGradient")) {
+			this.endGradient();
 		} else if (pLocalName.equals("g")) {
 			if (this.mBoundsMode) {
 				this.mBoundsMode = false;
@@ -280,13 +275,12 @@ public class SVGHandler extends DefaultHandler {
 			// Break out of hidden mode
 			if (this.mHidden) {
 				this.mHiddenLevel--;
-				//Util.debug("Hidden down: " + hiddenLevel);
 				if (this.mHiddenLevel == 0) {
 					this.mHidden = false;
 				}
 			}
-			// Clear gradient map
-			this.mShaderMap.clear();
+			/* Clear shader map. */
+			this.mGradientShaderMap.clear();
 		}
 	}
 
@@ -366,31 +360,27 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private Gradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
-		final Gradient gradient = new Gradient();
-		gradient.mID = SAXUtils.getAttribute(pAttributes, "id", null);
-		gradient.isLinear = pLinear;
-		if (pLinear) {
-			gradient.x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
-			gradient.x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
-			gradient.y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
-			gradient.y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
-		} else {
-			gradient.x = SVGParser.getFloatAttribute(pAttributes, "cx", 0f);
-			gradient.y = SVGParser.getFloatAttribute(pAttributes, "cy", 0f);
-			gradient.radius = SVGParser.getFloatAttribute(pAttributes, "r", 0f);
-		}
-		final String transform = SAXUtils.getAttribute(pAttributes, "gradientTransform", null);
-		if (transform != null) {
-			gradient.mMatrix = TransformParser.parseTransform(transform);
-		}
+		final String id = SAXUtils.getAttribute(pAttributes, "id", null);
+		final Matrix matrix = TransformParser.parseTransform(SAXUtils.getAttribute(pAttributes, "gradientTransform", null));
 		String xlink = SAXUtils.getAttribute(pAttributes, "href", null);
 		if (xlink != null) {
 			if (xlink.startsWith("#")) {
 				xlink = xlink.substring(1);
 			}
-			gradient.mXLink = xlink;
 		}
-		return gradient;
+		
+		if (pLinear) {
+			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
+			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
+			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
+			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
+			return new LinearGradient(id, x1, x2, y1, y2, matrix, xlink);
+		} else {
+			final float centerX = SVGParser.getFloatAttribute(pAttributes, "cx", 0f);
+			final float centerY = SVGParser.getFloatAttribute(pAttributes, "cy", 0f);
+			final float radius = SVGParser.getFloatAttribute(pAttributes, "r", 0f);
+			return new RadialGradient(id, centerX, centerY, radius, matrix, xlink);
+		}
 	}
 
 	private void setPaintColor(final Properties pProperties, final Integer pColor, final boolean pFillMode) {
@@ -449,59 +439,21 @@ public class SVGHandler extends DefaultHandler {
 		}
 	}
 
-	private void endRadialGradient() {
-		if (this.mCurrentGradient.mID != null) {
-			if (this.mCurrentGradient.mXLink != null) {
-				final Gradient parent = this.mGradientMap.get(this.mCurrentGradient.mXLink);
+	private void endGradient() {
+		if (this.mCurrentGradient.getID() != null) {
+			if (this.mCurrentGradient.hasXLink()) {
+				final Gradient parent = this.mGradientMap.get(this.mCurrentGradient.getXLink());
 				if (parent == null) {
-					this.mCurrentGradient.markXLinkUnresolved();
+					this.mCurrentGradient.setXLinkUnresolved(true);
 					return;
 				} else {
-					this.mCurrentGradient = parent.createChild(this.mCurrentGradient);
+					this.mCurrentGradient = parent.deriveChild(this.mCurrentGradient);
+					this.mCurrentGradient.setXLinkUnresolved(false);
 				}
 			}
-			final int[] colors = new int[this.mCurrentGradient.mColors.size()];
-			for (int i = 0; i < colors.length; i++) {
-				colors[i] = this.mCurrentGradient.mColors.get(i);
-			}
-			final float[] positions = new float[this.mCurrentGradient.mPositions.size()];
-			for (int i = 0; i < positions.length; i++) {
-				positions[i] = this.mCurrentGradient.mPositions.get(i);
-			}
-			final RadialGradient g = new RadialGradient(this.mCurrentGradient.x, this.mCurrentGradient.y, this.mCurrentGradient.radius, colors, positions, Shader.TileMode.CLAMP);
-			if (this.mCurrentGradient.mMatrix != null) {
-				g.setLocalMatrix(this.mCurrentGradient.mMatrix);
-			}
-			this.mShaderMap.put(this.mCurrentGradient.mID, g);
-			this.mGradientMap.put(this.mCurrentGradient.mID, this.mCurrentGradient);
-		}
-	}
-
-	private void endLinearGradient() {
-		if (this.mCurrentGradient.mID != null) {
-			if (this.mCurrentGradient.mXLink != null) {
-				final Gradient parent = this.mGradientMap.get(this.mCurrentGradient.mXLink);
-				if (parent == null) {
-					this.mCurrentGradient.markXLinkUnresolved();
-					return;
-				} else {
-					this.mCurrentGradient = parent.createChild(this.mCurrentGradient);
-				}
-			}
-			final int[] colors = new int[this.mCurrentGradient.mColors.size()];
-			for (int i = 0; i < colors.length; i++) {
-				colors[i] = this.mCurrentGradient.mColors.get(i);
-			}
-			final float[] positions = new float[this.mCurrentGradient.mPositions.size()];
-			for (int i = 0; i < positions.length; i++) {
-				positions[i] = this.mCurrentGradient.mPositions.get(i);
-			}
-			final LinearGradient g = new LinearGradient(this.mCurrentGradient.x1, this.mCurrentGradient.y1, this.mCurrentGradient.x2, this.mCurrentGradient.y2, colors, positions, Shader.TileMode.CLAMP);
-			if (this.mCurrentGradient.mMatrix != null) {
-				g.setLocalMatrix(this.mCurrentGradient.mMatrix);
-			}
-			this.mShaderMap.put(this.mCurrentGradient.mID, g);
-			this.mGradientMap.put(this.mCurrentGradient.mID, this.mCurrentGradient);
+			final Shader shader = mCurrentGradient.createShader();
+			this.mGradientShaderMap.put(this.mCurrentGradient.getID(), shader);
+			this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
 		}
 	}
 
