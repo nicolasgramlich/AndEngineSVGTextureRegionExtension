@@ -70,7 +70,7 @@ public class SVGHandler extends DefaultHandler {
 	public RectF getBounds() {
 		return this.mBounds;
 	}
-	
+
 	public RectF getLimits() {
 		return this.mLimits;
 	}
@@ -80,39 +80,23 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 
 	@Override
-	public void startDocument() throws SAXException {
-		// Set up prior to parsing a doc
-	}
-
-	@Override
-	public void endDocument() throws SAXException {
-		// Clean up after parsing a doc
-	}
-
-	@Override
 	public void startElement(final String pNamespace, final String pLocalName, final String pQualifiedName, final Attributes pAttributes) throws SAXException {
 		// Reset paint opacity
 		this.mPaint.setAlpha(255);
 		// Ignore everything but rectangles in bounds mode
 		if (this.mBoundsMode) {
 			if (pLocalName.equals("rect")) {
-				Float x = SVGParser.getFloatAttribute(pAttributes, "x");
-				if (x == null) {
-					x = 0f;
-				}
-				Float y = SVGParser.getFloatAttribute(pAttributes, "y");
-				if (y == null) {
-					y = 0f;
-				}
-				final Float width = SVGParser.getFloatAttribute(pAttributes, "width");
-				final Float height = SVGParser.getFloatAttribute(pAttributes, "height");
+				final float x = SVGParser.getFloatAttribute(pAttributes, "x", 0f);
+				final float y = SVGParser.getFloatAttribute(pAttributes, "y", 0f);
+				final float width = SVGParser.getFloatAttribute(pAttributes, "width", 0f);
+				final float height = SVGParser.getFloatAttribute(pAttributes, "height", 0f);
 				this.mBounds = new RectF(x, y, x + width, y + height);
 			}
 			return;
 		}
 		if (pLocalName.equals("svg")) {
-			final int width = (int) Math.ceil(SVGParser.getFloatAttribute(pAttributes, "width"));
-			final int height = (int) Math.ceil(SVGParser.getFloatAttribute(pAttributes, "height"));
+			final int width = (int) Math.ceil(SVGParser.getFloatAttribute(pAttributes, "width", 0f));
+			final int height = (int) Math.ceil(SVGParser.getFloatAttribute(pAttributes, "height", 0f));
 			this.mCanvas = this.mPicture.beginRecording(width, height);
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
@@ -140,16 +124,10 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("rect")) {
-			Float x = SVGParser.getFloatAttribute(pAttributes, "x");
-			if (x == null) {
-				x = 0f;
-			}
-			Float y = SVGParser.getFloatAttribute(pAttributes, "y");
-			if (y == null) {
-				y = 0f;
-			}
-			final Float width = SVGParser.getFloatAttribute(pAttributes, "width");
-			final Float height = SVGParser.getFloatAttribute(pAttributes, "height");
+			final float x = SVGParser.getFloatAttribute(pAttributes, "x", 0f);
+			final float y = SVGParser.getFloatAttribute(pAttributes, "y", 0f);
+			final float width = SVGParser.getFloatAttribute(pAttributes, "width", 0f);
+			final float height = SVGParser.getFloatAttribute(pAttributes, "height", 0f);
 			this.pushTransform(pAttributes);
 			final Properties props = new Properties(pAttributes);
 			if (this.doFill(props, this.mShaderMap)) {
@@ -161,10 +139,10 @@ public class SVGHandler extends DefaultHandler {
 			}
 			this.popTransform();
 		} else if (!this.mHidden && pLocalName.equals("line")) {
-			final Float x1 = SVGParser.getFloatAttribute(pAttributes, "x1");
-			final Float x2 = SVGParser.getFloatAttribute(pAttributes, "x2");
-			final Float y1 = SVGParser.getFloatAttribute(pAttributes, "y1");
-			final Float y2 = SVGParser.getFloatAttribute(pAttributes, "y2");
+			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
+			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
+			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
+			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
 			final Properties props = new Properties(pAttributes);
 			if (this.doStroke(props)) {
 				this.pushTransform(pAttributes);
@@ -256,7 +234,7 @@ public class SVGHandler extends DefaultHandler {
 
 	private void parseStop(final Attributes pAttributes) {
 		if (this.mCurrentGradient != null) {
-			final float offset = SVGParser.getFloatAttribute(pAttributes, "offset");
+			final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
 			final String styles = SAXUtils.getAttribute(pAttributes, "style", null);
 			final StyleSet styleSet = new StyleSet(styles);
 			final String colorStyle = styleSet.getStyle("stop-color");

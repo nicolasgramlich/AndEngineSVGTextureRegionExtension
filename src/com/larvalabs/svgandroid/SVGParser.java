@@ -87,11 +87,20 @@ public class SVGParser {
 		}
 	}
 
-	static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
-		return SVGParser.getFloatAttribute(pAttributes, pAttributeName, null);
+	public static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
+		String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
+		if (v == null) {
+			return null;
+		} else {
+			if (v.endsWith("px")) {
+				v = v.substring(0, v.length() - 2);
+			}
+			//            Log.d(TAG, "Float parsing '" + name + "=" + v + "'");
+			return Float.parseFloat(v);
+		}
 	}
 
-	static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final Float pDefaultValue) {
+	public static float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final float pDefaultValue) {
 		String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
 		if (v == null) {
 			return pDefaultValue;
