@@ -5,6 +5,8 @@ import java.util.Queue;
 
 import android.graphics.Path;
 
+import com.larvalabs.svgandroid.util.ParserUtils;
+
 /**
  * Parses a single SVG path and returns it as a <code>android.graphics.Path</code> object.
  * An example path is <code>M250,150L150,350L350,350Z</code>, which draws a triangle.
@@ -28,11 +30,14 @@ public class PathParser {
 
 	private Character mCommand = null;
 	private int mCurrentCommandStart = 0;
-	private final StringBuilder mCommandParameterStringBuilder = new StringBuilder();
 	private float mLastX;
 	private float mLastY;
 	private float mLastCubicBezierX2;
 	private float mLastCubicBezierY2;
+	private final ParserHelper mParserHelper = new ParserHelper();
+	private String mString;
+	private int mPosition;
+	private int mLength;
 
 	// ===========================================================
 	// Constructors
@@ -69,54 +74,47 @@ public class PathParser {
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
 	public Path parse(final String pString) {
+		this.mString = pString;
 		this.mLastX = 0;
 		this.mLastY = 0;
 		this.mLastCubicBezierX2 = 0;
 		this.mLastCubicBezierY2 = 0;
 		this.mCommand = null;
 		this.mCommandParameters.clear();
-		this.mCommandParameterStringBuilder.setLength(0);
 		this.mPath = new Path();
+		if(pString.length() == 0) {
+			return mPath;
+		}
+		this.mParserHelper.mCurrentChar = pString.charAt(0);
 
-		final int length = pString.length();
-		for (int i = 0; i < length; i++) {
+		this.mLength = pString.length();
+		for (this.mPosition = 0; this.mPosition < this.mLength; this.mPosition++) {
 			try {
-				final char c = pString.charAt(i);
+				this.mParserHelper.skipWhitespace();
+				final char c = this.mParserHelper.mCurrentChar;
 				if (Character.isLetter(c) && (c != 'e')) {
 					this.processCommand();
 
 					this.mCommand = c;
-					this.mCurrentCommandStart = i;
-				} else if ((Character.isDigit(c)) || (c == '-') || (c == '.') || (c == 'e')) {
-					// TODO Track if '-' has been read already, as it can be used as a separator too
-					// TODO Scientific notation most likely won't work here!
-					// TODO --> Solution: make use of ParserHelper.parseFloat? See how ParserHelper was used before.
-					this.mCommandParameterStringBuilder.append(c);
+					this.mCurrentCommandStart = this.mPosition;
 				} else {
-					this.addParameter();
+					final float parameter = this.mParserHelper.nextFloat();
+					this.mCommandParameters.add(parameter);
 				}
 			} catch(final Throwable t) {
-				throw new IllegalArgumentException("Error parsing: " + pString.substring(this.mCurrentCommandStart, i) + " - " + this.mCommand + " - " + this.mCommandParameters.size(), t);
+				throw new IllegalArgumentException("Error parsing: '" + pString.substring(this.mCurrentCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
 			}
 		}
 		this.processCommand();
 		return this.mPath;
 	}
 
-	private void addParameter() {
-		if (this.mCommandParameterStringBuilder.length() > 0) {
-			this.mCommandParameters.add(Float.parseFloat(this.mCommandParameterStringBuilder.toString()));
-			this.mCommandParameterStringBuilder.delete(0, this.mCommandParameterStringBuilder.length());
-		}
-	}
-
 	private void processCommand() {
-		this.addParameter();
 		if (this.mCommand != null) {
 			// Process command
 			this.generatePathElement();
+			this.mCommandParameters.clear();
 		}
-		this.mCommandParameters.clear();
 	}
 
 	private void generatePathElement() {
@@ -318,8 +316,8 @@ public class PathParser {
 		if(pAbsolute) {
 			while(this.mCommandParameters.size() >= 4) {
 				// TODO Check why x1,y1 where calculated like that? Was only for relative maybe?
-				final float x1 = this.mLastCubicBezierX2; // 2 * this.mLastX - this.mLastCubicBezierX2
-				final float y1 = this.mLastCubicBezierY2; // 2 * this.mLastY - this.mLastCubicBezierY2
+				final float x1 = this.mLastCubicBezierX2; // 2 * mLastX - mLastCubicBezierX2
+				final float y1 = this.mLastCubicBezierY2; // 2 * mLastY - mLastCubicBezierY2
 				final float x2 = this.mCommandParameters.poll();
 				final float y2 = this.mCommandParameters.poll();
 				final float x = this.mCommandParameters.poll();
@@ -332,8 +330,8 @@ public class PathParser {
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 4) {
-				final float x1 = this.mLastCubicBezierX2 - this.mLastX; // 2 * this.mLastX - this.mLastCubicBezierX2
-				final float y1 = this.mLastCubicBezierY2 - this.mLastY; // 2 * this.mLastY - this.mLastCubicBezierY2
+				final float x1 = this.mLastCubicBezierX2 - this.mLastX; // 2 * mLastX - mLastCubicBezierX2
+				final float y1 = this.mLastCubicBezierY2 - this.mLastY; // 2 * mLastY - mLastCubicBezierY2
 				final float x2 = this.mCommandParameters.poll();
 				final float y2 = this.mCommandParameters.poll();
 				final float x = this.mCommandParameters.poll();
@@ -402,4 +400,288 @@ public class PathParser {
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================
+
+	/**
+	 * Parses numbers from SVG text. Based on the Batik Number Parser (Apache 2 License).
+	 *
+	 * @author Apache Software Foundation
+	 * @author Larva Labs LLC
+	 * @author Nicolas Gramlich
+	 */
+	public class ParserHelper {
+		// ===========================================================
+		// Constants
+		// ===========================================================
+
+		// ===========================================================
+		// Fields
+		// ===========================================================
+
+		private char mCurrentChar;
+
+		// ===========================================================
+		// Constructors
+		// ===========================================================
+
+		// ===========================================================
+		// Getter & Setter
+		// ===========================================================
+
+		// ===========================================================
+		// Methods for/from SuperClass/Interfaces
+		// ===========================================================
+
+		// ===========================================================
+		// Methods
+		// ===========================================================
+
+		private char read() {
+			if (PathParser.this.mPosition < PathParser.this.mLength) {
+				PathParser.this.mPosition++;
+			}
+			if (PathParser.this.mPosition == PathParser.this.mLength) {
+				return '\0';
+			} else {
+				return PathParser.this.mString.charAt(PathParser.this.mPosition);
+			}
+		}
+
+		public void skipWhitespace() {
+			while (PathParser.this.mPosition < PathParser.this.mLength) {
+				if (Character.isWhitespace(PathParser.this.mString.charAt(PathParser.this.mPosition))) {
+					this.advance();
+				} else {
+					break;
+				}
+			}
+		}
+
+		public void skipNumberSeparator() {
+			while (PathParser.this.mPosition < PathParser.this.mLength) {
+				final char c = PathParser.this.mString.charAt(PathParser.this.mPosition);
+				switch (c) {
+					case ' ':
+					case ',':
+					case '\n':
+					case '\t':
+						this.advance();
+						break;
+					default:
+						return;
+				}
+			}
+		}
+
+		public void advance() {
+			this.mCurrentChar = this.read();
+		}
+
+		/**
+		 * Parses the content of the buffer and converts it to a float.
+		 */
+		private float parseFloat() {
+			int     mantissa     = 0;
+			int     mantissaDigit  = 0;
+			boolean mantPosition  = true;
+			boolean mantissaRead = false;
+
+			int     exp      = 0;
+			int     expDig   = 0;
+			int     expAdj   = 0;
+			boolean expPos   = true;
+
+			switch (this.mCurrentChar) {
+				case '-':
+					mantPosition = false;
+				case '+':
+					this.mCurrentChar = this.read();
+			}
+
+			m1: switch (this.mCurrentChar) {
+				default:
+					return Float.NaN;
+
+				case '.':
+					break;
+
+				case '0':
+					mantissaRead = true;
+					l: for (;;) {
+						this.mCurrentChar = this.read();
+						switch (this.mCurrentChar) {
+							case '1': case '2': case '3': case '4':
+							case '5': case '6': case '7': case '8': case '9':
+								break l;
+							case '.': case 'e': case 'E':
+								break m1;
+							default:
+								return 0.0f;
+							case '0':
+						}
+					}
+
+				case '1': case '2': case '3': case '4':
+				case '5': case '6': case '7': case '8': case '9':
+					mantissaRead = true;
+					l: for (;;) {
+						if (mantissaDigit < 9) {
+							mantissaDigit++;
+							mantissa = mantissa * 10 + (this.mCurrentChar - '0');
+						} else {
+							expAdj++;
+						}
+						this.mCurrentChar = this.read();
+						switch (this.mCurrentChar) {
+							default:
+								break l;
+							case '0': case '1': case '2': case '3': case '4':
+							case '5': case '6': case '7': case '8': case '9':
+						}
+					}
+			}
+
+			if (this.mCurrentChar == '.') {
+				this.mCurrentChar = this.read();
+				m2: switch (this.mCurrentChar) {
+					default:
+					case 'e': case 'E':
+						if (!mantissaRead) {
+							throw new IllegalArgumentException("Unexpected char '" + this.mCurrentChar + "'.");
+						}
+						break;
+
+					case '0':
+						if (mantissaDigit == 0) {
+							l: for (;;) {
+								this.mCurrentChar = this.read();
+								expAdj--;
+								switch (this.mCurrentChar) {
+									case '1': case '2': case '3': case '4':
+									case '5': case '6': case '7': case '8': case '9':
+										break l;
+									default:
+										if (!mantissaRead) {
+											return 0.0f;
+										}
+										break m2;
+									case '0':
+								}
+							}
+						}
+					case '1': case '2': case '3': case '4':
+					case '5': case '6': case '7': case '8': case '9':
+						l: for (;;) {
+							if (mantissaDigit < 9) {
+								mantissaDigit++;
+								mantissa = mantissa * 10 + (this.mCurrentChar - '0');
+								expAdj--;
+							}
+							this.mCurrentChar = this.read();
+							switch (this.mCurrentChar) {
+								default:
+									break l;
+								case '0': case '1': case '2': case '3': case '4':
+								case '5': case '6': case '7': case '8': case '9':
+							}
+						}
+				}
+			}
+
+			switch (this.mCurrentChar) {
+				case 'e': case 'E':
+					this.mCurrentChar = this.read();
+					switch (this.mCurrentChar) {
+						default:
+							throw new IllegalArgumentException("Unexpected char '" + this.mCurrentChar + "'.");
+						case '-':
+							expPos = false;
+						case '+':
+							this.mCurrentChar = this.read();
+							switch (this.mCurrentChar) {
+								default:
+									throw new IllegalArgumentException("Unexpected char '" + this.mCurrentChar + "'.");
+								case '0': case '1': case '2': case '3': case '4':
+								case '5': case '6': case '7': case '8': case '9':
+							}
+						case '0': case '1': case '2': case '3': case '4':
+						case '5': case '6': case '7': case '8': case '9':
+					}
+
+					en: switch (this.mCurrentChar) {
+						case '0':
+							l: for (;;) {
+								this.mCurrentChar = this.read();
+								switch (this.mCurrentChar) {
+									case '1': case '2': case '3': case '4':
+									case '5': case '6': case '7': case '8': case '9':
+										break l;
+									default:
+										break en;
+									case '0':
+								}
+							}
+
+						case '1': case '2': case '3': case '4':
+						case '5': case '6': case '7': case '8': case '9':
+							l: for (;;) {
+								if (expDig < 3) {
+									expDig++;
+									exp = exp * 10 + (this.mCurrentChar - '0');
+								}
+								this.mCurrentChar = this.read();
+								switch (this.mCurrentChar) {
+									default:
+										break l;
+									case '0': case '1': case '2': case '3': case '4':
+									case '5': case '6': case '7': case '8': case '9':
+								}
+							}
+					}
+				default:
+			}
+
+			if (!expPos) {
+				exp = -exp;
+			}
+			exp += expAdj;
+			if (!mantPosition) {
+				mantissa = -mantissa;
+			}
+
+			return this.buildFloat(mantissa, exp);
+		}
+
+		public float nextFloat() {
+			this.skipWhitespace();
+			final float f = this.parseFloat();
+			this.skipNumberSeparator();
+			return f;
+		}
+
+		public float buildFloat(int pMantissa, final int pExponent) {
+			if (pExponent < -125 || pMantissa == 0) {
+				return 0.0f;
+			}
+
+			if (pExponent >=  128) {
+				return (pMantissa > 0)
+				? Float.POSITIVE_INFINITY
+						: Float.NEGATIVE_INFINITY;
+			}
+
+			if (pExponent == 0) {
+				return pMantissa;
+			}
+
+			if (pMantissa >= (1 << 26)) {
+				pMantissa++;  // round up trailing bits if they will be dropped.
+			}
+
+			return (float) ((pExponent > 0) ? pMantissa * ParserUtils.POWERS_OF_10[pExponent] : pMantissa / ParserUtils.POWERS_OF_10[-pExponent]);
+		}
+
+		// ===========================================================
+		// Inner and Anonymous Classes
+		// ===========================================================
+	}
 }
