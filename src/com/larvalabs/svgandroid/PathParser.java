@@ -1,5 +1,8 @@
 package com.larvalabs.svgandroid;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import android.graphics.Path;
 
 /**
@@ -20,6 +23,17 @@ public class PathParser {
 	// Fields
 	// ===========================================================
 
+	private Path mPath;
+	private final Queue<Float> mCommandParameters = new LinkedList<Float>();
+
+	private Character mCommand = null;
+	private int mCurrentCommandStart = 0;
+	private final StringBuilder mCommandParameterStringBuilder = new StringBuilder();
+	private float mLastX;
+	private float mLastY;
+	private float mLastCubicBezierX2;
+	private float mLastCubicBezierY2;
+
 	// ===========================================================
 	// Constructors
 	// ===========================================================
@@ -35,7 +49,7 @@ public class PathParser {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	
+
 	/**
 	 * Uppercase rules are absolute positions, lowercase are relative.
 	 * Types of path rules:
@@ -54,148 +68,330 @@ public class PathParser {
 	 * <p/>
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
-	static Path parse(final String pString) {
-		final int n = pString.length();
-		final ParserHelper parserHelper = new ParserHelper(pString, 0);
-		parserHelper.skipWhitespace();
-		final Path p = new Path();
-		float lastX = 0;
-		float lastY = 0;
-		float lastX1 = 0;
-		float lastY1 = 0;
-		while (parserHelper.getPosition() < n) {
-			final char cmd = pString.charAt(parserHelper.getPosition());
-			//Util.debug("* Commands remaining: '" + path + "'.");
-			parserHelper.advance();
-			boolean wasCurve = false;
-			switch (cmd) {
-				case 'M':
-				case 'm': {
-					final float x = parserHelper.nextFloat();
-					final float y = parserHelper.nextFloat();
-					if (cmd == 'm') {
-						p.rMoveTo(x, y);
-						lastX += x;
-						lastY += y;
-					} else {
-						p.moveTo(x, y);
-						lastX = x;
-						lastY = y;
-					}
-					break;
+	public Path parse(final String pString) {
+		this.mLastX = 0;
+		this.mLastY = 0;
+		this.mLastCubicBezierX2 = 0;
+		this.mLastCubicBezierY2 = 0;
+		this.mCommand = null;
+		this.mCommandParameters.clear();
+		this.mCommandParameterStringBuilder.setLength(0);
+		this.mPath = new Path();
+
+		final int length = pString.length();
+		for (int i = 0; i < length; i++) {
+			try {
+				final char c = pString.charAt(i);
+				if (Character.isLetter(c)) {
+					this.processCommand();
+
+					this.mCommand = c;
+					this.mCurrentCommandStart = i;
+				} else if ((Character.isDigit(c)) || (c == '-') || (c == '.')) {
+					// TODO Track if '-' has been read already, as it can be used as a separator too
+					// TODO Scientific notation most likely won't work here!
+					// TODO --> Solution: make use of ParserHelper.parseFloat? See how ParserHelper was used before.
+					this.mCommandParameterStringBuilder.append(c);
+				} else {
+					this.addParameter();
 				}
-				case 'Z':
-				case 'z': {
-					p.close();
-					break;
-				}
-				case 'L':
-				case 'l': {
-					final float x = parserHelper.nextFloat();
-					final float y = parserHelper.nextFloat();
-					if (cmd == 'l') {
-						p.rLineTo(x, y);
-						lastX += x;
-						lastY += y;
-					} else {
-						p.lineTo(x, y);
-						lastX = x;
-						lastY = y;
-					}
-					break;
-				}
-				case 'H':
-				case 'h': {
-					final float x = parserHelper.nextFloat();
-					if (cmd == 'h') {
-						p.rLineTo(x, 0);
-						lastX += x;
-					} else {
-						p.lineTo(x, lastY);
-						lastX = x;
-					}
-					break;
-				}
-				case 'V':
-				case 'v': {
-					final float y = parserHelper.nextFloat();
-					if (cmd == 'v') {
-						p.rLineTo(0, y);
-						lastY += y;
-					} else {
-						p.lineTo(lastX, y);
-						lastY = y;
-					}
-					break;
-				}
-				case 'C':
-				case 'c': {
-					wasCurve = true;
-					float x1 = parserHelper.nextFloat();
-					float y1 = parserHelper.nextFloat();
-					float x2 = parserHelper.nextFloat();
-					float y2 = parserHelper.nextFloat();
-					float x = parserHelper.nextFloat();
-					float y = parserHelper.nextFloat();
-					if (cmd == 'c') {
-						x1 += lastX;
-						x2 += lastX;
-						x += lastX;
-						y1 += lastY;
-						y2 += lastY;
-						y += lastY;
-					}
-					p.cubicTo(x1, y1, x2, y2, x, y);
-					lastX1 = x2;
-					lastY1 = y2;
-					lastX = x;
-					lastY = y;
-					break;
-				}
-				case 'S':
-				case 's': {
-					wasCurve = true;
-					float x2 = parserHelper.nextFloat();
-					float y2 = parserHelper.nextFloat();
-					float x = parserHelper.nextFloat();
-					float y = parserHelper.nextFloat();
-					if (cmd == 's') {
-						x2 += lastX;
-						x += lastX;
-						y2 += lastY;
-						y += lastY;
-					}
-					final float x1 = 2 * lastX - lastX1;
-					final float y1 = 2 * lastY - lastY1;
-					p.cubicTo(x1, y1, x2, y2, x, y);
-					lastX1 = x2;
-					lastY1 = y2;
-					lastX = x;
-					lastY = y;
-					break;
-				}
-				case 'A':
-				case 'a': {
-//					final float rx = parserHelper.nextFloat();
-//					final float ry = parserHelper.nextFloat();
-//					final float theta = parserHelper.nextFloat();
-//					final int largeArc = (int) parserHelper.nextFloat();
-//					final int sweepArc = (int) parserHelper.nextFloat();
-					final float x = parserHelper.nextFloat();
-					final float y = parserHelper.nextFloat();
-					// TODO - not implemented yet, may be very hard to do using Android drawing facilities.
-					lastX = x;
-					lastY = y;
-					break;
-				}
+			} catch(final Throwable t) {
+				throw new IllegalArgumentException("Error parsing: " + pString.substring(this.mCurrentCommandStart, i) + " - " + this.mCommand + " - " + this.mCommandParameters.size(), t);
 			}
-			if (!wasCurve) {
-				lastX1 = lastX;
-				lastY1 = lastY;
-			}
-			parserHelper.skipWhitespace();
 		}
-		return p;
+		this.processCommand();
+		return this.mPath;
+	}
+
+	private void addParameter() {
+		if (this.mCommandParameterStringBuilder.length() > 0) {
+			this.mCommandParameters.add(Float.parseFloat(this.mCommandParameterStringBuilder.toString()));
+			this.mCommandParameterStringBuilder.delete(0, this.mCommandParameterStringBuilder.length());
+		}
+	}
+
+	private void processCommand() {
+		this.addParameter();
+		if (this.mCommand != null) {
+			// Process command
+			this.generatePathElement();
+		}
+		this.mCommandParameters.clear();
+	}
+
+	private void generatePathElement() {
+		boolean wasCubicBezierCurve = false;
+		switch (this.mCommand) {
+			case 'm':
+				this.generateMove(false);
+				break;
+			case 'M':
+				this.generateMove(true);
+				break;
+			case 'l':
+				this.generateLine(false);
+				break;
+			case 'L':
+				this.generateLine(true);
+				break;
+			case 'h':
+				this.generateHorizontalLine(false);
+				break;
+			case 'H':
+				this.generateHorizontalLine(true);
+				break;
+			case 'v':
+				this.generateVerticalLine(false);
+				break;
+			case 'V':
+				this.generateVerticalLine(true);
+				break;
+			case 'c':
+				this.generateCubicBezierCurve(false);
+				wasCubicBezierCurve = true;
+				break;
+			case 'C':
+				this.generateCubicBezierCurve(true);
+				wasCubicBezierCurve = true;
+				break;
+			case 's':
+				this.generateSmoothCubicBezierCurve(false);
+				wasCubicBezierCurve = true;
+				break;
+			case 'S':
+				this.generateSmoothCubicBezierCurve(true);
+				wasCubicBezierCurve = true;
+				break;
+			case 'q':
+				this.generateQuadraticBezierCurve(false);
+				break;
+			case 'Q':
+				this.generateQuadraticBezierCurve(true);
+				break;
+			case 't':
+				this.generateSmoothQuadraticBezierCurve(false);
+				break;
+			case 'T':
+				this.generateSmoothQuadraticBezierCurve(true);
+				break;
+			case 'a':
+				this.generateArcTo(false);
+				break;
+			case 'A':
+				this.generateArcTo(true);
+				break;
+			case 'z':
+			case 'Z':
+				this.generateClosePath();
+				break;
+			default:
+				throw new RuntimeException("Unexpected SVG command: " + this.mCommand);
+		}
+		if (!wasCubicBezierCurve) {
+			this.mLastCubicBezierX2 = mLastX;
+			this.mLastCubicBezierY2 = mLastY;
+		}
+	}
+
+	private void assertParameterCountMinimum(final int pParameterCount) {
+		if (this.mCommandParameters.size() < pParameterCount) {
+			throw new RuntimeException("Incorrect parameter count: '" + this.mCommandParameters.size() + "'. Expected at least: '" + pParameterCount + "'.");
+		}
+	}
+
+	private void assertParameterCount(final int pParameterCount) {
+		if (this.mCommandParameters.size() != pParameterCount) {
+			throw new RuntimeException("Incorrect parameter count: '" + this.mCommandParameters.size() + "'. Expected: '" + pParameterCount + "'.");
+		}
+	}
+
+	private void generateMove(final boolean pAbsolute) {
+		this.assertParameterCount(2);
+		final float x = this.mCommandParameters.poll();
+		final float y = this.mCommandParameters.poll();
+		/** Moves the line from mLastX,mLastY to x,y. */
+		if (pAbsolute) {
+			this.mPath.moveTo(x, y);
+			this.mLastX = x;
+			this.mLastY = y;
+		} else {
+			this.mPath.rMoveTo(x, y);
+			this.mLastX += x;
+			this.mLastY += y;
+		}
+		// TODO Additional parameters (i.e. inkscape) treated as moveTos/lineTos ???
+	}
+
+	private void generateLine(final boolean pAbsolute) {
+		this.assertParameterCountMinimum(2);
+		/** Draws a line from mLastX,mLastY to x,y. */
+		if(pAbsolute) {
+			while(this.mCommandParameters.size() >= 2) {
+				final float x = this.mCommandParameters.poll();
+				final float y = this.mCommandParameters.poll();
+				this.mPath.lineTo(x, y);
+				this.mLastX = x;
+				this.mLastY = y;
+			}
+		} else {
+			while(this.mCommandParameters.size() >= 2) {
+				final float x = this.mCommandParameters.poll();
+				final float y = this.mCommandParameters.poll();
+				this.mPath.rLineTo(x, y);
+				this.mLastX += x;
+				this.mLastY += y;
+			}
+		}
+		this.mCommandParameters.clear();
+	}
+
+	private void generateHorizontalLine(final boolean pAbsolute) {
+		this.assertParameterCount(1);
+		/** Draws a horizontal line to the point defined by mLastY and x. */
+		final float x = this.mCommandParameters.poll();
+		if(pAbsolute) {
+			this.mPath.lineTo(x, this.mLastY);
+			this.mLastX = x;
+		} else {
+			this.mPath.rLineTo(x, 0);
+			this.mLastX += x;
+		}
+	}
+
+	private void generateVerticalLine(final boolean pAbsolute) {
+		this.assertParameterCount(1);
+		/** Draws a vertical line to the point defined by mLastX and y. */
+		final float y = this.mCommandParameters.poll();
+		if(pAbsolute) {
+			this.mPath.lineTo(this.mLastX, y);
+			this.mLastY = y;
+		} else {
+			this.mPath.rLineTo(0, y);
+			this.mLastY += y;
+		}
+	}
+
+	private void generateCubicBezierCurve(final boolean pAbsolute) {
+		this.assertParameterCountMinimum(6);
+		/** Draws a cubic bezier curve from current pen point to x,y. 
+		 * x1,y1 and x2,y2 are start and end control points of the curve. */
+		if(pAbsolute) {
+			while(this.mCommandParameters.size() >= 6) {
+				final float x1 = this.mCommandParameters.poll();
+				final float y1 = this.mCommandParameters.poll();
+				final float x2 = this.mCommandParameters.poll();
+				final float y2 = this.mCommandParameters.poll();
+				final float x3 = this.mCommandParameters.poll();
+				final float y3 = this.mCommandParameters.poll();
+				this.mPath.cubicTo(x1, y1, x2, y2, x3, y3);
+				this.mLastCubicBezierX2 = x2;
+				this.mLastCubicBezierY2 = y2;
+				this.mLastX = x3;
+				this.mLastY = y3;
+			}
+		} else {
+			while(this.mCommandParameters.size() >= 6) {
+				final float x1 = this.mCommandParameters.poll() + this.mLastX;
+				final float y1 = this.mCommandParameters.poll() + this.mLastY;
+				final float x2 = this.mCommandParameters.poll() + this.mLastX;
+				final float y2 = this.mCommandParameters.poll() + this.mLastY;
+				final float x3 = this.mCommandParameters.poll() + this.mLastX;
+				final float y3 = this.mCommandParameters.poll() + this.mLastY;
+				this.mPath.cubicTo(x1, y1, x2, y2, x3, y3); // TODO rCubicTo ?
+				this.mLastCubicBezierX2 = x2;
+				this.mLastCubicBezierY2 = y2;
+				this.mLastX = x3;
+				this.mLastY = y3;
+			}
+		}
+	}
+
+	private void generateSmoothCubicBezierCurve(final boolean pAbsolute) {
+		this.assertParameterCountMinimum(4);
+		/** Draws a cubic bezier curve from the last point to x,y. 
+		 * x2,y2 is the end control point. 
+		 * The start control point is is assumed to be the same as 
+		 * the end control point of the previous curve. */
+		if(pAbsolute) {
+			while(this.mCommandParameters.size() >= 4) {
+				// TODO Check why x1,y1 where calculated like that? Was only for relative maybe?
+				final float x1 = this.mLastCubicBezierX2; // 2 * this.mLastX - this.mLastCubicBezierX2
+				final float y1 = this.mLastCubicBezierY2; // 2 * this.mLastY - this.mLastCubicBezierY2
+				final float x2 = this.mCommandParameters.poll();
+				final float y2 = this.mCommandParameters.poll();
+				final float x = this.mCommandParameters.poll();
+				final float y = this.mCommandParameters.poll();
+				this.mPath.cubicTo(x1, y1, x2, y2, x, y);
+				this.mLastCubicBezierX2 = x2;
+				this.mLastCubicBezierY2 = y2;
+				this.mLastX = x;
+				this.mLastY = y;
+			}
+		} else {
+			while(this.mCommandParameters.size() >= 4) {
+				// TODO How make x1,y1 relative?
+				final float x1 = this.mLastCubicBezierX2; // 2 * this.mLastX - this.mLastCubicBezierX2
+				final float y1 = this.mLastCubicBezierY2; // 2 * this.mLastY - this.mLastCubicBezierY2
+				final float x2 = this.mCommandParameters.poll() + this.mLastX;
+				final float y2 = this.mCommandParameters.poll() + this.mLastY;
+				final float x = this.mCommandParameters.poll() + this.mLastX;
+				final float y = this.mCommandParameters.poll() + this.mLastY;
+				this.mPath.cubicTo(x1, y1, x2, y2, x, y); // TODO rCubicTo ?
+				this.mLastCubicBezierX2 = x2;
+				this.mLastCubicBezierY2 = y2;
+				this.mLastX = x;
+				this.mLastY = y;
+			}
+		}
+	}
+
+	private void generateQuadraticBezierCurve(final boolean pAbsolute) {
+		this.assertParameterCount(4);
+		// TODO Loop?
+		final float x1 = this.mCommandParameters.poll();
+		final float y1 = this.mCommandParameters.poll();
+		final float x2 = this.mCommandParameters.poll();
+		final float y2 = this.mCommandParameters.poll();
+		
+		// TODO Implement
+		/** Draws a quadratic Bezier curve from mLastX,mLastY x,y. x1,y1 is the control point.. */
+		if(pAbsolute) {
+			this.mPath.quadTo(x1, y1, x2, y2);
+		} else {
+			this.mPath.quadTo(x1, y1, x2, y2); // TODO rQuadTo?
+		}
+	}
+
+	private void generateSmoothQuadraticBezierCurve(final boolean pAbsolute) {
+		// TODO Implement 
+		
+		/** Draws a quadratic Bezier curve from mLastX,mLastY to x,y.
+		 * The control point is assumed to be the same as the last control point used. */
+	}
+
+	private void generateArcTo(final boolean pAbsolute) {
+		this.assertParameterCount(7);
+		final float rx = this.mCommandParameters.poll();
+		final float ry = this.mCommandParameters.poll();
+		final float theta = this.mCommandParameters.poll();
+		final int largeArc = this.mCommandParameters.poll().intValue();
+		final int sweepArc = this.mCommandParameters.poll().intValue();
+		final float x = this.mCommandParameters.poll();
+		final float y = this.mCommandParameters.poll();
+		if(pAbsolute) {
+			// TODO Implement
+			// lastX = x;
+			// lastY = y;
+		} else {
+			// TODO Implement
+			// lastX += x;
+			// lastY += y;
+		}
+	}
+
+	private void generateClosePath() {
+		this.assertParameterCount(0);
+		this.mPath.close();
 	}
 
 	// ===========================================================

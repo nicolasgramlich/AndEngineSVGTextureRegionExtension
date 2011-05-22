@@ -7,7 +7,6 @@ import java.io.InputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.anddev.andengine.util.SAXUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
@@ -86,7 +85,7 @@ public class SVGParser {
 	}
 
 	public static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
-		String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
+		String v = ParserHelper.getStringAttribute(pAttributes, pAttributeName);
 		if (v == null) {
 			return null;
 		} else {
@@ -98,7 +97,7 @@ public class SVGParser {
 	}
 
 	public static float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final float pDefaultValue) {
-		String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
+		String v = ParserHelper.getStringAttribute(pAttributes, pAttributeName);
 		if (v == null) {
 			return pDefaultValue;
 		} else {
@@ -110,7 +109,7 @@ public class SVGParser {
 	}
 
 	//	private static Integer getHexAttribute(final Attributes pAttributes, final String pAttributeName)  {
-	//		final String v = SAXUtils.getAttribute(pAttributes, pAttributeName, null);
+	//		final String v = ParserHelper.getStringAttribute(pAttributes, pAttributeName, null);
 	//		if (v == null) {
 	//			return null;
 	//		} else {

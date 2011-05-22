@@ -2,9 +2,10 @@ package com.larvalabs.svgandroid;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.anddev.andengine.util.Debug;
-import org.anddev.andengine.util.SAXUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -29,6 +30,8 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 	// Constants
 	// ===========================================================
+
+	private static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
 
 	// ===========================================================
 	// Fields
@@ -106,19 +109,17 @@ public class SVGHandler extends DefaultHandler {
 			this.parseStop(pAttributes);
 		} else if (pLocalName.equals("g")) {
 			// Check to see if this is the "bounds" layer
-			if ("bounds".equalsIgnoreCase(SAXUtils.getAttribute(pAttributes, "id", null))) {
+			if ("bounds".equalsIgnoreCase(ParserHelper.getStringAttribute(pAttributes, "id"))) {
 				this.mBoundsMode = true;
 			}
 			if (this.mHidden) {
 				this.mHiddenLevel++;
-				//Util.debug("Hidden up: " + hiddenLevel);
 			}
 			// Go in to hidden mode if display is "none"
-			if ("none".equals(SAXUtils.getAttribute(pAttributes, "display", null))) {
+			if ("none".equals(ParserHelper.getStringAttribute(pAttributes, "display"))) {
 				if (!this.mHidden) {
 					this.mHidden = true;
 					this.mHiddenLevel = 1;
-					//Util.debug("Hidden up: " + hiddenLevel);
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("rect")) {
@@ -214,7 +215,7 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("path")) {
-			final Path p = PathParser.parse(SAXUtils.getAttribute(pAttributes, "d", null));
+			final Path p = new PathParser().parse(ParserHelper.getStringAttribute(pAttributes, "d"));
 			this.pushTransform(pAttributes);
 			final Properties properties = new Properties(pAttributes);
 			if (this.setFill(properties)) {
@@ -227,36 +228,6 @@ public class SVGHandler extends DefaultHandler {
 			this.popTransform();
 		} else if (!this.mHidden) {
 			Debug.d("Unexpected SVG tag: '" + pLocalName +"'!");
-		}
-	}
-
-	private boolean displayNone(final Properties pProperties) {
-		return "none".equals(pProperties.getString("display"));
-	}
-
-	private void parseStop(final Attributes pAttributes) {
-		if (this.mCurrentGradient != null) {
-			final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
-			final String styles = SAXUtils.getAttribute(pAttributes, "style", null);
-			final StyleSet styleSet = new StyleSet(styles);
-			final String colorStyle = styleSet.getStyle("stop-color");
-			int color = Color.BLACK;
-			if (colorStyle != null) {
-				if (colorStyle.startsWith("#")) {
-					color = Integer.parseInt(colorStyle.substring(1), 16);
-				} else {
-					color = Integer.parseInt(colorStyle, 16);
-				}
-			}
-			final String opacityStyle = styleSet.getStyle("stop-opacity");
-			if (opacityStyle != null) {
-				final float alpha = Float.parseFloat(opacityStyle);
-				final int alphaInt = Math.round(255 * alpha);
-				color |= (alphaInt << 24);
-			} else {
-				color |= 0xFF000000;
-			}
-			this.mCurrentGradient.addStop(offset, color);
 		}
 	}
 
@@ -293,22 +264,31 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 
 	private boolean setFill(final Properties pProperties) {
-		if(this.displayNone(pProperties)) {
+		if(this.isDisplayNone(pProperties)) {
 			return false;
 		}
-
+		
 		final String fillString = pProperties.getString("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
 			// It's a gradient fill, look it up in our map
 			final String id = fillString.substring("url(#".length(), fillString.length() - 1);
-			final Shader shader = this.mGradientShaderMap.get(id);
-			if (shader != null) {
-				//Util.debug("Found shader!");
-				this.mPaint.setShader(shader);
+
+			final Gradient gradient = this.mGradientMap.get(id);
+			if(gradient != null) {
+				if(gradient.isXLinkUnresolved()) {
+					final Gradient derived = this.registerDerivedGradient(gradient);
+					/* Check if still unresolved. */
+					if(derived.isXLinkUnresolved()) {
+						return false;
+					}
+				}
+			}
+			final Shader gradientShader = this.mGradientShaderMap.get(id);
+			if (gradientShader != null) {
+				this.mPaint.setShader(gradientShader);
 				this.mPaint.setStyle(Paint.Style.FILL);
 				return true;
 			} else {
-				//Util.debug("Didn't find shader!");
 				return false;
 			}
 		} else {
@@ -329,7 +309,7 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private boolean setStroke(final Properties pProperties) {
-		if(this.displayNone(pProperties)) {
+		if(this.isDisplayNone(pProperties)) {
 			return false;
 		}
 
@@ -367,9 +347,9 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private Gradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
-		final String id = SAXUtils.getAttribute(pAttributes, "id", null);
-		final Matrix matrix = TransformParser.parseTransform(SAXUtils.getAttribute(pAttributes, "gradientTransform", null));
-		String xlink = SAXUtils.getAttribute(pAttributes, "href", null);
+		final String id = ParserHelper.getStringAttribute(pAttributes, "id");
+		final Matrix matrix = TransformParser.parseTransform(ParserHelper.getStringAttribute(pAttributes, "gradientTransform"));
+		String xlink = ParserHelper.getStringAttribute(pAttributes, "href");
 		if (xlink != null) {
 			if (xlink.startsWith("#")) {
 				xlink = xlink.substring(1);
@@ -431,7 +411,7 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private void pushTransform(final Attributes pAttributes) {
-		final String transform = SAXUtils.getAttribute(pAttributes, "transform", null);
+		final String transform = ParserHelper.getStringAttribute(pAttributes, "transform");
 		this.mPushed = transform != null;
 		if (this.mPushed) {
 			final Matrix matrix = TransformParser.parseTransform(transform);
@@ -449,18 +429,74 @@ public class SVGHandler extends DefaultHandler {
 	private void endGradient() {
 		if (this.mCurrentGradient.getID() != null) {
 			if (this.mCurrentGradient.hasXLink()) {
-				final Gradient parent = this.mGradientMap.get(this.mCurrentGradient.getXLink());
-				if (parent == null) {
-					this.mCurrentGradient.setXLinkUnresolved(true);
-					return;
+				this.mCurrentGradient = this.registerDerivedGradient(this.mCurrentGradient);
+			} else {
+				this.registerGradientShader(this.mCurrentGradient);
+				this.registerGradient(this.mCurrentGradient);
+			}
+		}
+	}
+
+	private Gradient registerDerivedGradient(final Gradient pGradient) {
+		final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
+		if (parent == null) {
+			pGradient.setXLinkUnresolved(true);
+			this.registerGradient(pGradient);
+			return pGradient;
+		} else {
+			final Gradient gradient = parent.deriveChild(pGradient);
+
+			this.registerGradient(gradient);
+			this.registerGradientShader(gradient);
+
+			return gradient;
+		}
+	}
+
+	private void registerGradientShader(final Gradient pGradient) {
+		this.mGradientShaderMap.put(pGradient.getID(), pGradient.createShader());
+	}
+
+	private Gradient registerGradient(final Gradient pGradient) {
+		return this.mGradientMap.put(pGradient.getID(), pGradient);
+	}
+
+	private boolean isDisplayNone(final Properties pProperties) {
+		return "none".equals(pProperties.getString("display"));
+	}
+
+	private void parseStop(final Attributes pAttributes) {
+		if (this.mCurrentGradient != null) {
+			final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
+			final String styles = ParserHelper.getStringAttribute(pAttributes, "style");
+			final StyleSet styleSet = new StyleSet(styles);
+			String stopColor = styleSet.getStyle("stop-color");
+			int color = Color.BLACK;
+			if (stopColor != null) {
+				stopColor = stopColor.trim();
+				if (stopColor.startsWith("#")) {
+					color = Integer.parseInt(stopColor.substring(1), 16);
+				} else if(stopColor.startsWith("rgb")) {
+					final Matcher matcher = RGB_PATTERN.matcher(stopColor);
+					if(matcher.matches() && matcher.groupCount() == 3) {
+						final int red = Integer.parseInt(matcher.group(1));
+						final int green = Integer.parseInt(matcher.group(2));
+						final int blue = Integer.parseInt(matcher.group(3));
+						color = red << 16 | green << 8 | blue;
+					}
 				} else {
-					this.mCurrentGradient = parent.deriveChild(this.mCurrentGradient);
-					this.mCurrentGradient.setXLinkUnresolved(false);
+					color = Integer.parseInt(stopColor, 16);
 				}
 			}
-			final Shader shader = this.mCurrentGradient.createShader();
-			this.mGradientShaderMap.put(this.mCurrentGradient.getID(), shader);
-			this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
+			final String opacityStyle = styleSet.getStyle("stop-opacity");
+			if (opacityStyle != null) {
+				final float alpha = Float.parseFloat(opacityStyle);
+				final int alphaInt = Math.round(255 * alpha);
+				color |= (alphaInt << 24);
+			} else {
+				color |= 0xFF000000;
+			}
+			this.mCurrentGradient.addStop(offset, color);
 		}
 	}
 

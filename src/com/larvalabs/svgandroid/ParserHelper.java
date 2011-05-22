@@ -1,5 +1,7 @@
 package com.larvalabs.svgandroid;
 
+import org.xml.sax.Attributes;
+
 /**
  * Parses numbers from SVG text. Based on the Batik Number Parser (Apache 2 License).
  *
@@ -96,13 +98,20 @@ public class ParserHelper {
 		this.mCurrentChar = this.read();
 	}
 
+	public void rollback() {
+		if (this.mPosition > 0) {
+			this.mPosition--;
+		}
+		this.mCurrentChar = this.pCharSequence.charAt(this.mPosition);
+	}
+
 	/**
 	 * Parses the content of the buffer and converts it to a float.
 	 */
 	private float parseFloat() {
-		int     mant     = 0;
+		int     mantissa     = 0;
 		int     mantissaDigit  = 0;
-		boolean mantPos  = true;
+		boolean mantPosition  = true;
 		boolean mantissaRead = false;
 
 		int     exp      = 0;
@@ -112,7 +121,7 @@ public class ParserHelper {
 
 		switch (this.mCurrentChar) {
 			case '-':
-				mantPos = false;
+				mantPosition = false;
 			case '+':
 				this.mCurrentChar = this.read();
 		}
@@ -146,7 +155,7 @@ public class ParserHelper {
 				l: for (;;) {
 					if (mantissaDigit < 9) {
 						mantissaDigit++;
-						mant = mant * 10 + (this.mCurrentChar - '0');
+						mantissa = mantissa * 10 + (this.mCurrentChar - '0');
 					} else {
 						expAdj++;
 					}
@@ -193,7 +202,7 @@ public class ParserHelper {
 					l: for (;;) {
 						if (mantissaDigit < 9) {
 							mantissaDigit++;
-							mant = mant * 10 + (this.mCurrentChar - '0');
+							mantissa = mantissa * 10 + (this.mCurrentChar - '0');
 							expAdj--;
 						}
 						this.mCurrentChar = this.read();
@@ -264,11 +273,11 @@ public class ParserHelper {
 			exp = -exp;
 		}
 		exp += expAdj;
-		if (!mantPos) {
-			mant = -mant;
+		if (!mantPosition) {
+			mantissa = -mantissa;
 		}
 
-		return ParserHelper.buildFloat(mant, exp);
+		return ParserHelper.buildFloat(mantissa, exp);
 	}
 
 	public float nextFloat() {
@@ -298,6 +307,16 @@ public class ParserHelper {
 		}
 
 		return (float) ((pExponent > 0) ? pMantissa * POWERS_OF_10[pExponent] : pMantissa / POWERS_OF_10[-pExponent]);
+	}
+
+	public static String getStringAttribute(final Attributes pAttributes, final String pAttributeName) {
+		final int n = pAttributes.getLength();
+		for (int i = 0; i < n; i++) {
+			if (pAttributes.getLocalName(i).equals(pAttributeName)) {
+				return pAttributes.getValue(i);
+			}
+		}
+		return null;
 	}
 
 	// ===========================================================

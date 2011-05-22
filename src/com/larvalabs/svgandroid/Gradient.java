@@ -24,7 +24,7 @@ public abstract class Gradient {
 	protected String mXLink;
 
 	protected boolean mXLinkUnresolved;
-	
+
 	protected ArrayList<Float> mOffsets = new ArrayList<Float>();
 	protected ArrayList<Integer> mColors = new ArrayList<Integer>();
 
@@ -32,14 +32,14 @@ public abstract class Gradient {
 	// Constructors
 	// ===========================================================
 
-	public Gradient(String pID, Matrix pMatrix, String pXLink) {
+	public Gradient(final String pID, final Matrix pMatrix, final String pXLink) {
 		this.mID = pID;
 		this.mMatrix = pMatrix;
 		this.mXLink = pXLink;
 	}
-	
+
 	public Gradient deriveChild(final Gradient pGradient) {
-		final Gradient child = pGradient.copy(pGradient.mID, mMatrix, mXLink);
+		final Gradient child = pGradient.copy(pGradient.mID, this.mMatrix, this.mXLink);
 		child.mOffsets = this.mOffsets;
 		child.mColors = this.mColors;
 		child.mMatrix = this.mMatrix;

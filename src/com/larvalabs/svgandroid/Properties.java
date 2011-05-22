@@ -1,6 +1,5 @@
 package com.larvalabs.svgandroid;
 
-import org.anddev.andengine.util.SAXUtils;
 import org.xml.sax.Attributes;
 
 /**
@@ -26,7 +25,7 @@ public class Properties {
 
 	public Properties(final Attributes pAttributes) {
 		this.mAttributes = pAttributes;
-		final String styleAttr = SAXUtils.getAttribute(pAttributes, "style", null);
+		final String styleAttr = ParserHelper.getStringAttribute(pAttributes, "style");
 		if (styleAttr != null) {
 			this.mStyles = new StyleSet(styleAttr);
 		} else {
@@ -52,7 +51,7 @@ public class Properties {
 			v = this.mStyles.getStyle(pName);
 		}
 		if (v == null) {
-			v = SAXUtils.getAttribute(this.mAttributes, pName, null);
+			v = ParserHelper.getStringAttribute(this.mAttributes, pName);
 		}
 		return v;
 	}
