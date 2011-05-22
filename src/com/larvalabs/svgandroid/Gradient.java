@@ -23,8 +23,6 @@ public abstract class Gradient {
 	protected Matrix mMatrix = null;
 	protected String mXLink;
 
-	protected boolean mXLinkUnresolved;
-
 	protected ArrayList<Float> mOffsets = new ArrayList<Float>();
 	protected ArrayList<Integer> mColors = new ArrayList<Integer>();
 
@@ -42,7 +40,6 @@ public abstract class Gradient {
 		final Gradient child = pGradient.copy(pGradient.mID, this.mMatrix, this.mXLink);
 		child.mOffsets = this.mOffsets;
 		child.mColors = this.mColors;
-		child.mMatrix = this.mMatrix;
 		if (pGradient.mMatrix != null) {
 			if (this.mMatrix == null) {
 				child.mMatrix = pGradient.mMatrix;
@@ -65,14 +62,6 @@ public abstract class Gradient {
 
 	public String getXLink() {
 		return this.mXLink;
-	}
-
-	public boolean isXLinkUnresolved() {
-		return this.mXLinkUnresolved;
-	}
-
-	public void setXLinkUnresolved(final boolean pXLinkUnresolved) {
-		this.mXLinkUnresolved = pXLinkUnresolved;
 	}
 
 	public void setMatrix(final Matrix pMatrix) {

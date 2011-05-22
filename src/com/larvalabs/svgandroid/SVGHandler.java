@@ -103,9 +103,9 @@ public class SVGHandler extends DefaultHandler {
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
 		} else if (pLocalName.equals("linearGradient")) {
-			this.mCurrentGradient = this.parseGradient(pAttributes, true);
+			this.mCurrentGradient = GradientParser.parse(pAttributes, true);
 		} else if (pLocalName.equals("radialGradient")) {
-			this.mCurrentGradient = this.parseGradient(pAttributes, false);
+			this.mCurrentGradient = GradientParser.parse(pAttributes, false);
 		} else if (pLocalName.equals("stop")) {
 			this.parseStop(pAttributes);
 		} else if (pLocalName.equals("g")) {
@@ -242,7 +242,9 @@ public class SVGHandler extends DefaultHandler {
 		if (pLocalName.equals("svg")) {
 			this.mPicture.endRecording();
 		} else if (pLocalName.equals("linearGradient") || pLocalName.equals("radialGradient")) {
-			this.endGradient();
+			if (this.mCurrentGradient.getID() != null) {
+				this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
+			}
 		} else if (pLocalName.equals("g")) {
 			if (this.mBoundsMode) {
 				this.mBoundsMode = false;
@@ -267,32 +269,25 @@ public class SVGHandler extends DefaultHandler {
 		if(this.isDisplayNone(pProperties) || this.isFillNone(pProperties)) {
 			return false;
 		}
-		
+
 		this.resetPaint();
-		
+
 		final String fillString = pProperties.getString("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
-			// It's a gradient fill, look it up in our map
 			final String id = fillString.substring("url(#".length(), fillString.length() - 1);
 
-			final Gradient gradient = this.mGradientMap.get(id);
-			if(gradient != null) {
-				if(gradient.isXLinkUnresolved()) {
-					final Gradient derived = this.registerDerivedGradient(gradient);
-					/* Check if still unresolved. */
-					if(derived.isXLinkUnresolved()) {
-						return false;
-					}
+			Shader gradientShader = this.mGradientShaderMap.get(id);
+			if (gradientShader == null) {
+				final Gradient gradient = this.mGradientMap.get(id);
+				if(gradient == null) {
+					throw new SVGParseException("No gradient found for id: '" + id + "'.");
+				} else {
+					gradientShader = this.registerGradientShader(gradient);
 				}
 			}
-			final Shader gradientShader = this.mGradientShaderMap.get(id);
-			if (gradientShader != null) {
-				this.mPaint.setShader(gradientShader);
-				this.mPaint.setStyle(Paint.Style.FILL);
-				return true;
-			} else {
-				return false;
-			}
+			this.mPaint.setShader(gradientShader);
+			this.mPaint.setStyle(Paint.Style.FILL);
+			return true;
 		} else {
 			this.mPaint.setShader(null);
 			final Integer color = pProperties.getHex("fill");
@@ -301,7 +296,7 @@ public class SVGHandler extends DefaultHandler {
 				this.mPaint.setStyle(Paint.Style.FILL);
 				return true;
 			} else if (pProperties.getString("fill") == null && pProperties.getString("stroke") == null) {
-				// Default is black fill
+				/* Default is black fill. */
 				this.mPaint.setStyle(Paint.Style.FILL);
 				this.mPaint.setColor(0xFF000000);
 				return true;
@@ -321,7 +316,7 @@ public class SVGHandler extends DefaultHandler {
 		}
 
 		this.resetPaint();
-		
+
 		final Integer color = pProperties.getHex("stroke");
 		if (color != null) {
 			// TODO No Shaders for stroke? Could be extracted from setFill to a common method.
@@ -350,30 +345,6 @@ public class SVGHandler extends DefaultHandler {
 			return true;
 		} else {
 			return false;
-		}
-	}
-
-	private Gradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
-		final String id = SAXHelper.getStringAttribute(pAttributes, "id");
-		final Matrix matrix = TransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, "gradientTransform"));
-		String xlink = SAXHelper.getStringAttribute(pAttributes, "href");
-		if (xlink != null) {
-			if (xlink.startsWith("#")) {
-				xlink = xlink.substring(1);
-			}
-		}
-
-		if (pLinear) {
-			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
-			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
-			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
-			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
-			return new LinearGradient(id, x1, x2, y1, y2, matrix, xlink);
-		} else {
-			final float centerX = SVGParser.getFloatAttribute(pAttributes, "cx", 0f);
-			final float centerY = SVGParser.getFloatAttribute(pAttributes, "cy", 0f);
-			final float radius = SVGParser.getFloatAttribute(pAttributes, "r", 0f);
-			return new RadialGradient(id, centerX, centerY, radius, matrix, xlink);
 		}
 	}
 
@@ -433,39 +404,24 @@ public class SVGHandler extends DefaultHandler {
 		}
 	}
 
-	private void endGradient() {
-		if (this.mCurrentGradient.getID() != null) {
-			if (this.mCurrentGradient.hasXLink()) {
-				this.mCurrentGradient = this.registerDerivedGradient(this.mCurrentGradient);
+	private Shader registerGradientShader(final Gradient pGradient) {
+		final Shader gradientShader;
+		if(pGradient.hasXLink()) {
+			final String parentXLink = pGradient.getXLink();
+			final Gradient parent = this.mGradientMap.get(parentXLink);
+			if (parent == null) {
+				throw new SVGParseException("Could not resolve xlink: '" + parentXLink + "' of gradient: '" + pGradient.getID() + "'.");
 			} else {
-				this.registerGradientShader(this.mCurrentGradient);
-				this.registerGradient(this.mCurrentGradient);
+				final Gradient gradient = parent.deriveChild(pGradient);
+
+				gradientShader = gradient.createShader();
+				this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
 			}
-		}
-	}
-
-	private Gradient registerDerivedGradient(final Gradient pGradient) {
-		final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
-		if (parent == null) {
-			pGradient.setXLinkUnresolved(true);
-			this.registerGradient(pGradient);
-			return pGradient;
 		} else {
-			final Gradient gradient = parent.deriveChild(pGradient);
-
-			this.registerGradient(gradient);
-			this.registerGradientShader(gradient);
-
-			return gradient;
+			gradientShader = pGradient.createShader();
+			this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
 		}
-	}
-
-	private void registerGradientShader(final Gradient pGradient) {
-		this.mGradientShaderMap.put(pGradient.getID(), pGradient.createShader());
-	}
-
-	private Gradient registerGradient(final Gradient pGradient) {
-		return this.mGradientMap.put(pGradient.getID(), pGradient);
+		return gradientShader;
 	}
 
 	private boolean isDisplayNone(final Properties pProperties) {
