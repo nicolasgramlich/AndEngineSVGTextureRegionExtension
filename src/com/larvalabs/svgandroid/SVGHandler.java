@@ -31,6 +31,9 @@ public class SVGHandler extends DefaultHandler {
 	// Constants
 	// ===========================================================
 
+	private static final int COLOR_MASK_RGB = 0xFFFFFF;
+	private static final int COLOR_MASK_ALPHA = 0xFF000000;
+
 	private static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
 
 	// ===========================================================
@@ -82,9 +85,7 @@ public class SVGHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(final String pNamespace, final String pLocalName, final String pQualifiedName, final Attributes pAttributes) throws SAXException {
-		// Reset paint opacity
-		this.mPaint.setAlpha(255);
-		// Ignore everything but rectangles in bounds mode
+		/* Ignore everything but rectangles in bounds mode. */
 		if (this.mBoundsMode) {
 			if (pLocalName.equals("rect")) {
 				final float x = SVGParser.getFloatAttribute(pAttributes, "x", 0f);
@@ -200,8 +201,7 @@ public class SVGHandler extends DefaultHandler {
 						final float y = points.get(i + 1);
 						p.lineTo(x, y);
 					}
-					// Don't close a polyline
-					if (pLocalName.equals("polygon")) {
+					if (!pLocalName.equals("polyline")) {
 						p.close();
 					}
 					if (this.setFill(properties)) {
@@ -267,7 +267,9 @@ public class SVGHandler extends DefaultHandler {
 		if(this.isDisplayNone(pProperties) || this.isFillNone(pProperties)) {
 			return false;
 		}
-
+		
+		this.resetPaint();
+		
 		final String fillString = pProperties.getString("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
 			// It's a gradient fill, look it up in our map
@@ -308,18 +310,23 @@ public class SVGHandler extends DefaultHandler {
 		return false;
 	}
 
+	private void resetPaint() {
+		this.mPaint.reset();
+		this.mPaint.setAntiAlias(true);
+	}
+
 	private boolean setStroke(final Properties pProperties) {
-		if(this.isDisplayNone(pProperties) || this.isStrokeNone(pProperties)) { // isFillNone also queries for "stroke" property
+		if(this.isDisplayNone(pProperties) || this.isStrokeNone(pProperties)) {
 			return false;
 		}
 
+		this.resetPaint();
+		
 		final Integer color = pProperties.getHex("stroke");
 		if (color != null) {
+			// TODO No Shaders for stroke? Could be extracted from setFill to a common method.
 			this.setPaintColor(pProperties, color, false);
-			// Check for other stroke attributes
 			final Float width = pProperties.getFloat("stroke-width");
-			// Set defaults
-
 			if (width != null) {
 				this.mPaint.setStrokeWidth(width);
 			}
@@ -371,7 +378,7 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private void setPaintColor(final Properties pProperties, final Integer pColor, final boolean pFillMode) {
-		final int c = (0xFFFFFF & pColor) | 0xFF000000;
+		final int c = (COLOR_MASK_RGB & pColor) | COLOR_MASK_ALPHA;
 		this.mPaint.setColor(c);
 		Float opacity = pProperties.getFloat("opacity");
 		if (opacity == null) {

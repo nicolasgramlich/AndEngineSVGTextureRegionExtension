@@ -82,12 +82,12 @@ public class PathParser {
 		for (int i = 0; i < length; i++) {
 			try {
 				final char c = pString.charAt(i);
-				if (Character.isLetter(c)) {
+				if (Character.isLetter(c) && (c != 'e')) {
 					this.processCommand();
 
 					this.mCommand = c;
 					this.mCurrentCommandStart = i;
-				} else if ((Character.isDigit(c)) || (c == '-') || (c == '.')) {
+				} else if ((Character.isDigit(c)) || (c == '-') || (c == '.') || (c == 'e')) {
 					// TODO Track if '-' has been read already, as it can be used as a separator too
 					// TODO Scientific notation most likely won't work here!
 					// TODO --> Solution: make use of ParserHelper.parseFloat? See how ParserHelper was used before.
@@ -214,16 +214,13 @@ public class PathParser {
 			this.mPath.moveTo(x, y);
 			this.mLastX = x;
 			this.mLastY = y;
-			if(this.mCommandParameters.size() >= 2) {
-				this.generateLine(false);
-			}
 		} else {
 			this.mPath.rMoveTo(x, y);
 			this.mLastX += x;
 			this.mLastY += y;
-			if(this.mCommandParameters.size() >= 2) {
-				this.generateLine(false);
-			}
+		}
+		if(this.mCommandParameters.size() >= 2) {
+			this.generateLine(pAbsolute);
 		}
 		this.mCommandParameters.clear();
 	}
