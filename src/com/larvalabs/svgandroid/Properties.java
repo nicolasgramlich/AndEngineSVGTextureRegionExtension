@@ -25,7 +25,7 @@ public class Properties {
 
 	public Properties(final Attributes pAttributes) {
 		this.mAttributes = pAttributes;
-		final String styleAttr = ParserHelper.getStringAttribute(pAttributes, "style");
+		final String styleAttr = SAXHelper.getStringAttribute(pAttributes, "style");
 		if (styleAttr != null) {
 			this.mStyles = new StyleSet(styleAttr);
 		} else {
@@ -51,7 +51,7 @@ public class Properties {
 			v = this.mStyles.getStyle(pName);
 		}
 		if (v == null) {
-			v = ParserHelper.getStringAttribute(this.mAttributes, pName);
+			v = SAXHelper.getStringAttribute(this.mAttributes, pName);
 		}
 		return v;
 	}
@@ -84,11 +84,14 @@ public class Properties {
 	}
 
 	public Float getFloat(final String pName) {
-		final String v = this.getAttribute(pName);
+		String v = this.getAttribute(pName);
 		if (v == null) {
 			return null;
 		} else {
 			try {
+				if (v.endsWith("px")) {
+					v = v.substring(0, v.length() - 2);
+				}
 				return Float.parseFloat(v);
 			} catch (final NumberFormatException nfe) {
 				return null;

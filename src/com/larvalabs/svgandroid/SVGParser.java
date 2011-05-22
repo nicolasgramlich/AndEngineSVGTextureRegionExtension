@@ -85,7 +85,7 @@ public class SVGParser {
 	}
 
 	public static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
-		String v = ParserHelper.getStringAttribute(pAttributes, pAttributeName);
+		String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName);
 		if (v == null) {
 			return null;
 		} else {
@@ -97,7 +97,7 @@ public class SVGParser {
 	}
 
 	public static float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final float pDefaultValue) {
-		String v = ParserHelper.getStringAttribute(pAttributes, pAttributeName);
+		String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName);
 		if (v == null) {
 			return pDefaultValue;
 		} else {
@@ -109,7 +109,7 @@ public class SVGParser {
 	}
 
 	//	private static Integer getHexAttribute(final Attributes pAttributes, final String pAttributeName)  {
-	//		final String v = ParserHelper.getStringAttribute(pAttributes, pAttributeName, null);
+	//		final String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName, null);
 	//		if (v == null) {
 	//			return null;
 	//		} else {

@@ -1,6 +1,5 @@
 package com.larvalabs.svgandroid;
 
-import org.xml.sax.Attributes;
 
 /**
  * Parses numbers from SVG text. Based on the Batik Number Parser (Apache 2 License).
@@ -307,16 +306,6 @@ public class ParserHelper {
 		}
 
 		return (float) ((pExponent > 0) ? pMantissa * POWERS_OF_10[pExponent] : pMantissa / POWERS_OF_10[-pExponent]);
-	}
-
-	public static String getStringAttribute(final Attributes pAttributes, final String pAttributeName) {
-		final int n = pAttributes.getLength();
-		for (int i = 0; i < n; i++) {
-			if (pAttributes.getLocalName(i).equals(pAttributeName)) {
-				return pAttributes.getValue(i);
-			}
-		}
-		return null;
 	}
 
 	// ===========================================================

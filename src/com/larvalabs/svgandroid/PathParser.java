@@ -188,8 +188,8 @@ public class PathParser {
 				throw new RuntimeException("Unexpected SVG command: " + this.mCommand);
 		}
 		if (!wasCubicBezierCurve) {
-			this.mLastCubicBezierX2 = mLastX;
-			this.mLastCubicBezierY2 = mLastY;
+			this.mLastCubicBezierX2 = this.mLastX;
+			this.mLastCubicBezierY2 = this.mLastY;
 		}
 	}
 
@@ -206,7 +206,7 @@ public class PathParser {
 	}
 
 	private void generateMove(final boolean pAbsolute) {
-		this.assertParameterCount(2);
+		this.assertParameterCountMinimum(2);
 		final float x = this.mCommandParameters.poll();
 		final float y = this.mCommandParameters.poll();
 		/** Moves the line from mLastX,mLastY to x,y. */
@@ -214,12 +214,18 @@ public class PathParser {
 			this.mPath.moveTo(x, y);
 			this.mLastX = x;
 			this.mLastY = y;
+			if(this.mCommandParameters.size() >= 2) {
+				this.generateLine(false);
+			}
 		} else {
 			this.mPath.rMoveTo(x, y);
 			this.mLastX += x;
 			this.mLastY += y;
+			if(this.mCommandParameters.size() >= 2) {
+				this.generateLine(false);
+			}
 		}
-		// TODO Additional parameters (i.e. inkscape) treated as moveTos/lineTos ???
+		this.mCommandParameters.clear();
 	}
 
 	private void generateLine(final boolean pAbsolute) {
@@ -273,7 +279,7 @@ public class PathParser {
 
 	private void generateCubicBezierCurve(final boolean pAbsolute) {
 		this.assertParameterCountMinimum(6);
-		/** Draws a cubic bezier curve from current pen point to x,y. 
+		/** Draws a cubic bezier curve from current pen point to x,y.
 		 * x1,y1 and x2,y2 are start and end control points of the curve. */
 		if(pAbsolute) {
 			while(this.mCommandParameters.size() >= 6) {
@@ -291,26 +297,26 @@ public class PathParser {
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 6) {
-				final float x1 = this.mCommandParameters.poll() + this.mLastX;
-				final float y1 = this.mCommandParameters.poll() + this.mLastY;
-				final float x2 = this.mCommandParameters.poll() + this.mLastX;
-				final float y2 = this.mCommandParameters.poll() + this.mLastY;
-				final float x3 = this.mCommandParameters.poll() + this.mLastX;
-				final float y3 = this.mCommandParameters.poll() + this.mLastY;
-				this.mPath.cubicTo(x1, y1, x2, y2, x3, y3); // TODO rCubicTo ?
-				this.mLastCubicBezierX2 = x2;
-				this.mLastCubicBezierY2 = y2;
-				this.mLastX = x3;
-				this.mLastY = y3;
+				final float x1 = this.mCommandParameters.poll();
+				final float y1 = this.mCommandParameters.poll();
+				final float x2 = this.mCommandParameters.poll();
+				final float y2 = this.mCommandParameters.poll();
+				final float x3 = this.mCommandParameters.poll();
+				final float y3 = this.mCommandParameters.poll();
+				this.mPath.rCubicTo(x1, y1, x2, y2, x3, y3);
+				this.mLastCubicBezierX2 = x2 + this.mLastX;
+				this.mLastCubicBezierY2 = y2 + this.mLastY;
+				this.mLastX = x3 + this.mLastY;
+				this.mLastY = y3 + this.mLastY;
 			}
 		}
 	}
 
 	private void generateSmoothCubicBezierCurve(final boolean pAbsolute) {
 		this.assertParameterCountMinimum(4);
-		/** Draws a cubic bezier curve from the last point to x,y. 
-		 * x2,y2 is the end control point. 
-		 * The start control point is is assumed to be the same as 
+		/** Draws a cubic bezier curve from the last point to x,y.
+		 * x2,y2 is the end control point.
+		 * The start control point is is assumed to be the same as
 		 * the end control point of the previous curve. */
 		if(pAbsolute) {
 			while(this.mCommandParameters.size() >= 4) {
@@ -329,14 +335,13 @@ public class PathParser {
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 4) {
-				// TODO How make x1,y1 relative?
-				final float x1 = this.mLastCubicBezierX2; // 2 * this.mLastX - this.mLastCubicBezierX2
-				final float y1 = this.mLastCubicBezierY2; // 2 * this.mLastY - this.mLastCubicBezierY2
-				final float x2 = this.mCommandParameters.poll() + this.mLastX;
-				final float y2 = this.mCommandParameters.poll() + this.mLastY;
-				final float x = this.mCommandParameters.poll() + this.mLastX;
-				final float y = this.mCommandParameters.poll() + this.mLastY;
-				this.mPath.cubicTo(x1, y1, x2, y2, x, y); // TODO rCubicTo ?
+				final float x1 = this.mLastCubicBezierX2 - this.mLastX; // 2 * this.mLastX - this.mLastCubicBezierX2
+				final float y1 = this.mLastCubicBezierY2 - this.mLastY; // 2 * this.mLastY - this.mLastCubicBezierY2
+				final float x2 = this.mCommandParameters.poll();
+				final float y2 = this.mCommandParameters.poll();
+				final float x = this.mCommandParameters.poll();
+				final float y = this.mCommandParameters.poll();
+				this.mPath.rCubicTo(x1, y1, x2, y2, x, y);
 				this.mLastCubicBezierX2 = x2;
 				this.mLastCubicBezierY2 = y2;
 				this.mLastX = x;
@@ -352,19 +357,22 @@ public class PathParser {
 		final float y1 = this.mCommandParameters.poll();
 		final float x2 = this.mCommandParameters.poll();
 		final float y2 = this.mCommandParameters.poll();
-		
-		// TODO Implement
+
 		/** Draws a quadratic Bezier curve from mLastX,mLastY x,y. x1,y1 is the control point.. */
 		if(pAbsolute) {
 			this.mPath.quadTo(x1, y1, x2, y2);
+			this.mLastX = x2;
+			this.mLastY = y2;
 		} else {
-			this.mPath.quadTo(x1, y1, x2, y2); // TODO rQuadTo?
+			this.mPath.rQuadTo(x1, y1, x2, y2); // TODO rQuadTo?
+			this.mLastX += x2;
+			this.mLastY += y2;
 		}
 	}
 
 	private void generateSmoothQuadraticBezierCurve(final boolean pAbsolute) {
-		// TODO Implement 
-		
+		// TODO Implement
+
 		/** Draws a quadratic Bezier curve from mLastX,mLastY to x,y.
 		 * The control point is assumed to be the same as the last control point used. */
 	}

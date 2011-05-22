@@ -109,14 +109,14 @@ public class SVGHandler extends DefaultHandler {
 			this.parseStop(pAttributes);
 		} else if (pLocalName.equals("g")) {
 			// Check to see if this is the "bounds" layer
-			if ("bounds".equalsIgnoreCase(ParserHelper.getStringAttribute(pAttributes, "id"))) {
+			if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, "id"))) {
 				this.mBoundsMode = true;
 			}
 			if (this.mHidden) {
 				this.mHiddenLevel++;
 			}
 			// Go in to hidden mode if display is "none"
-			if ("none".equals(ParserHelper.getStringAttribute(pAttributes, "display"))) {
+			if ("none".equals(SAXHelper.getStringAttribute(pAttributes, "display"))) {
 				if (!this.mHidden) {
 					this.mHidden = true;
 					this.mHiddenLevel = 1;
@@ -215,7 +215,7 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("path")) {
-			final Path p = new PathParser().parse(ParserHelper.getStringAttribute(pAttributes, "d"));
+			final Path p = new PathParser().parse(SAXHelper.getStringAttribute(pAttributes, "d"));
 			this.pushTransform(pAttributes);
 			final Properties properties = new Properties(pAttributes);
 			if (this.setFill(properties)) {
@@ -264,10 +264,10 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 
 	private boolean setFill(final Properties pProperties) {
-		if(this.isDisplayNone(pProperties)) {
+		if(this.isDisplayNone(pProperties) || this.isFillNone(pProperties)) {
 			return false;
 		}
-		
+
 		final String fillString = pProperties.getString("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
 			// It's a gradient fill, look it up in our map
@@ -309,7 +309,7 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private boolean setStroke(final Properties pProperties) {
-		if(this.isDisplayNone(pProperties)) {
+		if(this.isDisplayNone(pProperties) || this.isStrokeNone(pProperties)) { // isFillNone also queries for "stroke" property
 			return false;
 		}
 
@@ -347,9 +347,9 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private Gradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
-		final String id = ParserHelper.getStringAttribute(pAttributes, "id");
-		final Matrix matrix = TransformParser.parseTransform(ParserHelper.getStringAttribute(pAttributes, "gradientTransform"));
-		String xlink = ParserHelper.getStringAttribute(pAttributes, "href");
+		final String id = SAXHelper.getStringAttribute(pAttributes, "id");
+		final Matrix matrix = TransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, "gradientTransform"));
+		String xlink = SAXHelper.getStringAttribute(pAttributes, "href");
 		if (xlink != null) {
 			if (xlink.startsWith("#")) {
 				xlink = xlink.substring(1);
@@ -411,7 +411,7 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private void pushTransform(final Attributes pAttributes) {
-		final String transform = ParserHelper.getStringAttribute(pAttributes, "transform");
+		final String transform = SAXHelper.getStringAttribute(pAttributes, "transform");
 		this.mPushed = transform != null;
 		if (this.mPushed) {
 			final Matrix matrix = TransformParser.parseTransform(transform);
@@ -465,10 +465,18 @@ public class SVGHandler extends DefaultHandler {
 		return "none".equals(pProperties.getString("display"));
 	}
 
+	private boolean isFillNone(final Properties pProperties) {
+		return "none".equals(pProperties.getString("fill"));
+	}
+
+	private boolean isStrokeNone(final Properties pProperties) {
+		return "none".equals(pProperties.getString("stroke"));
+	}
+
 	private void parseStop(final Attributes pAttributes) {
 		if (this.mCurrentGradient != null) {
 			final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
-			final String styles = ParserHelper.getStringAttribute(pAttributes, "style");
+			final String styles = SAXHelper.getStringAttribute(pAttributes, "style");
 			final StyleSet styleSet = new StyleSet(styles);
 			String stopColor = styleSet.getStyle("stop-color");
 			int color = Color.BLACK;
@@ -482,7 +490,7 @@ public class SVGHandler extends DefaultHandler {
 						final int red = Integer.parseInt(matcher.group(1));
 						final int green = Integer.parseInt(matcher.group(2));
 						final int blue = Integer.parseInt(matcher.group(3));
-						color = red << 16 | green << 8 | blue;
+						color = Color.rgb(red, green, blue);
 					}
 				} else {
 					color = Integer.parseInt(stopColor, 16);
