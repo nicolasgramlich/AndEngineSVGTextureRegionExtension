@@ -25,19 +25,21 @@ public class PathParser {
 	// Fields
 	// ===========================================================
 
+	private String mString;
+	private int mLength;
+	private int mPosition;
+	private char mCurrentChar;
+
 	private Path mPath;
+	private Character mCommand = null;
+	private int mCommandStart = 0;
 	private final Queue<Float> mCommandParameters = new LinkedList<Float>();
 
-	private Character mCommand = null;
-	private int mCurrentCommandStart = 0;
 	private float mLastX;
 	private float mLastY;
 	private float mLastCubicBezierX2;
 	private float mLastCubicBezierY2;
 	private final ParserHelper mParserHelper = new ParserHelper();
-	private String mString;
-	private int mPosition;
-	private int mLength;
 
 	// ===========================================================
 	// Constructors
@@ -83,26 +85,27 @@ public class PathParser {
 		this.mCommandParameters.clear();
 		this.mPath = new Path();
 		if(pString.length() == 0) {
-			return mPath;
+			return this.mPath;
 		}
-		this.mParserHelper.mCurrentChar = pString.charAt(0);
+		this.mCurrentChar = pString.charAt(0);
 
+		this.mPosition = 0;
 		this.mLength = pString.length();
-		for (this.mPosition = 0; this.mPosition < this.mLength; this.mPosition++) {
+		while (this.mPosition < this.mLength) {
 			try {
 				this.mParserHelper.skipWhitespace();
-				final char c = this.mParserHelper.mCurrentChar;
-				if (Character.isLetter(c) && (c != 'e')) {
+				if (Character.isLetter(this.mCurrentChar) && (this.mCurrentChar != 'e')) {
 					this.processCommand();
 
-					this.mCommand = c;
-					this.mCurrentCommandStart = this.mPosition;
+					this.mCommand = this.mCurrentChar;
+					this.mCommandStart = this.mPosition;
+					this.mParserHelper.advance();
 				} else {
 					final float parameter = this.mParserHelper.nextFloat();
 					this.mCommandParameters.add(parameter);
 				}
 			} catch(final Throwable t) {
-				throw new IllegalArgumentException("Error parsing: '" + pString.substring(this.mCurrentCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
+				throw new IllegalArgumentException("Error parsing: '" + pString.substring(this.mCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
 			}
 		}
 		this.processCommand();
@@ -282,27 +285,27 @@ public class PathParser {
 				final float y1 = this.mCommandParameters.poll();
 				final float x2 = this.mCommandParameters.poll();
 				final float y2 = this.mCommandParameters.poll();
-				final float x3 = this.mCommandParameters.poll();
-				final float y3 = this.mCommandParameters.poll();
-				this.mPath.cubicTo(x1, y1, x2, y2, x3, y3);
+				final float x = this.mCommandParameters.poll();
+				final float y = this.mCommandParameters.poll();
+				this.mPath.cubicTo(x1, y1, x2, y2, x, y);
 				this.mLastCubicBezierX2 = x2;
 				this.mLastCubicBezierY2 = y2;
-				this.mLastX = x3;
-				this.mLastY = y3;
+				this.mLastX = x;
+				this.mLastY = y;
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 6) {
-				final float x1 = this.mCommandParameters.poll();
-				final float y1 = this.mCommandParameters.poll();
-				final float x2 = this.mCommandParameters.poll();
-				final float y2 = this.mCommandParameters.poll();
-				final float x3 = this.mCommandParameters.poll();
-				final float y3 = this.mCommandParameters.poll();
-				this.mPath.rCubicTo(x1, y1, x2, y2, x3, y3);
-				this.mLastCubicBezierX2 = x2 + this.mLastX;
-				this.mLastCubicBezierY2 = y2 + this.mLastY;
-				this.mLastX = x3 + this.mLastY;
-				this.mLastY = y3 + this.mLastY;
+				final float x1 = this.mCommandParameters.poll() + this.mLastX;
+				final float y1 = this.mCommandParameters.poll() + this.mLastY;
+				final float x2 = this.mCommandParameters.poll() + this.mLastX;
+				final float y2 = this.mCommandParameters.poll() + this.mLastY;
+				final float x = this.mCommandParameters.poll() + this.mLastX;
+				final float y = this.mCommandParameters.poll() + this.mLastY;
+				this.mPath.cubicTo(x1, y1, x2, y2, x, y);
+				this.mLastCubicBezierX2 = x2;
+				this.mLastCubicBezierY2 = y2;
+				this.mLastX = x;
+				this.mLastY = y;
 			}
 		}
 	}
@@ -315,9 +318,8 @@ public class PathParser {
 		 * the end control point of the previous curve. */
 		if(pAbsolute) {
 			while(this.mCommandParameters.size() >= 4) {
-				// TODO Check why x1,y1 where calculated like that? Was only for relative maybe?
-				final float x1 = this.mLastCubicBezierX2; // 2 * mLastX - mLastCubicBezierX2
-				final float y1 = this.mLastCubicBezierY2; // 2 * mLastY - mLastCubicBezierY2
+				final float x1 = 2 * this.mLastX - this.mLastCubicBezierX2;
+				final float y1 = 2 * this.mLastY - this.mLastCubicBezierY2;
 				final float x2 = this.mCommandParameters.poll();
 				final float y2 = this.mCommandParameters.poll();
 				final float x = this.mCommandParameters.poll();
@@ -330,13 +332,13 @@ public class PathParser {
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 4) {
-				final float x1 = this.mLastCubicBezierX2 - this.mLastX; // 2 * mLastX - mLastCubicBezierX2
-				final float y1 = this.mLastCubicBezierY2 - this.mLastY; // 2 * mLastY - mLastCubicBezierY2
-				final float x2 = this.mCommandParameters.poll();
-				final float y2 = this.mCommandParameters.poll();
-				final float x = this.mCommandParameters.poll();
-				final float y = this.mCommandParameters.poll();
-				this.mPath.rCubicTo(x1, y1, x2, y2, x, y);
+				final float x1 = 2 * this.mLastX - this.mLastCubicBezierX2;
+				final float y1 = 2 * this.mLastY - this.mLastCubicBezierY2;
+				final float x2 = this.mCommandParameters.poll() + this.mLastX;
+				final float y2 = this.mCommandParameters.poll() + this.mLastY;
+				final float x = this.mCommandParameters.poll() + this.mLastX;
+				final float y = this.mCommandParameters.poll() + this.mLastY;
+				this.mPath.cubicTo(x1, y1, x2, y2, x, y);
 				this.mLastCubicBezierX2 = x2;
 				this.mLastCubicBezierY2 = y2;
 				this.mLastX = x;
@@ -417,8 +419,6 @@ public class PathParser {
 		// Fields
 		// ===========================================================
 
-		private char mCurrentChar;
-
 		// ===========================================================
 		// Constructors
 		// ===========================================================
@@ -473,7 +473,7 @@ public class PathParser {
 		}
 
 		public void advance() {
-			this.mCurrentChar = this.read();
+			PathParser.this.mCurrentChar = this.read();
 		}
 
 		/**
@@ -490,14 +490,14 @@ public class PathParser {
 			int     expAdj   = 0;
 			boolean expPos   = true;
 
-			switch (this.mCurrentChar) {
+			switch (PathParser.this.mCurrentChar) {
 				case '-':
 					mantPosition = false;
 				case '+':
-					this.mCurrentChar = this.read();
+					PathParser.this.mCurrentChar = this.read();
 			}
 
-			m1: switch (this.mCurrentChar) {
+			m1: switch (PathParser.this.mCurrentChar) {
 				default:
 					return Float.NaN;
 
@@ -507,8 +507,8 @@ public class PathParser {
 				case '0':
 					mantissaRead = true;
 					l: for (;;) {
-						this.mCurrentChar = this.read();
-						switch (this.mCurrentChar) {
+						PathParser.this.mCurrentChar = this.read();
+						switch (PathParser.this.mCurrentChar) {
 							case '1': case '2': case '3': case '4':
 							case '5': case '6': case '7': case '8': case '9':
 								break l;
@@ -526,12 +526,12 @@ public class PathParser {
 					l: for (;;) {
 						if (mantissaDigit < 9) {
 							mantissaDigit++;
-							mantissa = mantissa * 10 + (this.mCurrentChar - '0');
+							mantissa = mantissa * 10 + (PathParser.this.mCurrentChar - '0');
 						} else {
 							expAdj++;
 						}
-						this.mCurrentChar = this.read();
-						switch (this.mCurrentChar) {
+						PathParser.this.mCurrentChar = this.read();
+						switch (PathParser.this.mCurrentChar) {
 							default:
 								break l;
 							case '0': case '1': case '2': case '3': case '4':
@@ -540,22 +540,22 @@ public class PathParser {
 					}
 			}
 
-			if (this.mCurrentChar == '.') {
-				this.mCurrentChar = this.read();
-				m2: switch (this.mCurrentChar) {
+			if (PathParser.this.mCurrentChar == '.') {
+				PathParser.this.mCurrentChar = this.read();
+				m2: switch (PathParser.this.mCurrentChar) {
 					default:
 					case 'e': case 'E':
 						if (!mantissaRead) {
-							throw new IllegalArgumentException("Unexpected char '" + this.mCurrentChar + "'.");
+							throw new IllegalArgumentException("Unexpected char '" + PathParser.this.mCurrentChar + "'.");
 						}
 						break;
 
 					case '0':
 						if (mantissaDigit == 0) {
 							l: for (;;) {
-								this.mCurrentChar = this.read();
+								PathParser.this.mCurrentChar = this.read();
 								expAdj--;
-								switch (this.mCurrentChar) {
+								switch (PathParser.this.mCurrentChar) {
 									case '1': case '2': case '3': case '4':
 									case '5': case '6': case '7': case '8': case '9':
 										break l;
@@ -573,11 +573,11 @@ public class PathParser {
 						l: for (;;) {
 							if (mantissaDigit < 9) {
 								mantissaDigit++;
-								mantissa = mantissa * 10 + (this.mCurrentChar - '0');
+								mantissa = mantissa * 10 + (PathParser.this.mCurrentChar - '0');
 								expAdj--;
 							}
-							this.mCurrentChar = this.read();
-							switch (this.mCurrentChar) {
+							PathParser.this.mCurrentChar = this.read();
+							switch (PathParser.this.mCurrentChar) {
 								default:
 									break l;
 								case '0': case '1': case '2': case '3': case '4':
@@ -587,19 +587,19 @@ public class PathParser {
 				}
 			}
 
-			switch (this.mCurrentChar) {
+			switch (PathParser.this.mCurrentChar) {
 				case 'e': case 'E':
-					this.mCurrentChar = this.read();
-					switch (this.mCurrentChar) {
+					PathParser.this.mCurrentChar = this.read();
+					switch (PathParser.this.mCurrentChar) {
 						default:
-							throw new IllegalArgumentException("Unexpected char '" + this.mCurrentChar + "'.");
+							throw new IllegalArgumentException("Unexpected char '" + PathParser.this.mCurrentChar + "'.");
 						case '-':
 							expPos = false;
 						case '+':
-							this.mCurrentChar = this.read();
-							switch (this.mCurrentChar) {
+							PathParser.this.mCurrentChar = this.read();
+							switch (PathParser.this.mCurrentChar) {
 								default:
-									throw new IllegalArgumentException("Unexpected char '" + this.mCurrentChar + "'.");
+									throw new IllegalArgumentException("Unexpected char '" + PathParser.this.mCurrentChar + "'.");
 								case '0': case '1': case '2': case '3': case '4':
 								case '5': case '6': case '7': case '8': case '9':
 							}
@@ -607,11 +607,11 @@ public class PathParser {
 						case '5': case '6': case '7': case '8': case '9':
 					}
 
-					en: switch (this.mCurrentChar) {
+					en: switch (PathParser.this.mCurrentChar) {
 						case '0':
 							l: for (;;) {
-								this.mCurrentChar = this.read();
-								switch (this.mCurrentChar) {
+								PathParser.this.mCurrentChar = this.read();
+								switch (PathParser.this.mCurrentChar) {
 									case '1': case '2': case '3': case '4':
 									case '5': case '6': case '7': case '8': case '9':
 										break l;
@@ -626,10 +626,10 @@ public class PathParser {
 							l: for (;;) {
 								if (expDig < 3) {
 									expDig++;
-									exp = exp * 10 + (this.mCurrentChar - '0');
+									exp = exp * 10 + (PathParser.this.mCurrentChar - '0');
 								}
-								this.mCurrentChar = this.read();
-								switch (this.mCurrentChar) {
+								PathParser.this.mCurrentChar = this.read();
+								switch (PathParser.this.mCurrentChar) {
 									default:
 										break l;
 									case '0': case '1': case '2': case '3': case '4':

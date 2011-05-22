@@ -46,7 +46,7 @@ public class NumberParser {
 			}
 			final char c = pString.charAt(i);
 			switch (c) {
-				// This ends the parsing, as we are on the next element
+				/* These end parsing, as we are on the next element. */
 				case 'M':
 				case 'm':
 				case 'Z':
@@ -70,7 +70,6 @@ public class NumberParser {
 				case ')': {
 					final String str = pString.substring(p, i);
 					if (str.trim().length() > 0) {
-						//Util.debug("  Last: " + str);
 						final Float f = Float.parseFloat(str);
 						numbers.add(f);
 					}
@@ -83,9 +82,8 @@ public class NumberParser {
 				case ',':
 				case '-': {
 					final String str = pString.substring(p, i);
-					// Just keep moving if multiple whitespace
+					/* Just keep moving if multiple whitespace */
 					if (str.trim().length() > 0) {
-						//Util.debug("  Next: " + str);
 						final Float f = Float.parseFloat(str);
 						numbers.add(f);
 						if (c == '-') {
@@ -106,7 +104,7 @@ public class NumberParser {
 			try {
 				numbers.add(Float.parseFloat(last));
 			} catch (final NumberFormatException nfe) {
-				// Just white-space, forget it
+				/* Just white-space, forget it. */
 			}
 			p = pString.length();
 		}

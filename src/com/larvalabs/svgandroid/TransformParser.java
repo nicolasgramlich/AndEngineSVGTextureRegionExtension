@@ -134,7 +134,7 @@ public class TransformParser {
 			matrix.setValues(new float[]{
 					// Row 1
 					numberParserResult.getNumber(0),
-					numberParserResult.getNumbers().get(2),
+					numberParserResult.getNumber(2),
 					numberParserResult.getNumber(4),
 					// Row 2
 					numberParserResult.getNumber(1),
