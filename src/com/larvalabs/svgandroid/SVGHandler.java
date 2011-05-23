@@ -45,9 +45,10 @@ public class SVGHandler extends DefaultHandler {
 	private final HashMap<String, Gradient> mGradientMap = new HashMap<String, Gradient>();
 	private Gradient mCurrentGradient;
 
+	private boolean mBoundsMode;
+
 	private boolean mHidden;
 	private int mHiddenLevel;
-	private boolean mBoundsMode;
 	private final Stack<Boolean> mGroupTransformStack = new Stack<Boolean>();
 
 	// ===========================================================
@@ -96,9 +97,14 @@ public class SVGHandler extends DefaultHandler {
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
 		} else if (pLocalName.equals("linearGradient")) {
-			this.mCurrentGradient = GradientParser.parse(pAttributes, true);
+			if (this.mCurrentGradient != null && this.mCurrentGradient.getID() != null) {
+				this.mCurrentGradient = GradientParser.parse(pAttributes, true);
+			}
 		} else if (pLocalName.equals("radialGradient")) {
 			this.mCurrentGradient = GradientParser.parse(pAttributes, false);
+			if (this.mCurrentGradient != null && this.mCurrentGradient.getID() != null) {
+				this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
+			}
 		} else if (pLocalName.equals("stop")) {
 			this.parseStop(pAttributes);
 		} else if (pLocalName.equals("g")) {
@@ -249,14 +255,11 @@ public class SVGHandler extends DefaultHandler {
 	throws SAXException {
 		if (pLocalName.equals("svg")) {
 			this.mPicture.endRecording();
-		} else if (pLocalName.equals("linearGradient") || pLocalName.equals("radialGradient")) {
-			if (this.mCurrentGradient.getID() != null) {
-				this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
-			}
 		} else if (pLocalName.equals("g")) {
 			if (this.mBoundsMode) {
 				this.mBoundsMode = false;
 			}
+			/* Pop group transform if there was one pushed. */
 			if(this.mGroupTransformStack.pop()) {
 				this.popTransform();
 			}

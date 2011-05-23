@@ -35,6 +35,9 @@ public class GradientParser {
 
 	public static Gradient parse(final Attributes pAttributes, final boolean pLinear) {
 		final String id = SAXHelper.getStringAttribute(pAttributes, "id");
+		if(id == null) {
+			return null;
+		}
 		final Matrix matrix = TransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, "gradientTransform"));
 		String xlink = SAXHelper.getStringAttribute(pAttributes, "href");
 		if (xlink != null) {
