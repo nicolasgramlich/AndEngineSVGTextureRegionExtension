@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import android.graphics.Path;
+import android.graphics.RectF;
 
 import com.larvalabs.svgandroid.util.ParserUtils;
 
@@ -35,11 +36,14 @@ public class PathParser {
 	private int mCommandStart = 0;
 	private final Queue<Float> mCommandParameters = new LinkedList<Float>();
 
+	private final RectF mRectF = new RectF();
 	private float mLastX;
 	private float mLastY;
 	private float mLastCubicBezierX2;
 	private float mLastCubicBezierY2;
 	private final ParserHelper mParserHelper = new ParserHelper();
+	private float mLastQuadraticBezierX2;
+	private float mLastQuadraticBezierY2;
 
 	// ===========================================================
 	// Constructors
@@ -71,6 +75,7 @@ public class PathParser {
 	 * <li>S/s - (x2 y2 x y)+ - Smooth cubic bezier to (shorthand that assumes the x2, y2 from previous C/S is the x1, y1 of this bezier)
 	 * <li>Q/q - (x1 y1 x y)+ - Quadratic bezier to
 	 * <li>T/t - (x y)+ - Smooth quadratic bezier to (assumes previous control point is "reflection" of last one w.r.t. to current point)
+	 * <li>A/a - ... - Arc to</li>
 	 * </ol>
 	 * <p/>
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
@@ -122,6 +127,7 @@ public class PathParser {
 
 	private void generatePathElement() {
 		boolean wasCubicBezierCurve = false;
+		boolean wasQuadraticBezierCurve = false;
 		switch (this.mCommand) {
 			case 'm':
 				this.generateMove(false);
@@ -165,30 +171,38 @@ public class PathParser {
 				break;
 			case 'q':
 				this.generateQuadraticBezierCurve(false);
+				wasQuadraticBezierCurve = true;
 				break;
 			case 'Q':
 				this.generateQuadraticBezierCurve(true);
+				wasQuadraticBezierCurve = true;
 				break;
 			case 't':
 				this.generateSmoothQuadraticBezierCurve(false);
+				wasQuadraticBezierCurve = true;
 				break;
 			case 'T':
 				this.generateSmoothQuadraticBezierCurve(true);
+				wasQuadraticBezierCurve = true;
 				break;
 			case 'a':
-				this.generateArcTo(false);
+				this.generateArc(false);
 				break;
 			case 'A':
-				this.generateArcTo(true);
+				this.generateArc(true);
 				break;
 			case 'z':
 			case 'Z':
-				this.generateClosePath();
+				this.generateClose();
 				break;
 			default:
 				throw new RuntimeException("Unexpected SVG command: " + this.mCommand);
 		}
 		if (!wasCubicBezierCurve) {
+			this.mLastCubicBezierX2 = this.mLastX;
+			this.mLastCubicBezierY2 = this.mLastY;
+		}
+		if (!wasQuadraticBezierCurve) {
 			this.mLastCubicBezierX2 = this.mLastX;
 			this.mLastCubicBezierY2 = this.mLastY;
 		}
@@ -223,7 +237,6 @@ public class PathParser {
 		if(this.mCommandParameters.size() >= 2) {
 			this.generateLine(pAbsolute);
 		}
-		this.mCommandParameters.clear();
 	}
 
 	private void generateLine(final boolean pAbsolute) {
@@ -246,7 +259,6 @@ public class PathParser {
 				this.mLastY += y;
 			}
 		}
-		this.mCommandParameters.clear();
 	}
 
 	private void generateHorizontalLine(final boolean pAbsolute) {
@@ -348,53 +360,106 @@ public class PathParser {
 	}
 
 	private void generateQuadraticBezierCurve(final boolean pAbsolute) {
-		this.assertParameterCount(4);
-		// TODO Loop?
-		final float x1 = this.mCommandParameters.poll();
-		final float y1 = this.mCommandParameters.poll();
-		final float x2 = this.mCommandParameters.poll();
-		final float y2 = this.mCommandParameters.poll();
-
-		/** Draws a quadratic Bezier curve from mLastX,mLastY x,y. x1,y1 is the control point.. */
+		this.assertParameterCountMinimum(4);
+		/** Draws a quadratic bezier curve from mLastX,mLastY x,y. x1,y1 is the control point.. */
 		if(pAbsolute) {
-			this.mPath.quadTo(x1, y1, x2, y2);
-			this.mLastX = x2;
-			this.mLastY = y2;
+			while(this.mCommandParameters.size() >= 4) {
+				final float x1 = this.mCommandParameters.poll();
+				final float y1 = this.mCommandParameters.poll();
+				final float x2 = this.mCommandParameters.poll();
+				final float y2 = this.mCommandParameters.poll();
+				this.mPath.quadTo(x1, y1, x2, y2);
+				this.mLastQuadraticBezierX2 = x2;
+				this.mLastQuadraticBezierY2 = y2;
+				this.mLastX = x2;
+				this.mLastY = y2;
+			}
 		} else {
-			this.mPath.rQuadTo(x1, y1, x2, y2); // TODO rQuadTo?
-			this.mLastX += x2;
-			this.mLastY += y2;
+			while(this.mCommandParameters.size() >= 4) {
+				final float x1 = this.mCommandParameters.poll() + this.mLastX;
+				final float y1 = this.mCommandParameters.poll() + this.mLastY;
+				final float x2 = this.mCommandParameters.poll() + this.mLastX;
+				final float y2 = this.mCommandParameters.poll() + this.mLastY;
+				this.mPath.quadTo(x1, y1, x2, y2);
+				this.mLastQuadraticBezierX2 = x2;
+				this.mLastQuadraticBezierY2 = y2;
+				this.mLastX = x2;
+				this.mLastY = y2;
+			}
 		}
 	}
 
 	private void generateSmoothQuadraticBezierCurve(final boolean pAbsolute) {
-		// TODO Implement
-
-		/** Draws a quadratic Bezier curve from mLastX,mLastY to x,y.
+		this.assertParameterCountMinimum(2);
+		/** Draws a quadratic bezier curve from mLastX,mLastY to x,y.
 		 * The control point is assumed to be the same as the last control point used. */
-	}
-
-	private void generateArcTo(final boolean pAbsolute) {
-		this.assertParameterCount(7);
-		final float rx = this.mCommandParameters.poll();
-		final float ry = this.mCommandParameters.poll();
-		final float theta = this.mCommandParameters.poll();
-		final int largeArc = this.mCommandParameters.poll().intValue();
-		final int sweepArc = this.mCommandParameters.poll().intValue();
-		final float x = this.mCommandParameters.poll();
-		final float y = this.mCommandParameters.poll();
 		if(pAbsolute) {
-			// TODO Implement
-			// lastX = x;
-			// lastY = y;
+			while(this.mCommandParameters.size() >= 2) {
+				final float x1 = 2 * this.mLastX - this.mLastQuadraticBezierX2;
+				final float y1 = 2 * this.mLastY - this.mLastQuadraticBezierY2;
+				final float x2 = this.mCommandParameters.poll();
+				final float y2 = this.mCommandParameters.poll();
+				this.mPath.quadTo(x1, y1, x2, y2);
+				this.mLastQuadraticBezierX2 = x2;
+				this.mLastQuadraticBezierY2 = y2;
+				this.mLastX = x2;
+				this.mLastY = y2;
+			}
 		} else {
-			// TODO Implement
-			// lastX += x;
-			// lastY += y;
+			while(this.mCommandParameters.size() >= 2) {
+				final float x1 = 2 * this.mLastX - this.mLastQuadraticBezierX2;
+				final float y1 = 2 * this.mLastY - this.mLastQuadraticBezierY2;
+				final float x2 = this.mCommandParameters.poll() + this.mLastX;
+				final float y2 = this.mCommandParameters.poll() + this.mLastY;
+				this.mPath.quadTo(x1, y1, x2, y2);
+				this.mLastQuadraticBezierX2 = x2;
+				this.mLastQuadraticBezierY2 = y2;
+				this.mLastX = x2;
+				this.mLastY = y2;
+			}
 		}
 	}
 
-	private void generateClosePath() {
+	private void generateArc(final boolean pAbsolute) {
+		this.assertParameterCountMinimum(7);
+		if(pAbsolute) {
+			while(this.mCommandParameters.size() >= 7) {
+				final float rx = this.mCommandParameters.poll();
+				final float ry = this.mCommandParameters.poll();
+				final float theta = this.mCommandParameters.poll();
+				final int largeArc = this.mCommandParameters.poll().intValue();
+				final int sweepArc = this.mCommandParameters.poll().intValue();
+				final float x = this.mCommandParameters.poll();
+				final float y = this.mCommandParameters.poll();
+				
+				// TODO Implement
+//				this.mRectF.set(left, top, right, bottom);
+//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
+
+				 this.mLastX = x;
+				 this.mLastY = x;
+			}
+		} else {
+			while(this.mCommandParameters.size() >= 7) {
+				final float rx = this.mCommandParameters.poll();
+				final float ry = this.mCommandParameters.poll();
+				final float theta = this.mCommandParameters.poll();
+				final int largeArc = this.mCommandParameters.poll().intValue();
+				final int sweepArc = this.mCommandParameters.poll().intValue();
+				final float x = this.mCommandParameters.poll() + this.mLastX;
+				final float y = this.mCommandParameters.poll() + this.mLastY;
+				
+//				this.mRectF.set(left, top, right, bottom);
+//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
+	
+				// TODO Implement
+				 this.mLastX = x;
+				 this.mLastY = x;
+			}
+		}
+	}
+
+	private void generateClose() {
 		this.assertParameterCount(0);
 		this.mPath.close();
 	}
