@@ -107,6 +107,7 @@ public class SVGHandler extends DefaultHandler {
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
 		} else if (pLocalName.equals("linearGradient")) {
+			this.mCurrentGradient = GradientParser.parse(pAttributes, true);
 			if (this.mCurrentGradient != null && this.mCurrentGradient.getID() != null) {
 				this.mCurrentGradient = GradientParser.parse(pAttributes, true);
 			}
