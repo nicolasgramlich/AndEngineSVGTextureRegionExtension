@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.util;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -7,7 +7,6 @@ import org.anddev.andengine.util.Debug;
 
 import android.graphics.Path;
 
-import com.larvalabs.svgandroid.util.ParserUtils;
 
 /**
  * Parses a single SVG path and returns it as a <code>android.graphics.Path</code> object.

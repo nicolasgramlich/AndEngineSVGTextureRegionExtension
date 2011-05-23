@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.util;
 
 import java.util.ArrayList;
 
@@ -111,7 +111,7 @@ public class NumberParser {
 		return new NumberParserResult(numbers, p);
 	}
 
-	static NumberParserResult parseFromAttributes(final Attributes pAttributes, final String pAttributeName) {
+	public static NumberParserResult parseFromAttributes(final Attributes pAttributes, final String pAttributeName) {
 		final int n = pAttributes.getLength();
 		for (int i = 0; i < n; i++) {
 			if (pAttributes.getLocalName(i).equals(pAttributeName)) {

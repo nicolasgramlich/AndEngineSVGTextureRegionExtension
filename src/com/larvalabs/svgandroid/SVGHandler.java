@@ -18,7 +18,17 @@ import android.graphics.Picture;
 import android.graphics.RectF;
 import android.graphics.Shader;
 
-import com.larvalabs.svgandroid.NumberParser.NumberParserResult;
+import com.larvalabs.svgandroid.adt.Properties;
+import com.larvalabs.svgandroid.adt.StyleSet;
+import com.larvalabs.svgandroid.exception.SVGParseException;
+import com.larvalabs.svgandroid.gradient.Gradient;
+import com.larvalabs.svgandroid.util.ColorParser;
+import com.larvalabs.svgandroid.util.GradientParser;
+import com.larvalabs.svgandroid.util.NumberParser;
+import com.larvalabs.svgandroid.util.PathParser;
+import com.larvalabs.svgandroid.util.SAXHelper;
+import com.larvalabs.svgandroid.util.TransformParser;
+import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
 
 /**
  * @author Larva Labs, LLC

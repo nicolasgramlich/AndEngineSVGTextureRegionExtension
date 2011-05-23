@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.exception;
 
 /**
  * @author Larva Labs, LLC

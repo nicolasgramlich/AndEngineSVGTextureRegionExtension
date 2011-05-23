@@ -1,13 +1,13 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.gradient;
 
 import android.graphics.Matrix;
 import android.graphics.Shader;
 
 /**
  * @author Nicolas Gramlich
- * @since 18:30:44 - 21.05.2011
+ * @since 18:34:54 - 21.05.2011
  */
-public class LinearGradient extends Gradient {
+public class RadialGradient extends Gradient {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -16,21 +16,19 @@ public class LinearGradient extends Gradient {
 	// Fields
 	// ===========================================================
 
-	private final float mX1;
-	private final float mY1;
-	private final float mX2;
-	private final float mY2;
+	private final float mCenterX;
+	private final float mCenterY;
+	private final float mRadius;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public LinearGradient(final String pID, final float pX1, final float pX2, final float pY1, final float pY2, final Matrix pMatrix, final String pXLink) {
+	public RadialGradient(final String pID, final float pCenterX, final float pCenterY, final float pRadius, final Matrix pMatrix, final String pXLink) {
 		super(pID, pMatrix, pXLink);
-		this.mX1 = pX1;
-		this.mX2 = pX2;
-		this.mY1 = pY1;
-		this.mY2 = pY2;
+		this.mCenterX = pCenterX;
+		this.mCenterY = pCenterY;
+		this.mRadius = pRadius;
 	}
 
 	// ===========================================================
@@ -43,12 +41,12 @@ public class LinearGradient extends Gradient {
 
 	@Override
 	protected Gradient copy(final String pID, final Matrix pMatrix, final String pXLink) {
-		return new LinearGradient(pID, this.mX1, this.mX2, this.mY1, this.mY2, pMatrix, pXLink);
+		return new RadialGradient(pID, this.mCenterX, this.mCenterY, this.mRadius, pMatrix, pXLink);
 	}
 
 	@Override
 	public Shader createShader() {
-		final android.graphics.LinearGradient shader = new android.graphics.LinearGradient(this.mX1, this.mY1, this.mX2, this.mY2, this.getColorArray(), this.getPositionArray(), Shader.TileMode.CLAMP);
+		final android.graphics.RadialGradient shader = new android.graphics.RadialGradient(this.mCenterX, this.mCenterY, this.mRadius, this.getColorArray(), this.getPositionArray(), Shader.TileMode.CLAMP);
 		if (this.mMatrix != null) {
 			shader.setLocalMatrix(this.mMatrix);
 		}

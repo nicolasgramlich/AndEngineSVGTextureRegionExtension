@@ -11,6 +11,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
+import com.larvalabs.svgandroid.exception.SVGParseException;
+import com.larvalabs.svgandroid.util.SAXHelper;
+
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Picture;

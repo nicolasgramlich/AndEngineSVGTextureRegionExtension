@@ -1,8 +1,9 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.util;
 
 import android.graphics.Matrix;
 
-import com.larvalabs.svgandroid.NumberParser.NumberParserResult;
+import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
+
 
 /**
  * @author Larva Labs, LLC

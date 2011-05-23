@@ -1,12 +1,13 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.adt;
 
-import org.xml.sax.Attributes;
+import java.util.HashMap;
 
 /**
+ * @author Larva Labs, LLC
  * @author Nicolas Gramlich
- * @since 14:22:28 - 22.05.2011
+ * @since 16:49:43 - 21.05.2011
  */
-public class SAXHelper {
+public class StyleSet {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -15,13 +16,29 @@ public class SAXHelper {
 	// Fields
 	// ===========================================================
 
+	private final HashMap<String, String> mStyleMap = new HashMap<String, String>();
+
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
+	public StyleSet(final String pString) {
+		final String[] styles = pString.split(";");
+		for (final String s : styles) {
+			final String[] style = s.split(":");
+			if (style.length == 2) {
+				this.mStyleMap.put(style[0], style[1]);
+			}
+		}
+	}
+
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
+
+	public String getStyle(final String pStyleName) {
+		return this.mStyleMap.get(pStyleName);
+	}
 
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces
@@ -30,16 +47,6 @@ public class SAXHelper {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-
-	public static String getStringAttribute(final Attributes pAttributes, final String pAttributeName) {
-		final int n = pAttributes.getLength();
-		for (int i = 0; i < n; i++) {
-			if (pAttributes.getLocalName(i).equals(pAttributeName)) {
-				return pAttributes.getValue(i);
-			}
-		}
-		return null;
-	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

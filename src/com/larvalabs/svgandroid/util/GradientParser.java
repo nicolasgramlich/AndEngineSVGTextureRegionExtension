@@ -1,6 +1,11 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.util;
 
 import org.xml.sax.Attributes;
+
+import com.larvalabs.svgandroid.SVGParser;
+import com.larvalabs.svgandroid.gradient.Gradient;
+import com.larvalabs.svgandroid.gradient.LinearGradient;
+import com.larvalabs.svgandroid.gradient.RadialGradient;
 
 import android.graphics.Matrix;
 

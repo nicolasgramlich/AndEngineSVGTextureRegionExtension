@@ -1,6 +1,8 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.adt;
 
 import org.xml.sax.Attributes;
+
+import com.larvalabs.svgandroid.util.SAXHelper;
 
 /**
  * @author Larva Labs, LLC

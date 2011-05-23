@@ -1,8 +1,10 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.util;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.larvalabs.svgandroid.adt.Properties;
 
 import android.graphics.Color;
 import android.graphics.Paint;
