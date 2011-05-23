@@ -33,6 +33,12 @@ public class SVGResourceTextureSource extends SVGBaseTextureSource {
 		this.mRawResourceID = pRawResourceID;
 	}
 
+	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight) {
+		super(SVGResourceTextureSource.getSVG(pContext, pRawResourceID), pWidth, pHeight);
+		this.mContext = pContext;
+		this.mRawResourceID = pRawResourceID;
+	}
+
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
@@ -43,7 +49,7 @@ public class SVGResourceTextureSource extends SVGBaseTextureSource {
 
 	@Override
 	public SVGResourceTextureSource clone() {
-		return new SVGResourceTextureSource(this.mContext, this.mRawResourceID);
+		return new SVGResourceTextureSource(this.mContext, this.mRawResourceID, this.mWidth, this.mHeight);
 	}
 
 	// ===========================================================

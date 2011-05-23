@@ -25,6 +25,10 @@ public abstract class SVGBaseTextureSource extends PictureTextureSource {
 		super(pSVG.getPicture());
 	}
 
+	public SVGBaseTextureSource(final SVG pSVG, final int pWidth, final int pHeight) {
+		super(pSVG.getPicture(), pWidth, pHeight);
+	}
+
 	@Override
 	public abstract SVGBaseTextureSource clone();
 

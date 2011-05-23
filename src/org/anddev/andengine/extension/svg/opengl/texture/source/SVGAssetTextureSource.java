@@ -33,6 +33,12 @@ public class SVGAssetTextureSource extends SVGBaseTextureSource {
 		this.mAssetPath = pAssetPath;
 	}
 
+	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final int pWidth, final int pHeight) {
+		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath), pWidth, pHeight);
+		this.mContext = pContext;
+		this.mAssetPath = pAssetPath;
+	}
+
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
@@ -43,7 +49,7 @@ public class SVGAssetTextureSource extends SVGBaseTextureSource {
 
 	@Override
 	public SVGAssetTextureSource clone() {
-		return new SVGAssetTextureSource(this.mContext, this.mAssetPath);
+		return new SVGAssetTextureSource(this.mContext, this.mAssetPath, this.mWidth, this.mHeight);
 	}
 
 	// ===========================================================
