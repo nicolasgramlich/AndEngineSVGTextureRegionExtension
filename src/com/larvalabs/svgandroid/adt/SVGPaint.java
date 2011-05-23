@@ -202,10 +202,10 @@ public class SVGPaint {
 	public Stop parseGradientStop(final Attributes pAttributes) {
 		final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
 		final String styles = SAXHelper.getStringAttribute(pAttributes, "style");
-		final SVGStyleSet sVGStyleSet = new SVGStyleSet(styles);
-		final String stopColor = sVGStyleSet.getStyle("stop-color");
+		final SVGStyleSet svgStyleSet = new SVGStyleSet(styles);
+		final String stopColor = svgStyleSet.getStyle("stop-color");
 		int color = this.parseColor(stopColor.trim(), Color.BLACK);
-		final String opacityStyle = sVGStyleSet.getStyle("stop-opacity");
+		final String opacityStyle = svgStyleSet.getStyle("stop-opacity");
 		if(opacityStyle != null) {
 			final float alpha = Float.parseFloat(opacityStyle);
 			final int alphaInt = Math.round(255 * alpha);
