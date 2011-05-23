@@ -407,21 +407,34 @@ public class SVGHandler extends DefaultHandler {
 	private Shader registerGradientShader(final Gradient pGradient) {
 		final Shader gradientShader;
 		if(pGradient.hasXLink()) {
-			final String parentXLink = pGradient.getXLink();
-			final Gradient parent = this.mGradientMap.get(parentXLink);
-			if (parent == null) {
-				throw new SVGParseException("Could not resolve xlink: '" + parentXLink + "' of gradient: '" + pGradient.getID() + "'.");
-			} else {
-				final Gradient gradient = parent.deriveChild(pGradient);
-
-				gradientShader = gradient.createShader();
-				this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
-			}
+			gradientShader = registerParentGradientShader(pGradient);
 		} else {
 			gradientShader = pGradient.createShader();
 			this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
 		}
 		return gradientShader;
+	}
+
+	private Shader registerParentGradientShader(final Gradient pGradient) {
+		final Shader gradientShader;
+		final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
+		if (parent == null) {
+			throw new SVGParseException("Could not resolve xlink: '" + pGradient.getXLink() + "' of gradient: '" + pGradient.getID() + "'.");
+		} else {
+			if(parent.hasXLink() && !hasGradientShader(parent)) {
+				this.registerGradientShader(parent);
+			}
+			final Gradient gradient = Gradient.deriveChild(parent, pGradient);
+
+			gradientShader = gradient.createShader();
+			this.mGradientMap.put(pGradient.getID(), pGradient);
+			this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
+		}
+		return gradientShader;
+	}
+
+	private boolean hasGradientShader(final Gradient pGradient) {
+		return this.mGradientShaderMap.containsKey(pGradient.getID());
 	}
 
 	private boolean isDisplayNone(final Properties pProperties) {

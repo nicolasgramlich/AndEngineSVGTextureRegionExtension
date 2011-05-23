@@ -36,18 +36,23 @@ public abstract class Gradient {
 		this.mXLink = pXLink;
 	}
 
-	public Gradient deriveChild(final Gradient pGradient) {
-		final Gradient child = pGradient.copy(pGradient.mID, this.mMatrix, this.mXLink);
-		child.mOffsets = this.mOffsets;
-		child.mColors = this.mColors;
-		if (pGradient.mMatrix != null) {
-			if (this.mMatrix == null) {
-				child.mMatrix = pGradient.mMatrix;
-			} else {
-				final Matrix m = new Matrix(this.mMatrix);
-				m.preConcat(pGradient.mMatrix);
-				child.mMatrix = m;
-			}
+	public static Gradient deriveChild(final Gradient pParent, final Gradient pGradient) {
+		final Matrix childMatrix;
+		if (pGradient.mMatrix == null) {
+			/* Child inherits parent matrix. */
+			childMatrix = pParent.mMatrix;
+		} else {
+			/* Child inherits gradient matrix. */
+			childMatrix = pGradient.mMatrix;
+		}
+
+		final Gradient child = pGradient.copy(pGradient.mID, childMatrix, pParent.mXLink);
+		if(pGradient.mOffsets.size() > 0) {
+			child.mOffsets = pGradient.mOffsets;
+			child.mColors = pGradient.mColors;
+		} else {
+			child.mOffsets = pParent.mOffsets;
+			child.mColors = pParent.mColors;
 		}
 		return child;
 	}
