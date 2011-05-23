@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid.util;
+package com.larvalabs.svgandroid.adt;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -11,13 +11,14 @@ import android.graphics.Paint;
 import android.graphics.Shader;
 
 import com.larvalabs.svgandroid.SVGParser;
-import com.larvalabs.svgandroid.adt.Properties;
-import com.larvalabs.svgandroid.adt.StyleSet;
 import com.larvalabs.svgandroid.exception.SVGParseException;
 import com.larvalabs.svgandroid.gradient.Gradient;
 import com.larvalabs.svgandroid.gradient.Gradient.Stop;
 import com.larvalabs.svgandroid.gradient.LinearGradient;
 import com.larvalabs.svgandroid.gradient.RadialGradient;
+import com.larvalabs.svgandroid.util.ColorUtils;
+import com.larvalabs.svgandroid.util.SAXHelper;
+import com.larvalabs.svgandroid.util.TransformParser;
 
 /**
  * @author Nicolas Gramlich
@@ -57,7 +58,7 @@ public class SVGPaint {
 	// Methods
 	// ===========================================================
 
-	public boolean setColor(final Properties pProperties, final String pColorProperty) {
+	public boolean setColor(final SVGProperties pSVGProperties, final String pColorProperty) {
 		if(pColorProperty.startsWith("url(#")) {
 			final String id = pColorProperty.substring("url(#".length(), pColorProperty.length() - 1);
 
@@ -76,7 +77,7 @@ public class SVGPaint {
 		} else {
 			final Integer color = this.parseColor(pColorProperty);
 			if(color != null) {
-				this.setColor(pProperties, color, true);
+				this.setColor(pSVGProperties, color, true);
 				return true;
 			} else {
 				return false;
@@ -84,12 +85,12 @@ public class SVGPaint {
 		}
 	}
 
-	private void setColor(final Properties pProperties, final Integer pColor, final boolean pFillMode) {
+	private void setColor(final SVGProperties pSVGProperties, final Integer pColor, final boolean pFillMode) {
 		final int c = (ColorUtils.COLOR_MASK_RGB & pColor) | ColorUtils.COLOR_MASK_ALPHA;
 		this.mPaint.setColor(c);
-		Float opacity = pProperties.getFloatProperty("opacity");
+		Float opacity = pSVGProperties.getFloatProperty("opacity");
 		if(opacity == null) {
-			opacity = pProperties.getFloatProperty(pFillMode ? "fill-opacity" : "stroke-opacity");
+			opacity = pSVGProperties.getFloatProperty(pFillMode ? "fill-opacity" : "stroke-opacity");
 		}
 		if(opacity == null) {
 			this.mPaint.setAlpha(255);
@@ -201,10 +202,10 @@ public class SVGPaint {
 	public Stop parseGradientStop(final Attributes pAttributes) {
 		final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
 		final String styles = SAXHelper.getStringAttribute(pAttributes, "style");
-		final StyleSet styleSet = new StyleSet(styles);
-		final String stopColor = styleSet.getStyle("stop-color");
+		final SVGStyleSet sVGStyleSet = new SVGStyleSet(styles);
+		final String stopColor = sVGStyleSet.getStyle("stop-color");
 		int color = this.parseColor(stopColor.trim(), Color.BLACK);
-		final String opacityStyle = styleSet.getStyle("stop-opacity");
+		final String opacityStyle = sVGStyleSet.getStyle("stop-opacity");
 		if(opacityStyle != null) {
 			final float alpha = Float.parseFloat(opacityStyle);
 			final int alphaInt = Math.round(255 * alpha);

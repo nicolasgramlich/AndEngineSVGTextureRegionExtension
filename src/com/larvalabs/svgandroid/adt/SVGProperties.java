@@ -9,7 +9,7 @@ import com.larvalabs.svgandroid.util.SAXHelper;
  * @author Nicolas Gramlich
  * @since 16:49:55 - 21.05.2011
  */
-public class Properties {
+public class SVGProperties {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -18,20 +18,20 @@ public class Properties {
 	// Fields
 	// ===========================================================
 
-	private final StyleSet mStyles;
+	private final SVGStyleSet mSVGStyleSet;
 	private final Attributes mAttributes;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public Properties(final Attributes pAttributes) {
+	public SVGProperties(final Attributes pAttributes) {
 		this.mAttributes = pAttributes;
 		final String styleAttr = SAXHelper.getStringAttribute(pAttributes, "style");
 		if (styleAttr != null) {
-			this.mStyles = new StyleSet(styleAttr);
+			this.mSVGStyleSet = new SVGStyleSet(styleAttr);
 		} else {
-			this.mStyles = null;
+			this.mSVGStyleSet = null;
 		}
 	}
 
@@ -49,8 +49,8 @@ public class Properties {
 
 	public String getStringProperty(final String pPropertyName) {
 		String s = null;
-		if (this.mStyles != null) {
-			s = this.mStyles.getStyle(pPropertyName);
+		if (this.mSVGStyleSet != null) {
+			s = this.mSVGStyleSet.getStyle(pPropertyName);
 		}
 		if (s == null) {
 			s = SAXHelper.getStringAttribute(this.mAttributes, pPropertyName);

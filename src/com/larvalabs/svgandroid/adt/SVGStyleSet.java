@@ -7,7 +7,7 @@ import java.util.HashMap;
  * @author Nicolas Gramlich
  * @since 16:49:43 - 21.05.2011
  */
-public class StyleSet {
+public class SVGStyleSet {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -22,7 +22,7 @@ public class StyleSet {
 	// Constructors
 	// ===========================================================
 
-	public StyleSet(final String pString) {
+	public SVGStyleSet(final String pString) {
 		final String[] styles = pString.split(";");
 		for (final String s : styles) {
 			final String[] style = s.split(":");
