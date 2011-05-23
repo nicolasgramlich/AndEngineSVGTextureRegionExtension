@@ -19,6 +19,8 @@ import android.content.res.Resources;
 import android.graphics.Picture;
 
 /**
+ * TODO To allow modifications like color-replacements, the 'parse' methods could take a ColorParser object, which would then be no more static.
+ * 
  * @author Larva Labs, LLC
  * @author Nicolas Gramlich
  * @since 17:00:16 - 21.05.2011
@@ -36,23 +38,23 @@ public class SVGParser {
 	// Constructors
 	// ===========================================================
 
-	public static SVG getSVGFromInputStream(final InputStream pInputStream) throws SVGParseException {
-		return SVGParser.parse(pInputStream);
-	}
-
-	public static SVG getSVGFromString(final String pString) throws SVGParseException {
+	public static SVG parseSVGFromString(final String pString) throws SVGParseException {
 		return SVGParser.parse(new ByteArrayInputStream(pString.getBytes()));
 	}
 
-	public static SVG getSVGFromResource(final Resources pResources, final int pRawResourceID) throws SVGParseException {
+	public static SVG parseSVGFromResource(final Resources pResources, final int pRawResourceID) throws SVGParseException {
 		return SVGParser.parse(pResources.openRawResource(pRawResourceID));
 	}
 
-	public static SVG getSVGFromAsset(final AssetManager pAssetManager, final String pAssetPath) throws SVGParseException, IOException {
+	public static SVG parseSVGFromAsset(final AssetManager pAssetManager, final String pAssetPath) throws SVGParseException, IOException {
 		final InputStream inputStream = pAssetManager.open(pAssetPath);
-		final SVG svg = SVGParser.getSVGFromInputStream(inputStream);
+		final SVG svg = SVGParser.parseSVGFromInputStream(inputStream);
 		inputStream.close();
 		return svg;
+	}
+
+	public static SVG parseSVGFromInputStream(final InputStream pInputStream) throws SVGParseException {
+		return SVGParser.parse(pInputStream);
 	}
 
 	// ===========================================================

@@ -58,7 +58,7 @@ public class SVGAssetTextureSource extends SVGBaseTextureSource {
 
 	private static SVG getSVG(final Context pContext, final String pAssetPath) {
 		try {
-			return SVGParser.getSVGFromAsset(pContext.getAssets(), pAssetPath);
+			return SVGParser.parseSVGFromAsset(pContext.getAssets(), pAssetPath);
 		} catch (final Throwable t) {
 			Debug.e("Failed loading SVG in SVGAssetTextureSource. AssetPath: " + pAssetPath, t);
 			return null;
