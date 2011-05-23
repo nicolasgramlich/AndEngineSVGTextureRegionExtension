@@ -109,7 +109,7 @@ public class SVGHandler extends DefaultHandler {
 		} else if (pLocalName.equals("linearGradient")) {
 			this.mCurrentGradient = GradientParser.parse(pAttributes, true);
 			if (this.mCurrentGradient != null && this.mCurrentGradient.getID() != null) {
-				this.mCurrentGradient = GradientParser.parse(pAttributes, true);
+				this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
 			}
 		} else if (pLocalName.equals("radialGradient")) {
 			this.mCurrentGradient = GradientParser.parse(pAttributes, false);
