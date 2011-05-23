@@ -282,7 +282,8 @@ public class SVGHandler extends DefaultHandler {
 				if(gradient == null) {
 					throw new SVGParseException("No gradient found for id: '" + id + "'.");
 				} else {
-					gradientShader = this.registerGradientShader(gradient);
+					this.registerGradientShader(gradient);
+					gradientShader = this.mGradientShaderMap.get(id);
 				}
 			}
 			this.mPaint.setShader(gradientShader);
@@ -404,33 +405,26 @@ public class SVGHandler extends DefaultHandler {
 		}
 	}
 
-	private Shader registerGradientShader(final Gradient pGradient) {
-		final Shader gradientShader;
-		if(pGradient.hasXLink()) {
-			gradientShader = registerParentGradientShader(pGradient);
-		} else {
-			gradientShader = pGradient.createShader();
-			this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
-		}
-		return gradientShader;
-	}
+	private void registerGradientShader(final Gradient pGradient) {
+		final String gradientID = pGradient.getID();
+		if(this.hasGradientShader(pGradient)) {
+			/* Nothing to do, as Shader was already created. */
+		} else if(pGradient.hasXLink()) {
+			final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
+			if (parent == null) {
+				throw new SVGParseException("Could not resolve xlink: '" + pGradient.getXLink() + "' of gradient: '" + gradientID + "'.");
+			} else {
+				if(parent.hasXLink() && !this.hasGradientShader(parent)) {
+					this.registerGradientShader(parent);
+				}
+				final Gradient gradient = Gradient.deriveChild(parent, pGradient);
 
-	private Shader registerParentGradientShader(final Gradient pGradient) {
-		final Shader gradientShader;
-		final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
-		if (parent == null) {
-			throw new SVGParseException("Could not resolve xlink: '" + pGradient.getXLink() + "' of gradient: '" + pGradient.getID() + "'.");
-		} else {
-			if(parent.hasXLink() && !hasGradientShader(parent)) {
-				this.registerGradientShader(parent);
+				this.mGradientMap.put(gradientID, gradient);
+				this.mGradientShaderMap.put(gradientID, gradient.createShader());
 			}
-			final Gradient gradient = Gradient.deriveChild(parent, pGradient);
-
-			gradientShader = gradient.createShader();
-			this.mGradientMap.put(pGradient.getID(), pGradient);
-			this.mGradientShaderMap.put(pGradient.getID(), gradientShader);
+		} else {
+			this.mGradientShaderMap.put(gradientID, pGradient.createShader());
 		}
-		return gradientShader;
 	}
 
 	private boolean hasGradientShader(final Gradient pGradient) {
