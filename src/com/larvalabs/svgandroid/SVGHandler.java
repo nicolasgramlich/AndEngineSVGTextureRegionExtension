@@ -20,7 +20,7 @@ import com.larvalabs.svgandroid.gradient.Gradient;
 import com.larvalabs.svgandroid.gradient.Gradient.Stop;
 import com.larvalabs.svgandroid.util.NumberParser;
 import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
-import com.larvalabs.svgandroid.util.PaintManager;
+import com.larvalabs.svgandroid.util.SVGPaint;
 import com.larvalabs.svgandroid.util.PathParser;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.TransformParser;
@@ -53,7 +53,7 @@ public class SVGHandler extends DefaultHandler {
 	private boolean mHidden;
 	private int mHiddenLevel;
 	private final Stack<Boolean> mGroupTransformStack = new Stack<Boolean>();
-	private final PaintManager mPaintManager = new PaintManager(this.mPaint);
+	private final SVGPaint mSVGPaint = new SVGPaint(this.mPaint);
 
 	// ===========================================================
 	// Constructors
@@ -100,13 +100,11 @@ public class SVGHandler extends DefaultHandler {
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
 		} else if (pLocalName.equals("linearGradient")) {
-			this.mCurrentGradient = mPaintManager.parseGradient(pAttributes, true);
-			this.mPaintManager.registerGradient(this.mCurrentGradient);
+			this.mCurrentGradient = mSVGPaint.registerGradient(pAttributes, true);
 		} else if (pLocalName.equals("radialGradient")) {
-			this.mCurrentGradient = mPaintManager.parseGradient(pAttributes, false);
-			this.mPaintManager.registerGradient(this.mCurrentGradient);
+			this.mCurrentGradient = mSVGPaint.registerGradient(pAttributes, false);
 		} else if (pLocalName.equals("stop")) {
-			final Stop gradientStop = mPaintManager.parseGradientStop(pAttributes);
+			final Stop gradientStop = mSVGPaint.parseGradientStop(pAttributes);
 			this.mCurrentGradient.addStop(gradientStop);
 		} else if (pLocalName.equals("g")) {
 			// Check to see if this is the "bounds" layer
@@ -272,7 +270,7 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 			/* Clear shader map. */
-			this.mPaintManager.clearGradientShaders();
+			this.mSVGPaint.clearGradientShaders();
 		}
 	}
 
@@ -298,7 +296,7 @@ public class SVGHandler extends DefaultHandler {
 				return false;
 			}
 		} else {
-			return this.mPaintManager.setPaintColor(pProperties, fillProperty);
+			return this.mSVGPaint.setColor(pProperties, fillProperty);
 		}
 	}
 
@@ -316,7 +314,7 @@ public class SVGHandler extends DefaultHandler {
 		this.mPaint.setStyle(Paint.Style.STROKE);
 
 		final String strokeProperty = pProperties.getStringProperty("stroke");
-		if(this.mPaintManager.setPaintColor(pProperties, strokeProperty)) {
+		if(this.mSVGPaint.setColor(pProperties, strokeProperty)) {
 			final Float width = pProperties.getFloatProperty("stroke-width");
 			if (width != null) {
 				this.mPaint.setStrokeWidth(width);

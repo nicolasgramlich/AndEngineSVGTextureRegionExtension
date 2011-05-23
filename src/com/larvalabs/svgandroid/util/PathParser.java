@@ -36,12 +36,12 @@ public class PathParser {
 	private int mCommandStart = 0;
 	private final Queue<Float> mCommandParameters = new LinkedList<Float>();
 
-//	private final RectF mRectF = new RectF();
+	//	private final RectF mRectF = new RectF();
 	private float mLastX;
 	private float mLastY;
 	private float mLastCubicBezierX2;
 	private float mLastCubicBezierY2;
-	private final ParserHelper mParserHelper = new ParserHelper();
+	private final PathParserHelper mPathParserHelper = new PathParserHelper();
 	private float mLastQuadraticBezierX2;
 	private float mLastQuadraticBezierY2;
 
@@ -98,15 +98,15 @@ public class PathParser {
 		this.mLength = pString.length();
 		while (this.mPosition < this.mLength) {
 			try {
-				this.mParserHelper.skipWhitespace();
+				this.mPathParserHelper.skipWhitespace();
 				if (Character.isLetter(this.mCurrentChar) && (this.mCurrentChar != 'e')) {
 					this.processCommand();
 
 					this.mCommand = this.mCurrentChar;
 					this.mCommandStart = this.mPosition;
-					this.mParserHelper.advance();
+					this.mPathParserHelper.advance();
 				} else {
-					final float parameter = this.mParserHelper.nextFloat();
+					final float parameter = this.mPathParserHelper.nextFloat();
 					this.mCommandParameters.add(parameter);
 				}
 			} catch(final Throwable t) {
@@ -432,14 +432,14 @@ public class PathParser {
 				final int sweepArc = this.mCommandParameters.poll().intValue();
 				final float x = this.mCommandParameters.poll();
 				final float y = this.mCommandParameters.poll();
-				
+
 				// TODO Implement
-//				this.mRectF.set(left, top, right, bottom);
-//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
+				//				this.mRectF.set(left, top, right, bottom);
+				//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
 				this.mPath.lineTo(x, y);
 
-				 this.mLastX = x;
-				 this.mLastY = y;
+				this.mLastX = x;
+				this.mLastY = y;
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 7) {
@@ -450,14 +450,14 @@ public class PathParser {
 				final int sweepArc = this.mCommandParameters.poll().intValue();
 				final float x = this.mCommandParameters.poll() + this.mLastX;
 				final float y = this.mCommandParameters.poll() + this.mLastY;
-				
-//				this.mRectF.set(left, top, right, bottom);
-//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
+
+				//				this.mRectF.set(left, top, right, bottom);
+				//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
 				this.mPath.lineTo(x, y);
-	
+
 				// TODO Implement
-				 this.mLastX = x;
-				 this.mLastY = y;
+				this.mLastX = x;
+				this.mLastY = y;
 			}
 		}
 	}
@@ -478,7 +478,7 @@ public class PathParser {
 	 * @author Larva Labs LLC
 	 * @author Nicolas Gramlich
 	 */
-	public class ParserHelper {
+	public class PathParserHelper {
 		// ===========================================================
 		// Constants
 		// ===========================================================

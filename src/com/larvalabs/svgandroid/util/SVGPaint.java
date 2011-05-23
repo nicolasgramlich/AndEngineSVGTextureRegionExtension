@@ -23,7 +23,7 @@ import com.larvalabs.svgandroid.gradient.RadialGradient;
  * @author Nicolas Gramlich
  * @since 22:01:39 - 23.05.2011
  */
-public class PaintManager {
+public class SVGPaint {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -41,7 +41,7 @@ public class PaintManager {
 	// Constructors
 	// ===========================================================
 
-	public PaintManager(final Paint pPaint) {
+	public SVGPaint(final Paint pPaint) {
 		this.mPaint = pPaint;
 	}
 
@@ -57,7 +57,7 @@ public class PaintManager {
 	// Methods
 	// ===========================================================
 
-	public boolean setPaintColor(final Properties pProperties, final String pColorProperty) {
+	public boolean setColor(final Properties pProperties, final String pColorProperty) {
 		if(pColorProperty.startsWith("url(#")) {
 			final String id = pColorProperty.substring("url(#".length(), pColorProperty.length() - 1);
 
@@ -76,7 +76,7 @@ public class PaintManager {
 		} else {
 			final Integer color = this.parseColor(pColorProperty);
 			if(color != null) {
-				this.setPaintColor(pProperties, color, true);
+				this.setColor(pProperties, color, true);
 				return true;
 			} else {
 				return false;
@@ -84,7 +84,7 @@ public class PaintManager {
 		}
 	}
 
-	private void setPaintColor(final Properties pProperties, final Integer pColor, final boolean pFillMode) {
+	private void setColor(final Properties pProperties, final Integer pColor, final boolean pFillMode) {
 		final int c = (ColorUtils.COLOR_MASK_RGB & pColor) | ColorUtils.COLOR_MASK_ALPHA;
 		this.mPaint.setColor(c);
 		Float opacity = pProperties.getFloatProperty("opacity");
@@ -95,12 +95,6 @@ public class PaintManager {
 			this.mPaint.setAlpha(255);
 		} else {
 			this.mPaint.setAlpha((int) (255 * opacity));
-		}
-	}
-
-	public void registerGradient(final Gradient pGradient) {
-		if (pGradient != null && pGradient.getID() != null) {
-			this.mGradientMap.put(pGradient.getID(), pGradient);
 		}
 	}
 
@@ -175,7 +169,7 @@ public class PaintManager {
 	// Methods for Gradient-Parsing
 	// ===========================================================
 
-	public Gradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
+	public Gradient registerGradient(final Attributes pAttributes, final boolean pLinear) {
 		final String id = SAXHelper.getStringAttribute(pAttributes, "id");
 		if(id == null) {
 			return null;
@@ -187,19 +181,21 @@ public class PaintManager {
 				xlink = xlink.substring(1);
 			}
 		}
-
+		final Gradient gradient;
 		if(pLinear) {
 			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
 			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
 			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
 			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
-			return new LinearGradient(id, x1, x2, y1, y2, matrix, xlink);
+			gradient = new LinearGradient(id, x1, x2, y1, y2, matrix, xlink);
 		} else {
 			final float centerX = SVGParser.getFloatAttribute(pAttributes, "cx", 0f);
 			final float centerY = SVGParser.getFloatAttribute(pAttributes, "cy", 0f);
 			final float radius = SVGParser.getFloatAttribute(pAttributes, "r", 0f);
-			return new RadialGradient(id, centerX, centerY, radius, matrix, xlink);
+			gradient = new RadialGradient(id, centerX, centerY, radius, matrix, xlink);
 		}
+		this.mGradientMap.put(id, gradient);
+		return gradient;
 	}
 
 	public Stop parseGradientStop(final Attributes pAttributes) {
