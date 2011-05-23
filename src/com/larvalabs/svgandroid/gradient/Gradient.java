@@ -23,8 +23,7 @@ public abstract class Gradient {
 	protected Matrix mMatrix = null;
 	protected String mXLink;
 
-	protected ArrayList<Float> mOffsets = new ArrayList<Float>();
-	protected ArrayList<Integer> mColors = new ArrayList<Integer>();
+	protected ArrayList<Stop> mStops = new ArrayList<Stop>();
 
 	// ===========================================================
 	// Constructors
@@ -47,12 +46,10 @@ public abstract class Gradient {
 		}
 
 		final Gradient child = pGradient.copy(pGradient.mID, childMatrix, pParent.mXLink);
-		if(pGradient.mOffsets.size() > 0) {
-			child.mOffsets = pGradient.mOffsets;
-			child.mColors = pGradient.mColors;
+		if(pGradient.mStops.size() > 0) {
+			child.mStops = pGradient.mStops;
 		} else {
-			child.mOffsets = pParent.mOffsets;
-			child.mColors = pParent.mColors;
+			child.mStops = pParent.mStops;
 		}
 		return child;
 	}
@@ -93,27 +90,64 @@ public abstract class Gradient {
 	// ===========================================================
 
 	protected int[] getColorArray() {
-		final int[] colors = new int[this.mColors.size()];
+		final int[] colors = new int[this.mStops.size()];
 		for (int i = 0; i < colors.length; i++) {
-			colors[i] = this.mColors.get(i);
+			colors[i] = this.mStops.get(i).mColor;
 		}
 		return colors;
 	}
 
 	protected float[] getPositionArray() {
-		final float[] positions = new float[this.mOffsets.size()];
+		final float[] positions = new float[this.mStops.size()];
 		for (int i = 0; i < positions.length; i++) {
-			positions[i] = this.mOffsets.get(i);
+			positions[i] = this.mStops.get(i).mOffset;
 		}
 		return positions;
 	}
 
-	public void addStop(final float pOffset, final int pColor) {
-		this.mOffsets.add(pOffset);
-		this.mColors.add(pColor);
+	public void addStop(final Stop pStop) {
+		this.mStops.add(pStop);
 	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================
+
+	public static class Stop {
+		// ===========================================================
+		// Constants
+		// ===========================================================
+
+		// ===========================================================
+		// Fields
+		// ===========================================================
+
+		private final float mOffset;
+		private final int mColor;
+
+		// ===========================================================
+		// Constructors
+		// ===========================================================
+
+		public Stop(final float pOffset, final int pColor) {
+			this.mOffset = pOffset;
+			this.mColor = pColor;
+		}
+
+		// ===========================================================
+		// Getter & Setter
+		// ===========================================================
+
+		// ===========================================================
+		// Methods for/from SuperClass/Interfaces
+		// ===========================================================
+
+		// ===========================================================
+		// Methods
+		// ===========================================================
+
+		// ===========================================================
+		// Inner and Anonymous Classes
+		// ===========================================================
+	}
 }

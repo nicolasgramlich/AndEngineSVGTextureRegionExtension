@@ -1,7 +1,6 @@
 package com.larvalabs.svgandroid;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Stack;
 
 import org.anddev.andengine.util.Debug;
@@ -10,22 +9,18 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Picture;
 import android.graphics.RectF;
-import android.graphics.Shader;
 
 import com.larvalabs.svgandroid.adt.Properties;
-import com.larvalabs.svgandroid.adt.StyleSet;
-import com.larvalabs.svgandroid.exception.SVGParseException;
 import com.larvalabs.svgandroid.gradient.Gradient;
-import com.larvalabs.svgandroid.util.ColorParser;
-import com.larvalabs.svgandroid.util.GradientParser;
+import com.larvalabs.svgandroid.gradient.Gradient.Stop;
 import com.larvalabs.svgandroid.util.NumberParser;
 import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
+import com.larvalabs.svgandroid.util.PaintManager;
 import com.larvalabs.svgandroid.util.PathParser;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.TransformParser;
@@ -46,13 +41,11 @@ public class SVGHandler extends DefaultHandler {
 
 	private final Picture mPicture;
 	private Canvas mCanvas;
-	private final Paint mPaint;
+	private final Paint mPaint = new Paint();
 	private final RectF mRect = new RectF();
 	private RectF mBounds;
 	private final RectF mLimits = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
-
-	private final HashMap<String, Shader> mGradientShaderMap = new HashMap<String, Shader>();
-	private final HashMap<String, Gradient> mGradientMap = new HashMap<String, Gradient>();
+	
 	private Gradient mCurrentGradient;
 
 	private boolean mBoundsMode;
@@ -60,6 +53,7 @@ public class SVGHandler extends DefaultHandler {
 	private boolean mHidden;
 	private int mHiddenLevel;
 	private final Stack<Boolean> mGroupTransformStack = new Stack<Boolean>();
+	private final PaintManager mPaintManager = new PaintManager(this.mPaint);
 
 	// ===========================================================
 	// Constructors
@@ -67,7 +61,6 @@ public class SVGHandler extends DefaultHandler {
 
 	public SVGHandler(final Picture pPicture) {
 		this.mPicture = pPicture;
-		this.mPaint = new Paint();
 		this.mPaint.setAntiAlias(true);
 	}
 
@@ -107,17 +100,14 @@ public class SVGHandler extends DefaultHandler {
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
 		} else if (pLocalName.equals("linearGradient")) {
-			this.mCurrentGradient = GradientParser.parse(pAttributes, true);
-			if (this.mCurrentGradient != null && this.mCurrentGradient.getID() != null) {
-				this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
-			}
+			this.mCurrentGradient = mPaintManager.parseGradient(pAttributes, true);
+			this.mPaintManager.registerGradient(this.mCurrentGradient);
 		} else if (pLocalName.equals("radialGradient")) {
-			this.mCurrentGradient = GradientParser.parse(pAttributes, false);
-			if (this.mCurrentGradient != null && this.mCurrentGradient.getID() != null) {
-				this.mGradientMap.put(this.mCurrentGradient.getID(), this.mCurrentGradient);
-			}
+			this.mCurrentGradient = mPaintManager.parseGradient(pAttributes, false);
+			this.mPaintManager.registerGradient(this.mCurrentGradient);
 		} else if (pLocalName.equals("stop")) {
-			this.parseStop(pAttributes);
+			final Stop gradientStop = mPaintManager.parseGradientStop(pAttributes);
+			this.mCurrentGradient.addStop(gradientStop);
 		} else if (pLocalName.equals("g")) {
 			// Check to see if this is the "bounds" layer
 			if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, "id"))) {
@@ -282,7 +272,7 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 			/* Clear shader map. */
-			this.mGradientShaderMap.clear();
+			this.mPaintManager.clearGradientShaders();
 		}
 	}
 
@@ -308,7 +298,7 @@ public class SVGHandler extends DefaultHandler {
 				return false;
 			}
 		} else {
-			return this.setColor(pProperties, fillProperty);
+			return this.mPaintManager.setPaintColor(pProperties, fillProperty);
 		}
 	}
 
@@ -326,7 +316,7 @@ public class SVGHandler extends DefaultHandler {
 		this.mPaint.setStyle(Paint.Style.STROKE);
 
 		final String strokeProperty = pProperties.getStringProperty("stroke");
-		if(this.setColor(pProperties, strokeProperty)) {
+		if(this.mPaintManager.setPaintColor(pProperties, strokeProperty)) {
 			final Float width = pProperties.getFloatProperty("stroke-width");
 			if (width != null) {
 				this.mPaint.setStrokeWidth(width);
@@ -350,33 +340,6 @@ public class SVGHandler extends DefaultHandler {
 			return true;
 		} else {
 			return false;
-		}
-	}
-
-	private boolean setColor(final Properties pProperties, final String pColorProperty) {
-		if(pColorProperty.startsWith("url(#")) {
-			final String id = pColorProperty.substring("url(#".length(), pColorProperty.length() - 1);
-
-			Shader gradientShader = this.mGradientShaderMap.get(id);
-			if(gradientShader == null) {
-				final Gradient gradient = this.mGradientMap.get(id);
-				if(gradient == null) {
-					throw new SVGParseException("No gradient found for id: '" + id + "'.");
-				} else {
-					this.registerGradientShader(gradient);
-					gradientShader = this.mGradientShaderMap.get(id);
-				}
-			}
-			this.mPaint.setShader(gradientShader);
-			return true;
-		} else {
-			final Integer color = ColorParser.parse(pColorProperty);
-			if(color != null) {
-				ColorParser.setPaintColor(pProperties, color, true, this.mPaint);
-				return true;
-			} else {
-				return false;
-			}
 		}
 	}
 
@@ -422,32 +385,6 @@ public class SVGHandler extends DefaultHandler {
 		this.mCanvas.restore();
 	}
 
-	private void registerGradientShader(final Gradient pGradient) {
-		final String gradientID = pGradient.getID();
-		if(this.hasGradientShader(pGradient)) {
-			/* Nothing to do, as Shader was already created. */
-		} else if(pGradient.hasXLink()) {
-			final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
-			if (parent == null) {
-				throw new SVGParseException("Could not resolve xlink: '" + pGradient.getXLink() + "' of gradient: '" + gradientID + "'.");
-			} else {
-				if(parent.hasXLink() && !this.hasGradientShader(parent)) {
-					this.registerGradientShader(parent);
-				}
-				final Gradient gradient = Gradient.deriveChild(parent, pGradient);
-
-				this.mGradientMap.put(gradientID, gradient);
-				this.mGradientShaderMap.put(gradientID, gradient.createShader());
-			}
-		} else {
-			this.mGradientShaderMap.put(gradientID, pGradient.createShader());
-		}
-	}
-
-	private boolean hasGradientShader(final Gradient pGradient) {
-		return this.mGradientShaderMap.containsKey(pGradient.getID());
-	}
-
 	private boolean isDisplayNone(final Properties pProperties) {
 		return "none".equals(pProperties.getStringProperty("display"));
 	}
@@ -458,25 +395,6 @@ public class SVGHandler extends DefaultHandler {
 
 	private boolean isStrokeNone(final Properties pProperties) {
 		return "none".equals(pProperties.getStringProperty("stroke"));
-	}
-
-	private void parseStop(final Attributes pAttributes) {
-		if (this.mCurrentGradient != null) {
-			final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
-			final String styles = SAXHelper.getStringAttribute(pAttributes, "style");
-			final StyleSet styleSet = new StyleSet(styles);
-			final String stopColor = styleSet.getStyle("stop-color");
-			int color = ColorParser.parse(stopColor.trim(), Color.BLACK);
-			final String opacityStyle = styleSet.getStyle("stop-opacity");
-			if (opacityStyle != null) {
-				final float alpha = Float.parseFloat(opacityStyle);
-				final int alphaInt = Math.round(255 * alpha);
-				color |= (alphaInt << 24);
-			} else {
-				color |= ColorParser.COLOR_MASK_ALPHA;
-			}
-			this.mCurrentGradient.addStop(offset, color);
-		}
 	}
 
 	// ===========================================================

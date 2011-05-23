@@ -1,29 +1,24 @@
 package com.larvalabs.svgandroid.util;
 
 import java.util.HashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.larvalabs.svgandroid.adt.Properties;
-
-import android.graphics.Color;
-import android.graphics.Paint;
 
 /**
  * @author Nicolas Gramlich
- * @since 08:50:02 - 23.05.2011
+ * @since 22:22:08 - 23.05.2011
  */
-public class ColorParser {
+public class ColorUtils {
 	// ===========================================================
 	// Constants
 	// ===========================================================
 
 	public static final int COLOR_MASK_RGB = 0xFFFFFF;
 	public static final int COLOR_MASK_ALPHA = 0xFF000000;
-	private static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
+	public static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
 
 	private static HashMap<String, Integer> NAMED_COLORS = new HashMap<String, Integer>();
 	static {
+		// TODO With Java7 a switch on the string might perform better.
 		NAMED_COLORS.put("aliceblue", 0xf0f8ff);
 		NAMED_COLORS.put("antiquewhite", 0xfaebd7);
 		NAMED_COLORS.put("aqua", 0x00ffff);
@@ -192,52 +187,9 @@ public class ColorParser {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-
-	public static Integer parse(final String pString, final Integer pDefault) {
-		final Integer color = ColorParser.parse(pString);
-		if(color == null) {
-			return pDefault;
-		} else {
-			return color;
-		}
-	}
-
-	public static Integer parse(final String pString) {
-		if (pString == null) {
-			return null;
-		} else if (pString.startsWith("#")) {
-			return Integer.parseInt(pString.substring(1), 16);
-		} else if(pString.startsWith("rgb")) {
-			final Matcher matcher = RGB_PATTERN.matcher(pString);
-			if(matcher.matches() && matcher.groupCount() == 3) {
-				final int red = Integer.parseInt(matcher.group(1));
-				final int green = Integer.parseInt(matcher.group(2));
-				final int blue = Integer.parseInt(matcher.group(3));
-				return Color.rgb(red, green, blue);
-			} else {
-				return null;
-			}
-		} else {
-			try {
-				return Integer.parseInt(pString.substring(1), 16);
-			} catch (final NumberFormatException nfe) {
-				return NAMED_COLORS.get(pString.trim());
-			}
-		}
-	}
-
-	public static void setPaintColor(final Properties pProperties, final Integer pColor, final boolean pFillMode, final Paint pPaint) {
-		final int c = (ColorParser.COLOR_MASK_RGB & pColor) | ColorParser.COLOR_MASK_ALPHA;
-		pPaint.setColor(c);
-		Float opacity = pProperties.getFloatProperty("opacity");
-		if (opacity == null) {
-			opacity = pProperties.getFloatProperty(pFillMode ? "fill-opacity" : "stroke-opacity");
-		}
-		if (opacity == null) {
-			pPaint.setAlpha(255);
-		} else {
-			pPaint.setAlpha((int) (255 * opacity));
-		}
+	
+	public static Integer getColorByName(final String pColorName) {
+		return NAMED_COLORS.get(pColorName);
 	}
 
 	// ===========================================================
