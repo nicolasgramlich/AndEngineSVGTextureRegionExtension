@@ -25,10 +25,10 @@ import com.larvalabs.svgandroid.gradient.Gradient;
 import com.larvalabs.svgandroid.util.ColorParser;
 import com.larvalabs.svgandroid.util.GradientParser;
 import com.larvalabs.svgandroid.util.NumberParser;
+import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
 import com.larvalabs.svgandroid.util.PathParser;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.TransformParser;
-import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
 
 /**
  * @author Larva Labs, LLC
@@ -296,39 +296,20 @@ public class SVGHandler extends DefaultHandler {
 		}
 
 		this.resetPaint();
+		this.mPaint.setStyle(Paint.Style.FILL);
 
-		final String fillString = pProperties.getStringProperty("fill");
-		if (fillString != null && fillString.startsWith("url(#")) {
-			final String id = fillString.substring("url(#".length(), fillString.length() - 1);
-
-			Shader gradientShader = this.mGradientShaderMap.get(id);
-			if (gradientShader == null) {
-				final Gradient gradient = this.mGradientMap.get(id);
-				if(gradient == null) {
-					throw new SVGParseException("No gradient found for id: '" + id + "'.");
-				} else {
-					this.registerGradientShader(gradient);
-					gradientShader = this.mGradientShaderMap.get(id);
-				}
-			}
-			this.mPaint.setShader(gradientShader);
-			this.mPaint.setStyle(Paint.Style.FILL);
-			return true;
-		} else {
-			this.mPaint.setShader(null);
-			final Integer color = ColorParser.parse(pProperties.getStringProperty("fill"));
-			if (color != null) {
-				ColorParser.setPaintColor(pProperties, color, true, this.mPaint);
-				this.mPaint.setStyle(Paint.Style.FILL);
-				return true;
-			} else if (fillString == null && pProperties.getStringProperty("stroke") == null) {
+		final String fillProperty = pProperties.getStringProperty("fill");
+		if(fillProperty == null) {
+			if(pProperties.getStringProperty("stroke") == null) {
 				/* Default is black fill. */
-				this.mPaint.setStyle(Paint.Style.FILL);
 				this.mPaint.setColor(0xFF000000);
 				return true;
+			} else {
+				return false;
 			}
+		} else {
+			return this.setColor(pProperties, fillProperty);
 		}
-		return false;
 	}
 
 	private void resetPaint() {
@@ -342,12 +323,10 @@ public class SVGHandler extends DefaultHandler {
 		}
 
 		this.resetPaint();
+		this.mPaint.setStyle(Paint.Style.STROKE);
 
-		final String strokeAttribute = pProperties.getStringProperty("stroke");
-		final Integer color = ColorParser.parse(strokeAttribute);
-		if (color != null) {
-			// TODO No Shaders for stroke? Could be extracted from setFill to a common method.
-			ColorParser.setPaintColor(pProperties, color, false, this.mPaint);
+		final String strokeProperty = pProperties.getStringProperty("stroke");
+		if(this.setColor(pProperties, strokeProperty)) {
 			final Float width = pProperties.getFloatProperty("stroke-width");
 			if (width != null) {
 				this.mPaint.setStrokeWidth(width);
@@ -368,10 +347,36 @@ public class SVGHandler extends DefaultHandler {
 			} else if ("bevel".equals(linejoin)) {
 				this.mPaint.setStrokeJoin(Paint.Join.BEVEL);
 			}
-			this.mPaint.setStyle(Paint.Style.STROKE);
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	private boolean setColor(final Properties pProperties, final String pColorProperty) {
+		if(pColorProperty.startsWith("url(#")) {
+			final String id = pColorProperty.substring("url(#".length(), pColorProperty.length() - 1);
+
+			Shader gradientShader = this.mGradientShaderMap.get(id);
+			if(gradientShader == null) {
+				final Gradient gradient = this.mGradientMap.get(id);
+				if(gradient == null) {
+					throw new SVGParseException("No gradient found for id: '" + id + "'.");
+				} else {
+					this.registerGradientShader(gradient);
+					gradientShader = this.mGradientShaderMap.get(id);
+				}
+			}
+			this.mPaint.setShader(gradientShader);
+			return true;
+		} else {
+			final Integer color = ColorParser.parse(pColorProperty);
+			if(color != null) {
+				ColorParser.setPaintColor(pProperties, color, true, this.mPaint);
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 
