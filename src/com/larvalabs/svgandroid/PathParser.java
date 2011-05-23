@@ -3,8 +3,9 @@ package com.larvalabs.svgandroid;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.anddev.andengine.util.Debug;
+
 import android.graphics.Path;
-import android.graphics.RectF;
 
 import com.larvalabs.svgandroid.util.ParserUtils;
 
@@ -36,7 +37,7 @@ public class PathParser {
 	private int mCommandStart = 0;
 	private final Queue<Float> mCommandParameters = new LinkedList<Float>();
 
-	private final RectF mRectF = new RectF();
+//	private final RectF mRectF = new RectF();
 	private float mLastX;
 	private float mLastY;
 	private float mLastCubicBezierX2;
@@ -203,8 +204,8 @@ public class PathParser {
 			this.mLastCubicBezierY2 = this.mLastY;
 		}
 		if (!wasQuadraticBezierCurve) {
-			this.mLastCubicBezierX2 = this.mLastX;
-			this.mLastCubicBezierY2 = this.mLastY;
+			this.mLastQuadraticBezierX2 = this.mLastX;
+			this.mLastQuadraticBezierY2 = this.mLastY;
 		}
 	}
 
@@ -422,6 +423,7 @@ public class PathParser {
 
 	private void generateArc(final boolean pAbsolute) {
 		this.assertParameterCountMinimum(7);
+		Debug.w("The arc command ('A'/'a') is not supported yet!");
 		if(pAbsolute) {
 			while(this.mCommandParameters.size() >= 7) {
 				final float rx = this.mCommandParameters.poll();
@@ -435,9 +437,10 @@ public class PathParser {
 				// TODO Implement
 //				this.mRectF.set(left, top, right, bottom);
 //				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
+				this.mPath.lineTo(x, y);
 
 				 this.mLastX = x;
-				 this.mLastY = x;
+				 this.mLastY = y;
 			}
 		} else {
 			while(this.mCommandParameters.size() >= 7) {
@@ -451,10 +454,11 @@ public class PathParser {
 				
 //				this.mRectF.set(left, top, right, bottom);
 //				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
+				this.mPath.lineTo(x, y);
 	
 				// TODO Implement
 				 this.mLastX = x;
-				 this.mLastY = x;
+				 this.mLastY = y;
 			}
 		}
 	}

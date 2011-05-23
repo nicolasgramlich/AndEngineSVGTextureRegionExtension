@@ -2,8 +2,6 @@ package com.larvalabs.svgandroid;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.anddev.andengine.util.Debug;
 import org.xml.sax.Attributes;
@@ -30,11 +28,6 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 	// Constants
 	// ===========================================================
-
-	private static final int COLOR_MASK_RGB = 0xFFFFFF;
-	private static final int COLOR_MASK_ALPHA = 0xFF000000;
-
-	private static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
 
 	// ===========================================================
 	// Fields
@@ -272,7 +265,7 @@ public class SVGHandler extends DefaultHandler {
 
 		this.resetPaint();
 
-		final String fillString = pProperties.getString("fill");
+		final String fillString = pProperties.getStringProperty("fill");
 		if (fillString != null && fillString.startsWith("url(#")) {
 			final String id = fillString.substring("url(#".length(), fillString.length() - 1);
 
@@ -291,12 +284,12 @@ public class SVGHandler extends DefaultHandler {
 			return true;
 		} else {
 			this.mPaint.setShader(null);
-			final Integer color = pProperties.getHex("fill");
+			final Integer color = ColorParser.parse(pProperties.getStringProperty("fill"));
 			if (color != null) {
-				this.setPaintColor(pProperties, color, true);
+				ColorParser.setPaintColor(pProperties, color, true, this.mPaint);
 				this.mPaint.setStyle(Paint.Style.FILL);
 				return true;
-			} else if (pProperties.getString("fill") == null && pProperties.getString("stroke") == null) {
+			} else if (fillString == null && pProperties.getStringProperty("stroke") == null) {
 				/* Default is black fill. */
 				this.mPaint.setStyle(Paint.Style.FILL);
 				this.mPaint.setColor(0xFF000000);
@@ -318,15 +311,16 @@ public class SVGHandler extends DefaultHandler {
 
 		this.resetPaint();
 
-		final Integer color = pProperties.getHex("stroke");
+		final String strokeAttribute = pProperties.getStringProperty("stroke");
+		final Integer color = ColorParser.parse(strokeAttribute);
 		if (color != null) {
 			// TODO No Shaders for stroke? Could be extracted from setFill to a common method.
-			this.setPaintColor(pProperties, color, false);
-			final Float width = pProperties.getFloat("stroke-width");
+			ColorParser.setPaintColor(pProperties, color, false, this.mPaint);
+			final Float width = pProperties.getFloatProperty("stroke-width");
 			if (width != null) {
 				this.mPaint.setStrokeWidth(width);
 			}
-			final String linecap = pProperties.getString("stroke-linecap");
+			final String linecap = pProperties.getStringProperty("stroke-linecap");
 			if ("round".equals(linecap)) {
 				this.mPaint.setStrokeCap(Paint.Cap.ROUND);
 			} else if ("square".equals(linecap)) {
@@ -334,7 +328,7 @@ public class SVGHandler extends DefaultHandler {
 			} else if ("butt".equals(linecap)) {
 				this.mPaint.setStrokeCap(Paint.Cap.BUTT);
 			}
-			final String linejoin = pProperties.getString("stroke-linejoin");
+			final String linejoin = pProperties.getStringProperty("stroke-linejoin");
 			if ("miter".equals(linejoin)) {
 				this.mPaint.setStrokeJoin(Paint.Join.MITER);
 			} else if ("round".equals(linejoin)) {
@@ -346,20 +340,6 @@ public class SVGHandler extends DefaultHandler {
 			return true;
 		} else {
 			return false;
-		}
-	}
-
-	private void setPaintColor(final Properties pProperties, final Integer pColor, final boolean pFillMode) {
-		final int c = (COLOR_MASK_RGB & pColor) | COLOR_MASK_ALPHA;
-		this.mPaint.setColor(c);
-		Float opacity = pProperties.getFloat("opacity");
-		if (opacity == null) {
-			opacity = pProperties.getFloat(pFillMode ? "fill-opacity" : "stroke-opacity");
-		}
-		if (opacity == null) {
-			this.mPaint.setAlpha(255);
-		} else {
-			this.mPaint.setAlpha((int) (255 * opacity));
 		}
 	}
 
@@ -432,15 +412,15 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private boolean isDisplayNone(final Properties pProperties) {
-		return "none".equals(pProperties.getString("display"));
+		return "none".equals(pProperties.getStringProperty("display"));
 	}
 
 	private boolean isFillNone(final Properties pProperties) {
-		return "none".equals(pProperties.getString("fill"));
+		return "none".equals(pProperties.getStringProperty("fill"));
 	}
 
 	private boolean isStrokeNone(final Properties pProperties) {
-		return "none".equals(pProperties.getString("stroke"));
+		return "none".equals(pProperties.getStringProperty("stroke"));
 	}
 
 	private void parseStop(final Attributes pAttributes) {
@@ -449,30 +429,14 @@ public class SVGHandler extends DefaultHandler {
 			final String styles = SAXHelper.getStringAttribute(pAttributes, "style");
 			final StyleSet styleSet = new StyleSet(styles);
 			String stopColor = styleSet.getStyle("stop-color");
-			int color = Color.BLACK;
-			if (stopColor != null) {
-				stopColor = stopColor.trim();
-				if (stopColor.startsWith("#")) {
-					color = Integer.parseInt(stopColor.substring(1), 16);
-				} else if(stopColor.startsWith("rgb")) {
-					final Matcher matcher = RGB_PATTERN.matcher(stopColor);
-					if(matcher.matches() && matcher.groupCount() == 3) {
-						final int red = Integer.parseInt(matcher.group(1));
-						final int green = Integer.parseInt(matcher.group(2));
-						final int blue = Integer.parseInt(matcher.group(3));
-						color = Color.rgb(red, green, blue);
-					}
-				} else {
-					color = Integer.parseInt(stopColor, 16);
-				}
-			}
+			int color = ColorParser.parse(stopColor.trim(), Color.BLACK);
 			final String opacityStyle = styleSet.getStyle("stop-opacity");
 			if (opacityStyle != null) {
 				final float alpha = Float.parseFloat(opacityStyle);
 				final int alphaInt = Math.round(255 * alpha);
 				color |= (alphaInt << 24);
 			} else {
-				color |= 0xFF000000;
+				color |= ColorParser.COLOR_MASK_ALPHA;
 			}
 			this.mCurrentGradient.addStop(offset, color);
 		}

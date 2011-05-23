@@ -15,7 +15,7 @@ public class Properties {
 	// ===========================================================
 	// Fields
 	// ===========================================================
-	
+
 	private final StyleSet mStyles;
 	private final Attributes mAttributes;
 
@@ -45,54 +45,37 @@ public class Properties {
 	// Methods
 	// ===========================================================
 
-	public String getAttribute(final String pName) {
-		String v = null;
+	public String getStringProperty(final String pPropertyName) {
+		String s = null;
 		if (this.mStyles != null) {
-			v = this.mStyles.getStyle(pName);
+			s = this.mStyles.getStyle(pPropertyName);
 		}
-		if (v == null) {
-			v = SAXHelper.getStringAttribute(this.mAttributes, pName);
+		if (s == null) {
+			s = SAXHelper.getStringAttribute(this.mAttributes, pPropertyName);
 		}
-		return v;
+		return s;
 	}
 
-	public String getString(final String pName) {
-		return this.getAttribute(pName);
+	public Float getFloatProperty(final String pPropertyName, final float pDefaultValue) {
+		final Float f = this.getFloatProperty(pPropertyName);
+		if (f == null) {
+			return pDefaultValue;
+		} else {
+			return f;
+		}
 	}
 
-	public Integer getHex(final String pName) {
-		final String v = this.getAttribute(pName);
-		if (v == null || !v.startsWith("#")) {
+	public Float getFloatProperty(final String pPropertyName) {
+		final String f = this.getStringProperty(pPropertyName);
+		if (f == null) {
 			return null;
 		} else {
 			try {
-				return Integer.parseInt(v.substring(1), 16);
-			} catch (final NumberFormatException nfe) {
-				// todo - parse word-based color here
-				return null;
-			}
-		}
-	}
-
-	public Float getFloat(final String pName, final float defaultValue) {
-		final Float v = this.getFloat(pName);
-		if (v == null) {
-			return defaultValue;
-		} else {
-			return v;
-		}
-	}
-
-	public Float getFloat(final String pName) {
-		String v = this.getAttribute(pName);
-		if (v == null) {
-			return null;
-		} else {
-			try {
-				if (v.endsWith("px")) {
-					v = v.substring(0, v.length() - 2);
+				if (f.endsWith("px")) {
+					return Float.parseFloat(f.substring(0, f.length() - 2));
+				} else {
+					return Float.parseFloat(f);
 				}
-				return Float.parseFloat(v);
 			} catch (final NumberFormatException nfe) {
 				return null;
 			}
