@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid.gradient;
+package com.larvalabs.svgandroid.adt.gradient;
 
 import android.graphics.Matrix;
 import android.graphics.Shader;

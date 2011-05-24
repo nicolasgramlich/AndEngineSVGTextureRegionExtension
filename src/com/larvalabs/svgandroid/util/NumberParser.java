@@ -80,7 +80,9 @@ public class NumberParser {
 				case '\t':
 				case ' ':
 				case ',':
-				case '-': {
+				case '-':
+				case 'e':
+				case 'E': {
 					final String str = pString.substring(p, i);
 					/* Just keep moving if multiple whitespace */
 					if (str.trim().length() > 0) {

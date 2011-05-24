@@ -81,7 +81,7 @@ public class PathParser {
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
 	public Path parse(final String pString) {
-		this.mString = pString;
+		this.mString = pString.trim();;
 		this.mLastX = 0;
 		this.mLastY = 0;
 		this.mLastCubicBezierX2 = 0;
@@ -89,17 +89,17 @@ public class PathParser {
 		this.mCommand = null;
 		this.mCommandParameters.clear();
 		this.mPath = new Path();
-		if(pString.length() == 0) {
+		if(mString.length() == 0) {
 			return this.mPath;
 		}
-		this.mCurrentChar = pString.charAt(0);
+		this.mCurrentChar = mString.charAt(0);
 
 		this.mPosition = 0;
-		this.mLength = pString.length();
+		this.mLength = mString.length();
 		while (this.mPosition < this.mLength) {
 			try {
 				this.mPathParserHelper.skipWhitespace();
-				if (Character.isLetter(this.mCurrentChar) && (this.mCurrentChar != 'e')) {
+				if (Character.isLetter(this.mCurrentChar) && (this.mCurrentChar != 'e') && (this.mCurrentChar != 'E')) {
 					this.processCommand();
 
 					this.mCommand = this.mCurrentChar;
@@ -110,7 +110,7 @@ public class PathParser {
 					this.mCommandParameters.add(parameter);
 				}
 			} catch(final Throwable t) {
-				throw new IllegalArgumentException("Error parsing: '" + pString.substring(this.mCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
+				throw new IllegalArgumentException("Error parsing: '" + mString.substring(this.mCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
 			}
 		}
 		this.processCommand();

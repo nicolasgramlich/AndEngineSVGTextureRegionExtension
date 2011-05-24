@@ -13,7 +13,10 @@
 	
 	<property name="binfile" value="bin/andenginesvgtextureregionextension.jar" />
 	
-	<property name="targetlist" value="../AndEngineExamples/lib/andenginesvgtextureregionextension.jar"/>
+	<property name="targetlist" value="../AndEngineExamples/lib/andenginesvgtextureregionextension.jar,
+		../FarmTower/lib/andenginesvgtextureregionextension.jar,
+		../FarmTowerEco/lib/andenginesvgtextureregionextension.jar,
+		../FarmTowerPro/lib/andenginesvgtextureregionextension.jar"/>
    	
    	<target name="package">
 		<jar destfile="${binfile}">

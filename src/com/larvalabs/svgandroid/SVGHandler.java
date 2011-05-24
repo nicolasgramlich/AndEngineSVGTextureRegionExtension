@@ -17,8 +17,8 @@ import android.graphics.RectF;
 
 import com.larvalabs.svgandroid.adt.SVGProperties;
 import com.larvalabs.svgandroid.adt.SVGPaint;
-import com.larvalabs.svgandroid.gradient.Gradient;
-import com.larvalabs.svgandroid.gradient.Gradient.Stop;
+import com.larvalabs.svgandroid.adt.gradient.Gradient;
+import com.larvalabs.svgandroid.adt.gradient.Gradient.Stop;
 import com.larvalabs.svgandroid.util.NumberParser;
 import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
 import com.larvalabs.svgandroid.util.PathParser;

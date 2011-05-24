@@ -11,16 +11,18 @@ import android.graphics.Paint;
 import android.graphics.Shader;
 
 import com.larvalabs.svgandroid.SVGParser;
+import com.larvalabs.svgandroid.adt.gradient.Gradient;
+import com.larvalabs.svgandroid.adt.gradient.LinearGradient;
+import com.larvalabs.svgandroid.adt.gradient.RadialGradient;
+import com.larvalabs.svgandroid.adt.gradient.Gradient.Stop;
 import com.larvalabs.svgandroid.exception.SVGParseException;
-import com.larvalabs.svgandroid.gradient.Gradient;
-import com.larvalabs.svgandroid.gradient.Gradient.Stop;
-import com.larvalabs.svgandroid.gradient.LinearGradient;
-import com.larvalabs.svgandroid.gradient.RadialGradient;
 import com.larvalabs.svgandroid.util.ColorUtils;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.TransformParser;
 
 /**
+ * TODO Add ColorMapping - maybe a HashMap<Integer,Integer> and make us of it in parseColor(...). Constructor should take such a ColorMapping object then. 
+ * 
  * @author Nicolas Gramlich
  * @since 22:01:39 - 23.05.2011
  */
@@ -59,6 +61,10 @@ public class SVGPaint {
 	// ===========================================================
 
 	public boolean setColor(final SVGProperties pSVGProperties, final String pColorProperty) {
+		if(pColorProperty == null) {
+			return false;
+		}
+
 		if(pColorProperty.startsWith("url(#")) {
 			final String id = pColorProperty.substring("url(#".length(), pColorProperty.length() - 1);
 

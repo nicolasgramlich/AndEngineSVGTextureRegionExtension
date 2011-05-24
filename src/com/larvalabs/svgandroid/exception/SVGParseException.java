@@ -20,6 +20,10 @@ public class SVGParseException extends RuntimeException {
 	// Constructors
 	// ===========================================================
 
+	public SVGParseException() {
+
+	}
+
 	public SVGParseException(final String pMessage) {
 		super(pMessage);
 	}

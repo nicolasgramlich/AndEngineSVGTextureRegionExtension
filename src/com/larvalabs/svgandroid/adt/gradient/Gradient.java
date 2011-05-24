@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid.gradient;
+package com.larvalabs.svgandroid.adt.gradient;
 
 import java.util.ArrayList;
 
