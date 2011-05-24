@@ -152,20 +152,32 @@ public class SVGPaint {
 		if(pString == null) {
 			return null;
 		} else if(pString.startsWith("#")) {
-			return Integer.parseInt(pString.substring(1), 16);
+			final String hexColorString = pString.substring(1).trim();
+			if(hexColorString.length() == 3) {
+				final int parsedInt = Integer.parseInt(hexColorString, 16);
+				final int red = (parsedInt & ColorUtils.SHORTCOLOR_MASK_R) >> 8;
+				final int green = (parsedInt & ColorUtils.SHORTCOLOR_MASK_G) >> 4;
+				final int blue = (parsedInt & ColorUtils.SHORTCOLOR_MASK_B) >> 0;
+				/* Generate color, duplicating the bits, so that i.e.: #F46 gets #FFAA66. */
+				return Color.argb(0, (red << 4) | red, (green << 4) | green, (blue << 4) | blue);
+			} else if(hexColorString.length() == 6) {
+				return Integer.parseInt(hexColorString, 16);
+			} else {
+				return null;
+			}
 		} else if(pString.startsWith("rgb")) {
 			final Matcher matcher = ColorUtils.RGB_PATTERN.matcher(pString);
 			if(matcher.matches() && matcher.groupCount() == 3) {
 				final int red = Integer.parseInt(matcher.group(1));
 				final int green = Integer.parseInt(matcher.group(2));
 				final int blue = Integer.parseInt(matcher.group(3));
-				return Color.rgb(red, green, blue);
+				return Color.argb(0, red, green, blue);
 			} else {
 				return null;
 			}
 		} else {
 			try {
-				return Integer.parseInt(pString.substring(1), 16);
+				return Integer.parseInt(pString, 16);
 			} catch (final NumberFormatException nfe) {
 				return ColorUtils.getColorByName(pString.trim());
 			}

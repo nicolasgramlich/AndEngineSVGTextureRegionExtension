@@ -13,6 +13,9 @@ public class ColorUtils {
 	// ===========================================================
 
 	public static final int COLOR_MASK_RGB = 0xFFFFFF;
+	public static final int SHORTCOLOR_MASK_R = 0xF00;
+	public static final int SHORTCOLOR_MASK_G = 0x0F0;
+	public static final int SHORTCOLOR_MASK_B = 0x00F;
 	public static final int COLOR_MASK_ALPHA = 0xFF000000;
 	public static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
 
