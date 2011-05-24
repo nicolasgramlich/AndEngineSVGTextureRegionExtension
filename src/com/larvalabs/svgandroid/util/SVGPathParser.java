@@ -262,28 +262,38 @@ public class SVGPathParser {
 	}
 
 	private void generateHorizontalLine(final boolean pAbsolute) {
-		this.assertParameterCount(1);
+		this.assertParameterCountMinimum(1);
 		/** Draws a horizontal line to the point defined by mLastY and x. */
-		final float x = this.mCommandParameters.poll();
 		if(pAbsolute) {
-			this.mPath.lineTo(x, this.mLastY);
-			this.mLastX = x;
+			while(this.mCommandParameters.size() >= 1) {
+				final float x = this.mCommandParameters.poll();
+				this.mPath.lineTo(x, this.mLastY);
+				this.mLastX = x;
+			}
 		} else {
-			this.mPath.rLineTo(x, 0);
-			this.mLastX += x;
+			while(this.mCommandParameters.size() >= 1) {
+				final float x = this.mCommandParameters.poll();
+				this.mPath.rLineTo(x, 0);
+				this.mLastX += x;
+			}
 		}
 	}
 
 	private void generateVerticalLine(final boolean pAbsolute) {
-		this.assertParameterCount(1);
+		this.assertParameterCountMinimum(1);
 		/** Draws a vertical line to the point defined by mLastX and y. */
-		final float y = this.mCommandParameters.poll();
 		if(pAbsolute) {
-			this.mPath.lineTo(this.mLastX, y);
-			this.mLastY = y;
+			while(this.mCommandParameters.size() >= 1) {
+				final float y = this.mCommandParameters.poll();
+				this.mPath.lineTo(this.mLastX, y);
+				this.mLastY = y;
+			}
 		} else {
-			this.mPath.rLineTo(0, y);
-			this.mLastY += y;
+			while(this.mCommandParameters.size() >= 1) {
+				final float y = this.mCommandParameters.poll();
+				this.mPath.rLineTo(0, y);
+				this.mLastY += y;
+			}
 		}
 	}
 
