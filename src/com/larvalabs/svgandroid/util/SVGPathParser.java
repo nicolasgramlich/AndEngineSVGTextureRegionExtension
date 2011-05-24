@@ -17,7 +17,7 @@ import android.graphics.Path;
  * @author Nicolas Gramlich
  * @since 17:16:39 - 21.05.2011
  */
-public class PathParser {
+public class SVGPathParser {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -504,19 +504,19 @@ public class PathParser {
 		// ===========================================================
 
 		private char read() {
-			if (PathParser.this.mPosition < PathParser.this.mLength) {
-				PathParser.this.mPosition++;
+			if (SVGPathParser.this.mPosition < SVGPathParser.this.mLength) {
+				SVGPathParser.this.mPosition++;
 			}
-			if (PathParser.this.mPosition == PathParser.this.mLength) {
+			if (SVGPathParser.this.mPosition == SVGPathParser.this.mLength) {
 				return '\0';
 			} else {
-				return PathParser.this.mString.charAt(PathParser.this.mPosition);
+				return SVGPathParser.this.mString.charAt(SVGPathParser.this.mPosition);
 			}
 		}
 
 		public void skipWhitespace() {
-			while (PathParser.this.mPosition < PathParser.this.mLength) {
-				if (Character.isWhitespace(PathParser.this.mString.charAt(PathParser.this.mPosition))) {
+			while (SVGPathParser.this.mPosition < SVGPathParser.this.mLength) {
+				if (Character.isWhitespace(SVGPathParser.this.mString.charAt(SVGPathParser.this.mPosition))) {
 					this.advance();
 				} else {
 					break;
@@ -525,8 +525,8 @@ public class PathParser {
 		}
 
 		public void skipNumberSeparator() {
-			while (PathParser.this.mPosition < PathParser.this.mLength) {
-				final char c = PathParser.this.mString.charAt(PathParser.this.mPosition);
+			while (SVGPathParser.this.mPosition < SVGPathParser.this.mLength) {
+				final char c = SVGPathParser.this.mString.charAt(SVGPathParser.this.mPosition);
 				switch (c) {
 					case ' ':
 					case ',':
@@ -541,7 +541,7 @@ public class PathParser {
 		}
 
 		public void advance() {
-			PathParser.this.mCurrentChar = this.read();
+			SVGPathParser.this.mCurrentChar = this.read();
 		}
 
 		/**
@@ -558,14 +558,14 @@ public class PathParser {
 			int     expAdj   = 0;
 			boolean expPos   = true;
 
-			switch (PathParser.this.mCurrentChar) {
+			switch (SVGPathParser.this.mCurrentChar) {
 				case '-':
 					mantPosition = false;
 				case '+':
-					PathParser.this.mCurrentChar = this.read();
+					SVGPathParser.this.mCurrentChar = this.read();
 			}
 
-			m1: switch (PathParser.this.mCurrentChar) {
+			m1: switch (SVGPathParser.this.mCurrentChar) {
 				default:
 					return Float.NaN;
 
@@ -575,8 +575,8 @@ public class PathParser {
 				case '0':
 					mantissaRead = true;
 					l: for (;;) {
-						PathParser.this.mCurrentChar = this.read();
-						switch (PathParser.this.mCurrentChar) {
+						SVGPathParser.this.mCurrentChar = this.read();
+						switch (SVGPathParser.this.mCurrentChar) {
 							case '1': case '2': case '3': case '4':
 							case '5': case '6': case '7': case '8': case '9':
 								break l;
@@ -594,12 +594,12 @@ public class PathParser {
 					l: for (;;) {
 						if (mantissaDigit < 9) {
 							mantissaDigit++;
-							mantissa = mantissa * 10 + (PathParser.this.mCurrentChar - '0');
+							mantissa = mantissa * 10 + (SVGPathParser.this.mCurrentChar - '0');
 						} else {
 							expAdj++;
 						}
-						PathParser.this.mCurrentChar = this.read();
-						switch (PathParser.this.mCurrentChar) {
+						SVGPathParser.this.mCurrentChar = this.read();
+						switch (SVGPathParser.this.mCurrentChar) {
 							default:
 								break l;
 							case '0': case '1': case '2': case '3': case '4':
@@ -608,22 +608,22 @@ public class PathParser {
 					}
 			}
 
-			if (PathParser.this.mCurrentChar == '.') {
-				PathParser.this.mCurrentChar = this.read();
-				m2: switch (PathParser.this.mCurrentChar) {
+			if (SVGPathParser.this.mCurrentChar == '.') {
+				SVGPathParser.this.mCurrentChar = this.read();
+				m2: switch (SVGPathParser.this.mCurrentChar) {
 					default:
 					case 'e': case 'E':
 						if (!mantissaRead) {
-							throw new IllegalArgumentException("Unexpected char '" + PathParser.this.mCurrentChar + "'.");
+							throw new IllegalArgumentException("Unexpected char '" + SVGPathParser.this.mCurrentChar + "'.");
 						}
 						break;
 
 					case '0':
 						if (mantissaDigit == 0) {
 							l: for (;;) {
-								PathParser.this.mCurrentChar = this.read();
+								SVGPathParser.this.mCurrentChar = this.read();
 								expAdj--;
-								switch (PathParser.this.mCurrentChar) {
+								switch (SVGPathParser.this.mCurrentChar) {
 									case '1': case '2': case '3': case '4':
 									case '5': case '6': case '7': case '8': case '9':
 										break l;
@@ -641,11 +641,11 @@ public class PathParser {
 						l: for (;;) {
 							if (mantissaDigit < 9) {
 								mantissaDigit++;
-								mantissa = mantissa * 10 + (PathParser.this.mCurrentChar - '0');
+								mantissa = mantissa * 10 + (SVGPathParser.this.mCurrentChar - '0');
 								expAdj--;
 							}
-							PathParser.this.mCurrentChar = this.read();
-							switch (PathParser.this.mCurrentChar) {
+							SVGPathParser.this.mCurrentChar = this.read();
+							switch (SVGPathParser.this.mCurrentChar) {
 								default:
 									break l;
 								case '0': case '1': case '2': case '3': case '4':
@@ -655,19 +655,19 @@ public class PathParser {
 				}
 			}
 
-			switch (PathParser.this.mCurrentChar) {
+			switch (SVGPathParser.this.mCurrentChar) {
 				case 'e': case 'E':
-					PathParser.this.mCurrentChar = this.read();
-					switch (PathParser.this.mCurrentChar) {
+					SVGPathParser.this.mCurrentChar = this.read();
+					switch (SVGPathParser.this.mCurrentChar) {
 						default:
-							throw new IllegalArgumentException("Unexpected char '" + PathParser.this.mCurrentChar + "'.");
+							throw new IllegalArgumentException("Unexpected char '" + SVGPathParser.this.mCurrentChar + "'.");
 						case '-':
 							expPos = false;
 						case '+':
-							PathParser.this.mCurrentChar = this.read();
-							switch (PathParser.this.mCurrentChar) {
+							SVGPathParser.this.mCurrentChar = this.read();
+							switch (SVGPathParser.this.mCurrentChar) {
 								default:
-									throw new IllegalArgumentException("Unexpected char '" + PathParser.this.mCurrentChar + "'.");
+									throw new IllegalArgumentException("Unexpected char '" + SVGPathParser.this.mCurrentChar + "'.");
 								case '0': case '1': case '2': case '3': case '4':
 								case '5': case '6': case '7': case '8': case '9':
 							}
@@ -675,11 +675,11 @@ public class PathParser {
 						case '5': case '6': case '7': case '8': case '9':
 					}
 
-					en: switch (PathParser.this.mCurrentChar) {
+					en: switch (SVGPathParser.this.mCurrentChar) {
 						case '0':
 							l: for (;;) {
-								PathParser.this.mCurrentChar = this.read();
-								switch (PathParser.this.mCurrentChar) {
+								SVGPathParser.this.mCurrentChar = this.read();
+								switch (SVGPathParser.this.mCurrentChar) {
 									case '1': case '2': case '3': case '4':
 									case '5': case '6': case '7': case '8': case '9':
 										break l;
@@ -694,10 +694,10 @@ public class PathParser {
 							l: for (;;) {
 								if (expDig < 3) {
 									expDig++;
-									exp = exp * 10 + (PathParser.this.mCurrentChar - '0');
+									exp = exp * 10 + (SVGPathParser.this.mCurrentChar - '0');
 								}
-								PathParser.this.mCurrentChar = this.read();
-								switch (PathParser.this.mCurrentChar) {
+								SVGPathParser.this.mCurrentChar = this.read();
+								switch (SVGPathParser.this.mCurrentChar) {
 									default:
 										break l;
 									case '0': case '1': case '2': case '3': case '4':
@@ -745,7 +745,7 @@ public class PathParser {
 				pMantissa++;  // round up trailing bits if they will be dropped.
 			}
 
-			return (float) ((pExponent > 0) ? pMantissa * ParserUtils.POWERS_OF_10[pExponent] : pMantissa / ParserUtils.POWERS_OF_10[-pExponent]);
+			return (float) ((pExponent > 0) ? pMantissa * com.larvalabs.svgandroid.util.constants.MathUtils.POWERS_OF_10[pExponent] : pMantissa / com.larvalabs.svgandroid.util.constants.MathUtils.POWERS_OF_10[-pExponent]);
 		}
 
 		// ===========================================================

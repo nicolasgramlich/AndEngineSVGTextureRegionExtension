@@ -10,7 +10,7 @@ import android.graphics.Shader;
  * @author Nicolas Gramlich
  * @since 16:50:09 - 21.05.2011
  */
-public abstract class Gradient {
+public abstract class SVGGradient {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -29,25 +29,25 @@ public abstract class Gradient {
 	// Constructors
 	// ===========================================================
 
-	public Gradient(final String pID, final Matrix pMatrix, final String pXLink) {
+	public SVGGradient(final String pID, final Matrix pMatrix, final String pXLink) {
 		this.mID = pID;
 		this.mMatrix = pMatrix;
 		this.mXLink = pXLink;
 	}
 
-	public static Gradient deriveChild(final Gradient pParent, final Gradient pGradient) {
+	public static SVGGradient deriveChild(final SVGGradient pParent, final SVGGradient pSVGGradient) {
 		final Matrix childMatrix;
-		if (pGradient.mMatrix == null) {
+		if (pSVGGradient.mMatrix == null) {
 			/* Child inherits parent matrix. */
 			childMatrix = pParent.mMatrix;
 		} else {
 			/* Child inherits gradient matrix. */
-			childMatrix = pGradient.mMatrix;
+			childMatrix = pSVGGradient.mMatrix;
 		}
 
-		final Gradient child = pGradient.copy(pGradient.mID, childMatrix, pParent.mXLink);
-		if(pGradient.mStops.size() > 0) {
-			child.mStops = pGradient.mStops;
+		final SVGGradient child = pSVGGradient.copy(pSVGGradient.mID, childMatrix, pParent.mXLink);
+		if(pSVGGradient.mStops.size() > 0) {
+			child.mStops = pSVGGradient.mStops;
 		} else {
 			child.mStops = pParent.mStops;
 		}
@@ -82,7 +82,7 @@ public abstract class Gradient {
 	// Methods for/from SuperClass/Interfaces
 	// ===========================================================
 
-	protected abstract Gradient copy(final String pID, final Matrix pMatrix, final String pXLink);
+	protected abstract SVGGradient copy(final String pID, final Matrix pMatrix, final String pXLink);
 	public abstract Shader createShader();
 
 	// ===========================================================

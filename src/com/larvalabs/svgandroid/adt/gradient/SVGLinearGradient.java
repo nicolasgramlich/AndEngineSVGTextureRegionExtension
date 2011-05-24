@@ -7,7 +7,7 @@ import android.graphics.Shader;
  * @author Nicolas Gramlich
  * @since 18:30:44 - 21.05.2011
  */
-public class LinearGradient extends Gradient {
+public class SVGLinearGradient extends SVGGradient {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -25,7 +25,7 @@ public class LinearGradient extends Gradient {
 	// Constructors
 	// ===========================================================
 
-	public LinearGradient(final String pID, final float pX1, final float pX2, final float pY1, final float pY2, final Matrix pMatrix, final String pXLink) {
+	public SVGLinearGradient(final String pID, final float pX1, final float pX2, final float pY1, final float pY2, final Matrix pMatrix, final String pXLink) {
 		super(pID, pMatrix, pXLink);
 		this.mX1 = pX1;
 		this.mX2 = pX2;
@@ -42,8 +42,8 @@ public class LinearGradient extends Gradient {
 	// ===========================================================
 
 	@Override
-	protected Gradient copy(final String pID, final Matrix pMatrix, final String pXLink) {
-		return new LinearGradient(pID, this.mX1, this.mX2, this.mY1, this.mY2, pMatrix, pXLink);
+	protected SVGGradient copy(final String pID, final Matrix pMatrix, final String pXLink) {
+		return new SVGLinearGradient(pID, this.mX1, this.mX2, this.mY1, this.mY2, pMatrix, pXLink);
 	}
 
 	@Override

@@ -7,16 +7,14 @@ import java.io.InputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
-
-import com.larvalabs.svgandroid.exception.SVGParseException;
-import com.larvalabs.svgandroid.util.SAXHelper;
 
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Picture;
+
+import com.larvalabs.svgandroid.exception.SVGParseException;
 
 /**
  * TODO To allow modifications like color-replacements, the 'parse' methods could take a ColorParser object, which would then be no more static.
@@ -88,44 +86,6 @@ public class SVGParser {
 			throw new SVGParseException(e);
 		}
 	}
-
-	public static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
-		String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName);
-		if (v == null) {
-			return null;
-		} else {
-			if (v.endsWith("px")) {
-				v = v.substring(0, v.length() - 2);
-			}
-			return Float.parseFloat(v);
-		}
-	}
-
-	public static float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final float pDefaultValue) {
-		String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName);
-		if (v == null) {
-			return pDefaultValue;
-		} else {
-			if (v.endsWith("px")) {
-				v = v.substring(0, v.length() - 2);
-			}
-			return Float.parseFloat(v);
-		}
-	}
-
-	//	private static Integer getHexAttribute(final Attributes pAttributes, final String pAttributeName)  {
-	//		final String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName, null);
-	//		if (v == null) {
-	//			return null;
-	//		} else {
-	//			try {
-	//				return Integer.parseInt(v.substring(1), 16);
-	//			} catch (final NumberFormatException nfe) {
-	//				// TODO - parse word-based color here
-	//				return null;
-	//			}
-	//		}
-	//	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

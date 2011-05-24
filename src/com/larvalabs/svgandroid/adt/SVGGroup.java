@@ -1,33 +1,41 @@
-package com.larvalabs.svgandroid.util;
-
+package com.larvalabs.svgandroid.adt;
 
 /**
  * @author Nicolas Gramlich
- * @since 17:43:24 - 22.05.2011
+ * @since 12:58:32 - 24.05.2011
  */
-public class ParserUtils {
+public class SVGGroup {
 	// ===========================================================
 	// Constants
 	// ===========================================================
-
-	public static final double[] POWERS_OF_10 = new double[128];
-	static {
-		for (int i = 0; i < POWERS_OF_10.length; i++) {
-			POWERS_OF_10[i] = Math.pow(10, i);
-		}
-	}
 
 	// ===========================================================
 	// Fields
 	// ===========================================================
 
+	private final SVGProperties mSVGProperties;
+	private final boolean mHasTransform;
+
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
+	public SVGGroup(final SVGProperties pSVGProperties, final boolean pHasTransform) {
+		this.mSVGProperties = pSVGProperties;
+		this.mHasTransform = pHasTransform;
+	}
+
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
+
+	public boolean hasTransform() {
+		return this.mHasTransform;
+	}
+
+	public SVGProperties getSVGProperties() {
+		return this.mSVGProperties;
+	}
 
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces

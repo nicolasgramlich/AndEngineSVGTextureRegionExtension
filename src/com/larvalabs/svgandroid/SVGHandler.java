@@ -6,6 +6,8 @@ import java.util.Stack;
 import org.anddev.andengine.util.Debug;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributeListImpl;
+import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.graphics.Canvas;
@@ -15,15 +17,16 @@ import android.graphics.Path;
 import android.graphics.Picture;
 import android.graphics.RectF;
 
-import com.larvalabs.svgandroid.adt.SVGProperties;
+import com.larvalabs.svgandroid.adt.SVGGroup;
 import com.larvalabs.svgandroid.adt.SVGPaint;
-import com.larvalabs.svgandroid.adt.gradient.Gradient;
-import com.larvalabs.svgandroid.adt.gradient.Gradient.Stop;
-import com.larvalabs.svgandroid.util.NumberParser;
-import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
-import com.larvalabs.svgandroid.util.PathParser;
+import com.larvalabs.svgandroid.adt.SVGProperties;
+import com.larvalabs.svgandroid.adt.gradient.SVGGradient;
+import com.larvalabs.svgandroid.adt.gradient.SVGGradient.Stop;
 import com.larvalabs.svgandroid.util.SAXHelper;
-import com.larvalabs.svgandroid.util.TransformParser;
+import com.larvalabs.svgandroid.util.SVGNumberParser;
+import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserResult;
+import com.larvalabs.svgandroid.util.SVGPathParser;
+import com.larvalabs.svgandroid.util.SVGTransformParser;
 
 /**
  * @author Larva Labs, LLC
@@ -45,14 +48,15 @@ public class SVGHandler extends DefaultHandler {
 	private final RectF mRect = new RectF();
 	private RectF mBounds;
 	private final RectF mLimits = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
-	
-	private Gradient mCurrentGradient;
+
+	private SVGGradient mCurrentSVGGradient;
 
 	private boolean mBoundsMode;
 
+	// TODO Put Hidden into SVGGroup?
 	private boolean mHidden;
 	private int mHiddenLevel;
-	private final Stack<Boolean> mGroupTransformStack = new Stack<Boolean>();
+	private final Stack<SVGGroup> mSVGGroupStack = new Stack<SVGGroup>();
 	private final SVGPaint mSVGPaint = new SVGPaint(this.mPaint);
 
 	// ===========================================================
@@ -85,39 +89,40 @@ public class SVGHandler extends DefaultHandler {
 		/* Ignore everything but rectangles in bounds mode. */
 		if (this.mBoundsMode) {
 			if (pLocalName.equals("rect")) {
-				final float x = SVGParser.getFloatAttribute(pAttributes, "x", 0f);
-				final float y = SVGParser.getFloatAttribute(pAttributes, "y", 0f);
-				final float width = SVGParser.getFloatAttribute(pAttributes, "width", 0f);
-				final float height = SVGParser.getFloatAttribute(pAttributes, "height", 0f);
+				final float x = SAXHelper.getFloatAttribute(pAttributes, "x", 0f);
+				final float y = SAXHelper.getFloatAttribute(pAttributes, "y", 0f);
+				final float width = SAXHelper.getFloatAttribute(pAttributes, "width", 0f);
+				final float height = SAXHelper.getFloatAttribute(pAttributes, "height", 0f);
 				this.mBounds = new RectF(x, y, x + width, y + height);
 			}
 			return;
 		}
 		if (pLocalName.equals("svg")) {
-			final int width = (int) Math.ceil(SVGParser.getFloatAttribute(pAttributes, "width", 0f));
-			final int height = (int) Math.ceil(SVGParser.getFloatAttribute(pAttributes, "height", 0f));
+			final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, "width", 0f));
+			final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, "height", 0f));
 			this.mCanvas = this.mPicture.beginRecording(width, height);
 		} else if (pLocalName.equals("defs")) {
 			// Ignore
 		} else if (pLocalName.equals("linearGradient")) {
-			this.mCurrentGradient = mSVGPaint.registerGradient(pAttributes, true);
+			this.mCurrentSVGGradient = this.mSVGPaint.registerGradient(pAttributes, true);
 		} else if (pLocalName.equals("radialGradient")) {
-			this.mCurrentGradient = mSVGPaint.registerGradient(pAttributes, false);
+			this.mCurrentSVGGradient = this.mSVGPaint.registerGradient(pAttributes, false);
 		} else if (pLocalName.equals("stop")) {
-			final Stop gradientStop = mSVGPaint.parseGradientStop(pAttributes);
-			this.mCurrentGradient.addStop(gradientStop);
+			final Stop gradientStop = this.mSVGPaint.parseGradientStop(this.getSVGPropertiesFromAttributes(pAttributes));
+			this.mCurrentSVGGradient.addStop(gradientStop);
 		} else if (pLocalName.equals("g")) {
-			// Check to see if this is the "bounds" layer
+			/* Check to see if this is the "bounds" layer. */
 			if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, "id"))) {
 				this.mBoundsMode = true;
 			}
-
-			this.mGroupTransformStack.push(this.pushTransform(pAttributes));
+			final boolean hasTransform = this.pushTransform(pAttributes);
+			final AttributesImpl attributesDeepCopy = new AttributesImpl(pAttributes);
+			this.mSVGGroupStack.push(new SVGGroup(this.getSVGPropertiesFromAttributes(attributesDeepCopy), hasTransform));
 
 			if (this.mHidden) {
 				this.mHiddenLevel++;
 			}
-			// Go in to hidden mode if display is "none"
+			/* Go in to hidden mode if display is "none". */
 			if ("none".equals(SAXHelper.getStringAttribute(pAttributes, "display"))) {
 				if (!this.mHidden) {
 					this.mHidden = true;
@@ -125,29 +130,30 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("rect")) {
-			final float x = SVGParser.getFloatAttribute(pAttributes, "x", 0f);
-			final float y = SVGParser.getFloatAttribute(pAttributes, "y", 0f);
-			final float width = SVGParser.getFloatAttribute(pAttributes, "width", 0f);
-			final float height = SVGParser.getFloatAttribute(pAttributes, "height", 0f);
+			final float x = SAXHelper.getFloatAttribute(pAttributes, "x", 0f);
+			final float y = SAXHelper.getFloatAttribute(pAttributes, "y", 0f);
+			final float width = SAXHelper.getFloatAttribute(pAttributes, "width", 0f);
+			final float height = SAXHelper.getFloatAttribute(pAttributes, "height", 0f);
 			final boolean pushed = this.pushTransform(pAttributes);
-			final SVGProperties svgProperties = new SVGProperties(pAttributes);
+			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setFill(svgProperties)) {
 				this.setLimits(x, y, width, height);
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
 			if (this.setStroke(svgProperties)) {
+				// TODO are we missing a this.setLimits(...); here?
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
 			if(pushed) {
 				this.popTransform();
 			}
 		} else if (!this.mHidden && pLocalName.equals("line")) {
-			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
-			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
-			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
-			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
-			final SVGProperties sVGProperties = new SVGProperties(pAttributes);
-			if (this.setStroke(sVGProperties)) {
+			final float x1 = SAXHelper.getFloatAttribute(pAttributes, "x1", 0f);
+			final float x2 = SAXHelper.getFloatAttribute(pAttributes, "x2", 0f);
+			final float y1 = SAXHelper.getFloatAttribute(pAttributes, "y1", 0f);
+			final float y2 = SAXHelper.getFloatAttribute(pAttributes, "y2", 0f);
+			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
+			if (this.setStroke(svgProperties)) {
 				final boolean pushed = this.pushTransform(pAttributes);
 				this.setLimits(x1, y1);
 				this.setLimits(x2, y2);
@@ -157,18 +163,19 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("circle")) {
-			final Float centerX = SVGParser.getFloatAttribute(pAttributes, "cx");
-			final Float centerY = SVGParser.getFloatAttribute(pAttributes, "cy");
-			final Float radius = SVGParser.getFloatAttribute(pAttributes, "r");
+			final Float centerX = SAXHelper.getFloatAttribute(pAttributes, "cx");
+			final Float centerY = SAXHelper.getFloatAttribute(pAttributes, "cy");
+			final Float radius = SAXHelper.getFloatAttribute(pAttributes, "r");
 			if (centerX != null && centerY != null && radius != null) {
 				final boolean pushed = this.pushTransform(pAttributes);
-				final SVGProperties sVGProperties = new SVGProperties(pAttributes);
-				if (this.setFill(sVGProperties)) {
+				final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
+				if (this.setFill(svgProperties)) {
 					this.setLimits(centerX - radius, centerY - radius);
 					this.setLimits(centerX + radius, centerY + radius);
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
-				if (this.setStroke(sVGProperties)) {
+				if (this.setStroke(svgProperties)) {
+					// TODO are we missing a this.setLimits(...); here?
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
 				if(pushed) {
@@ -176,20 +183,21 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("ellipse")) {
-			final Float centerX = SVGParser.getFloatAttribute(pAttributes, "cx");
-			final Float centerY = SVGParser.getFloatAttribute(pAttributes, "cy");
-			final Float radiusX = SVGParser.getFloatAttribute(pAttributes, "rx");
-			final Float radiusY = SVGParser.getFloatAttribute(pAttributes, "ry");
+			final Float centerX = SAXHelper.getFloatAttribute(pAttributes, "cx");
+			final Float centerY = SAXHelper.getFloatAttribute(pAttributes, "cy");
+			final Float radiusX = SAXHelper.getFloatAttribute(pAttributes, "rx");
+			final Float radiusY = SAXHelper.getFloatAttribute(pAttributes, "ry");
 			if (centerX != null && centerY != null && radiusX != null && radiusY != null) {
 				final boolean pushed = this.pushTransform(pAttributes);
-				final SVGProperties sVGProperties = new SVGProperties(pAttributes);
+				final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 				this.mRect.set(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY);
-				if (this.setFill(sVGProperties)) {
+				if (this.setFill(svgProperties)) {
 					this.setLimits(centerX - radiusX, centerY - radiusY);
 					this.setLimits(centerX + radiusX, centerY + radiusY);
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
-				if (this.setStroke(sVGProperties)) {
+				if (this.setStroke(svgProperties)) {
+					// TODO are we missing a this.setLimits(...); here?
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
 				if(pushed) {
@@ -197,28 +205,29 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && (pLocalName.equals("polygon") || pLocalName.equals("polyline"))) {
-			final NumberParserResult numberParserResult = NumberParser.parseFromAttributes(pAttributes, "points");
-			if (numberParserResult != null) {
-				final Path p = new Path();
-				final ArrayList<Float> points = numberParserResult.getNumbers();
+			final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parseFromAttributes(pAttributes, "points");
+			if (svgNumberParserResult != null) {
+				final Path path = new Path();
+				final ArrayList<Float> points = svgNumberParserResult.getNumbers();
 				if (points.size() > 1) {
 					final boolean pushed = this.pushTransform(pAttributes);
-					final SVGProperties sVGProperties = new SVGProperties(pAttributes);
-					p.moveTo(points.get(0), points.get(1));
+					final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
+					path.moveTo(points.get(0), points.get(1));
 					for (int i = 2; i < points.size(); i += 2) {
 						final float x = points.get(i);
 						final float y = points.get(i + 1);
-						p.lineTo(x, y);
+						path.lineTo(x, y);
 					}
 					if (!pLocalName.equals("polyline")) {
-						p.close();
+						path.close();
 					}
-					if (this.setFill(sVGProperties)) {
-						this.setLimits(p);
-						this.mCanvas.drawPath(p, this.mPaint);
+					if (this.setFill(svgProperties)) {
+						this.setLimits(path);
+						this.mCanvas.drawPath(path, this.mPaint);
 					}
-					if (this.setStroke(sVGProperties)) {
-						this.mCanvas.drawPath(p, this.mPaint);
+					if (this.setStroke(svgProperties)) {
+						// TODO are we missing a this.setLimits(...); here?
+						this.mCanvas.drawPath(path, this.mPaint);
 					}
 					if(pushed) {
 						this.popTransform();
@@ -226,15 +235,16 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("path")) {
-			final Path p = new PathParser().parse(SAXHelper.getStringAttribute(pAttributes, "d"));
+			final String pathString = SAXHelper.getStringAttribute(pAttributes, "d");
+			final Path path = new SVGPathParser().parse(pathString);
 			final boolean pushed = this.pushTransform(pAttributes);
-			final SVGProperties sVGProperties = new SVGProperties(pAttributes);
-			if (this.setFill(sVGProperties)) {
-				this.setLimits(p);
-				this.mCanvas.drawPath(p, this.mPaint);
+			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
+			if (this.setFill(svgProperties)) {
+				this.setLimits(path);
+				this.mCanvas.drawPath(path, this.mPaint);
 			}
-			if (this.setStroke(sVGProperties)) {
-				this.mCanvas.drawPath(p, this.mPaint);
+			if (this.setStroke(svgProperties)) {
+				this.mCanvas.drawPath(path, this.mPaint);
 			}
 			if(pushed) {
 				this.popTransform();
@@ -259,7 +269,7 @@ public class SVGHandler extends DefaultHandler {
 				this.mBoundsMode = false;
 			}
 			/* Pop group transform if there was one pushed. */
-			if(this.mGroupTransformStack.pop()) {
+			if(this.mSVGGroupStack.pop().hasTransform()) {
 				this.popTransform();
 			}
 			/* Break out of hidden mode. */
@@ -277,6 +287,14 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 	// Methods
 	// ===========================================================
+
+	private SVGProperties getSVGPropertiesFromAttributes(final Attributes pAttributes) {
+		if(this.mSVGGroupStack.size() > 0) {
+			return new SVGProperties(pAttributes, this.mSVGGroupStack.peek().getSVGProperties());
+		} else {
+			return new SVGProperties(pAttributes, null);
+		}
+	}
 
 	private boolean setFill(final SVGProperties pSVGProperties) {
 		if(this.isDisplayNone(pSVGProperties) || this.isFillNone(pSVGProperties)) {
@@ -372,7 +390,7 @@ public class SVGHandler extends DefaultHandler {
 		if(transform == null) {
 			return false;
 		} else {
-			final Matrix matrix = TransformParser.parseTransform(transform);
+			final Matrix matrix = SVGTransformParser.parseTransform(transform);
 			this.mCanvas.save();
 			this.mCanvas.concat(matrix);
 			return true;

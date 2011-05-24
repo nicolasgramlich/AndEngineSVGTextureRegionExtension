@@ -2,7 +2,7 @@ package com.larvalabs.svgandroid.util;
 
 import android.graphics.Matrix;
 
-import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
+import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserResult;
 
 
 /**
@@ -10,7 +10,7 @@ import com.larvalabs.svgandroid.util.NumberParser.NumberParserResult;
  * @author Nicolas Gramlich
  * @since 16:56:54 - 21.05.2011
  */
-public class TransformParser {
+public class SVGTransformParser {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -41,31 +41,31 @@ public class TransformParser {
 		}
 		
 		if (pString.startsWith("matrix(")) {
-			return TransformParser.parseTransformMatrix(pString);
+			return SVGTransformParser.parseTransformMatrix(pString);
 		} else if (pString.startsWith("translate(")) {
-			return TransformParser.parseTransformTranslate(pString);
+			return SVGTransformParser.parseTransformTranslate(pString);
 		} else if (pString.startsWith("scale(")) {
-			return 	TransformParser.parseTransformScale(pString);
+			return 	SVGTransformParser.parseTransformScale(pString);
 		} else if (pString.startsWith("skewX(")) {
-			return TransformParser.parseTransformSkewX(pString);
+			return SVGTransformParser.parseTransformSkewX(pString);
 		} else if (pString.startsWith("skewY(")) {
-			return TransformParser.parseTransformSkewY(pString);
+			return SVGTransformParser.parseTransformSkewY(pString);
 		} else if (pString.startsWith("rotate(")) {
-			return TransformParser.parseTransformRotate(pString);
+			return SVGTransformParser.parseTransformRotate(pString);
 		} else {
 			return null;
 		}
 	}
 
 	public static Matrix parseTransformRotate(final String s) {
-		final NumberParserResult numberParserResult = NumberParser.parse(s.substring("rotate(".length()));
-		if (numberParserResult.getNumbers().size() > 0) {
-			final float angle = numberParserResult.getNumber(0);
+		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(s.substring("rotate(".length()));
+		if (svgNumberParserResult.getNumbers().size() > 0) {
+			final float angle = svgNumberParserResult.getNumber(0);
 			float cx = 0;
 			float cy = 0;
-			if (numberParserResult.getNumbers().size() > 2) {
-				cx = numberParserResult.getNumber(1);
-				cy = numberParserResult.getNumber(2);
+			if (svgNumberParserResult.getNumbers().size() > 2) {
+				cx = svgNumberParserResult.getNumber(1);
+				cy = svgNumberParserResult.getNumber(2);
 			}
 			final Matrix matrix = new Matrix();
 			matrix.postTranslate(cx, cy);
@@ -77,9 +77,9 @@ public class TransformParser {
 	}
 
 	public static Matrix parseTransformSkewY(final String s) {
-		final NumberParserResult numberParserResult = NumberParser.parse(s.substring("skewY(".length()));
-		if (numberParserResult.getNumbers().size() > 0) {
-			final float angle = numberParserResult.getNumber(0);
+		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(s.substring("skewY(".length()));
+		if (svgNumberParserResult.getNumbers().size() > 0) {
+			final float angle = svgNumberParserResult.getNumber(0);
 			final Matrix matrix = new Matrix();
 			matrix.postSkew(0, (float) Math.tan(angle));
 			return matrix;
@@ -88,9 +88,9 @@ public class TransformParser {
 	}
 
 	static Matrix parseTransformSkewX(final String s) {
-		final NumberParserResult numberParserResult = NumberParser.parse(s.substring("skewX(".length()));
-		if (numberParserResult.getNumbers().size() > 0) {
-			final float angle = numberParserResult.getNumber(0);
+		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(s.substring("skewX(".length()));
+		if (svgNumberParserResult.getNumbers().size() > 0) {
+			final float angle = svgNumberParserResult.getNumber(0);
 			final Matrix matrix = new Matrix();
 			matrix.postSkew((float) Math.tan(angle), 0);
 			return matrix;
@@ -99,12 +99,12 @@ public class TransformParser {
 	}
 
 	public static Matrix parseTransformScale(final String s) {
-		final NumberParserResult numberParserResult = NumberParser.parse(s.substring("scale(".length()));
-		if (numberParserResult.getNumbers().size() > 0) {
-			final float sx = numberParserResult.getNumber(0);
+		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(s.substring("scale(".length()));
+		if (svgNumberParserResult.getNumbers().size() > 0) {
+			final float sx = svgNumberParserResult.getNumber(0);
 			float sy = 0;
-			if (numberParserResult.getNumbers().size() > 1) {
-				sy = numberParserResult.getNumber(1);
+			if (svgNumberParserResult.getNumbers().size() > 1) {
+				sy = svgNumberParserResult.getNumber(1);
 			}
 			final Matrix matrix = new Matrix();
 			matrix.postScale(sx, sy);
@@ -114,12 +114,12 @@ public class TransformParser {
 	}
 
 	public static Matrix parseTransformTranslate(final String s) {
-		final NumberParserResult numberParserResult = NumberParser.parse(s.substring("translate(".length()));
-		if (numberParserResult.getNumbers().size() > 0) {
-			final float tx = numberParserResult.getNumber(0);
+		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(s.substring("translate(".length()));
+		if (svgNumberParserResult.getNumbers().size() > 0) {
+			final float tx = svgNumberParserResult.getNumber(0);
 			float ty = 0;
-			if (numberParserResult.getNumbers().size() > 1) {
-				ty = numberParserResult.getNumber(1);
+			if (svgNumberParserResult.getNumbers().size() > 1) {
+				ty = svgNumberParserResult.getNumber(1);
 			}
 			final Matrix matrix = new Matrix();
 			matrix.postTranslate(tx, ty);
@@ -129,18 +129,18 @@ public class TransformParser {
 	}
 
 	public static Matrix parseTransformMatrix(final String s) {
-		final NumberParserResult numberParserResult = NumberParser.parse(s.substring("matrix(".length()));
-		if (numberParserResult.getNumbers().size() == 6) {
+		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(s.substring("matrix(".length()));
+		if (svgNumberParserResult.getNumbers().size() == 6) {
 			final Matrix matrix = new Matrix();
 			matrix.setValues(new float[]{
 					// Row 1
-					numberParserResult.getNumber(0),
-					numberParserResult.getNumber(2),
-					numberParserResult.getNumber(4),
+					svgNumberParserResult.getNumber(0),
+					svgNumberParserResult.getNumber(2),
+					svgNumberParserResult.getNumber(4),
 					// Row 2
-					numberParserResult.getNumber(1),
-					numberParserResult.getNumber(3),
-					numberParserResult.getNumber(5),
+					svgNumberParserResult.getNumber(1),
+					svgNumberParserResult.getNumber(3),
+					svgNumberParserResult.getNumber(5),
 					// Row 3
 					0,
 					0,

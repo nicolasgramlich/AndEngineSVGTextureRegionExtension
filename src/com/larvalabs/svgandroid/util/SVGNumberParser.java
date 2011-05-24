@@ -9,7 +9,7 @@ import org.xml.sax.Attributes;
  * @author Nicolas Gramlich
  * @since 16:50:17 - 21.05.2011
  */
-public class NumberParser {
+public class SVGNumberParser {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -34,7 +34,7 @@ public class NumberParser {
 	// Methods
 	// ===========================================================
 
-	public static NumberParserResult parse(final String pString) {
+	public static SVGNumberParserResult parse(final String pString) {
 		final int length = pString.length();
 		int p = 0;
 		final ArrayList<Float> numbers = new ArrayList<Float>();
@@ -74,7 +74,7 @@ public class NumberParser {
 						numbers.add(f);
 					}
 					p = i;
-					return new NumberParserResult(numbers, p);
+					return new SVGNumberParserResult(numbers, p);
 				}
 				case '\n':
 				case '\t':
@@ -110,14 +110,14 @@ public class NumberParser {
 			}
 			p = pString.length();
 		}
-		return new NumberParserResult(numbers, p);
+		return new SVGNumberParserResult(numbers, p);
 	}
 
-	public static NumberParserResult parseFromAttributes(final Attributes pAttributes, final String pAttributeName) {
+	public static SVGNumberParserResult parseFromAttributes(final Attributes pAttributes, final String pAttributeName) {
 		final int n = pAttributes.getLength();
 		for (int i = 0; i < n; i++) {
 			if (pAttributes.getLocalName(i).equals(pAttributeName)) {
-				return NumberParser.parse(pAttributes.getValue(i));
+				return SVGNumberParser.parse(pAttributes.getValue(i));
 			}
 		}
 		return null;
@@ -127,7 +127,7 @@ public class NumberParser {
 	// Inner and Anonymous Classes
 	// ===========================================================
 
-	public static class NumberParserResult {
+	public static class SVGNumberParserResult {
 		// ===========================================================
 		// Constants
 		// ===========================================================
@@ -144,7 +144,7 @@ public class NumberParser {
 		// Constructors
 		// ===========================================================
 
-		public NumberParserResult(final ArrayList<Float> pNumbers, final int pNextCommand) {
+		public SVGNumberParserResult(final ArrayList<Float> pNumbers, final int pNextCommand) {
 			this.mNumbers = pNumbers;
 			this.mNextCommand = pNextCommand;
 		}

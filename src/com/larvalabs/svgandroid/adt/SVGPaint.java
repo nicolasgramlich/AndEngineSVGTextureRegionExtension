@@ -10,18 +10,18 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Shader;
 
-import com.larvalabs.svgandroid.SVGParser;
-import com.larvalabs.svgandroid.adt.gradient.Gradient;
-import com.larvalabs.svgandroid.adt.gradient.LinearGradient;
-import com.larvalabs.svgandroid.adt.gradient.RadialGradient;
-import com.larvalabs.svgandroid.adt.gradient.Gradient.Stop;
+import com.larvalabs.svgandroid.adt.gradient.SVGGradient;
+import com.larvalabs.svgandroid.adt.gradient.SVGGradient.Stop;
+import com.larvalabs.svgandroid.adt.gradient.SVGLinearGradient;
+import com.larvalabs.svgandroid.adt.gradient.SVGRadialGradient;
 import com.larvalabs.svgandroid.exception.SVGParseException;
-import com.larvalabs.svgandroid.util.ColorUtils;
 import com.larvalabs.svgandroid.util.SAXHelper;
-import com.larvalabs.svgandroid.util.TransformParser;
+import com.larvalabs.svgandroid.util.SVGTransformParser;
+import com.larvalabs.svgandroid.util.constants.ColorUtils;
 
 /**
- * TODO Add ColorMapping - maybe a HashMap<Integer,Integer> and make us of it in parseColor(...). Constructor should take such a ColorMapping object then. 
+ * TODO Add ColorMapping - maybe a HashMap<Integer,Integer> and make us of it in
+ * parseColor(...). Constructor should take such a ColorMapping object then.
  * 
  * @author Nicolas Gramlich
  * @since 22:01:39 - 23.05.2011
@@ -37,8 +37,8 @@ public class SVGPaint {
 
 	private final Paint mPaint;
 
-	private final HashMap<String, Shader> mGradientShaderMap = new HashMap<String, Shader>();
-	private final HashMap<String, Gradient> mGradientMap = new HashMap<String, Gradient>();
+	private final HashMap<String, Shader> mSVGGradientShaderMap = new HashMap<String, Shader>();
+	private final HashMap<String, SVGGradient> mSVGGradientMap = new HashMap<String, SVGGradient>();
 
 	// ===========================================================
 	// Constructors
@@ -68,14 +68,14 @@ public class SVGPaint {
 		if(pColorProperty.startsWith("url(#")) {
 			final String id = pColorProperty.substring("url(#".length(), pColorProperty.length() - 1);
 
-			Shader gradientShader = this.mGradientShaderMap.get(id);
+			Shader gradientShader = this.mSVGGradientShaderMap.get(id);
 			if(gradientShader == null) {
-				final Gradient gradient = this.mGradientMap.get(id);
-				if(gradient == null) {
+				final SVGGradient svgGradient = this.mSVGGradientMap.get(id);
+				if(svgGradient == null) {
 					throw new SVGParseException("No gradient found for id: '" + id + "'.");
 				} else {
-					this.registerGradientShader(gradient);
-					gradientShader = this.mGradientShaderMap.get(id);
+					this.registerGradientShader(svgGradient);
+					gradientShader = this.mSVGGradientShaderMap.get(id);
 				}
 			}
 			this.mPaint.setShader(gradientShader);
@@ -105,34 +105,34 @@ public class SVGPaint {
 		}
 	}
 
-	private void registerGradientShader(final Gradient pGradient) {
-		final String gradientID = pGradient.getID();
-		if(this.hasGradientShader(pGradient)) {
+	private void registerGradientShader(final SVGGradient pSVGGradient) {
+		final String gradientID = pSVGGradient.getID();
+		if(this.hasGradientShader(pSVGGradient)) {
 			/* Nothing to do, as Shader was already created. */
-		} else if(pGradient.hasXLink()) {
-			final Gradient parent = this.mGradientMap.get(pGradient.getXLink());
-			if (parent == null) {
-				throw new SVGParseException("Could not resolve xlink: '" + pGradient.getXLink() + "' of gradient: '" + gradientID + "'.");
+		} else if(pSVGGradient.hasXLink()) {
+			final SVGGradient parent = this.mSVGGradientMap.get(pSVGGradient.getXLink());
+			if(parent == null) {
+				throw new SVGParseException("Could not resolve xlink: '" + pSVGGradient.getXLink() + "' of gradient: '" + gradientID + "'.");
 			} else {
 				if(parent.hasXLink() && !this.hasGradientShader(parent)) {
 					this.registerGradientShader(parent);
 				}
-				final Gradient gradient = Gradient.deriveChild(parent, pGradient);
+				final SVGGradient svgGradient = SVGGradient.deriveChild(parent, pSVGGradient);
 
-				this.mGradientMap.put(gradientID, gradient);
-				this.mGradientShaderMap.put(gradientID, gradient.createShader());
+				this.mSVGGradientMap.put(gradientID, svgGradient);
+				this.mSVGGradientShaderMap.put(gradientID, svgGradient.createShader());
 			}
 		} else {
-			this.mGradientShaderMap.put(gradientID, pGradient.createShader());
+			this.mSVGGradientShaderMap.put(gradientID, pSVGGradient.createShader());
 		}
 	}
 
-	private boolean hasGradientShader(final Gradient pGradient) {
-		return this.mGradientShaderMap.containsKey(pGradient.getID());
+	private boolean hasGradientShader(final SVGGradient pSVGGradient) {
+		return this.mSVGGradientShaderMap.containsKey(pSVGGradient.getID());
 	}
 
 	public void clearGradientShaders() {
-		this.mGradientShaderMap.clear();
+		this.mSVGGradientShaderMap.clear();
 	}
 
 	// ===========================================================
@@ -176,42 +176,40 @@ public class SVGPaint {
 	// Methods for Gradient-Parsing
 	// ===========================================================
 
-	public Gradient registerGradient(final Attributes pAttributes, final boolean pLinear) {
+	public SVGGradient registerGradient(final Attributes pAttributes, final boolean pLinear) {
 		final String id = SAXHelper.getStringAttribute(pAttributes, "id");
 		if(id == null) {
 			return null;
 		}
-		final Matrix matrix = TransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, "gradientTransform"));
+		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, "gradientTransform"));
 		String xlink = SAXHelper.getStringAttribute(pAttributes, "href");
 		if(xlink != null) {
 			if(xlink.startsWith("#")) {
 				xlink = xlink.substring(1);
 			}
 		}
-		final Gradient gradient;
+		final SVGGradient svgGradient;
 		if(pLinear) {
-			final float x1 = SVGParser.getFloatAttribute(pAttributes, "x1", 0f);
-			final float x2 = SVGParser.getFloatAttribute(pAttributes, "x2", 0f);
-			final float y1 = SVGParser.getFloatAttribute(pAttributes, "y1", 0f);
-			final float y2 = SVGParser.getFloatAttribute(pAttributes, "y2", 0f);
-			gradient = new LinearGradient(id, x1, x2, y1, y2, matrix, xlink);
+			final float x1 = SAXHelper.getFloatAttribute(pAttributes, "x1", 0f);
+			final float x2 = SAXHelper.getFloatAttribute(pAttributes, "x2", 0f);
+			final float y1 = SAXHelper.getFloatAttribute(pAttributes, "y1", 0f);
+			final float y2 = SAXHelper.getFloatAttribute(pAttributes, "y2", 0f);
+			svgGradient = new SVGLinearGradient(id, x1, x2, y1, y2, matrix, xlink);
 		} else {
-			final float centerX = SVGParser.getFloatAttribute(pAttributes, "cx", 0f);
-			final float centerY = SVGParser.getFloatAttribute(pAttributes, "cy", 0f);
-			final float radius = SVGParser.getFloatAttribute(pAttributes, "r", 0f);
-			gradient = new RadialGradient(id, centerX, centerY, radius, matrix, xlink);
+			final float centerX = SAXHelper.getFloatAttribute(pAttributes, "cx", 0f);
+			final float centerY = SAXHelper.getFloatAttribute(pAttributes, "cy", 0f);
+			final float radius = SAXHelper.getFloatAttribute(pAttributes, "r", 0f);
+			svgGradient = new SVGRadialGradient(id, centerX, centerY, radius, matrix, xlink);
 		}
-		this.mGradientMap.put(id, gradient);
-		return gradient;
+		this.mSVGGradientMap.put(id, svgGradient);
+		return svgGradient;
 	}
 
-	public Stop parseGradientStop(final Attributes pAttributes) {
-		final float offset = SVGParser.getFloatAttribute(pAttributes, "offset", 0f);
-		final String styles = SAXHelper.getStringAttribute(pAttributes, "style");
-		final SVGStyleSet svgStyleSet = new SVGStyleSet(styles);
-		final String stopColor = svgStyleSet.getStyle("stop-color");
+	public Stop parseGradientStop(final SVGProperties pSVGProperties) {
+		final float offset = pSVGProperties.getFloatProperty("offset", 0f);
+		final String stopColor = pSVGProperties.getStringProperty("stop-color");
 		int color = this.parseColor(stopColor.trim(), Color.BLACK);
-		final String opacityStyle = svgStyleSet.getStyle("stop-opacity");
+		final String opacityStyle = pSVGProperties.getStringProperty("stop-opacity");
 		if(opacityStyle != null) {
 			final float alpha = Float.parseFloat(opacityStyle);
 			final int alphaInt = Math.round(255 * alpha);

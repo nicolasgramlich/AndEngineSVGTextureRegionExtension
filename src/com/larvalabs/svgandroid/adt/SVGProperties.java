@@ -3,6 +3,7 @@ package com.larvalabs.svgandroid.adt;
 import org.xml.sax.Attributes;
 
 import com.larvalabs.svgandroid.util.SAXHelper;
+import com.larvalabs.svgandroid.util.SVGParserUtils;
 
 /**
  * @author Larva Labs, LLC
@@ -20,13 +21,15 @@ public class SVGProperties {
 
 	private final SVGStyleSet mSVGStyleSet;
 	private final Attributes mAttributes;
+	private final SVGProperties mParentSVGProperties;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public SVGProperties(final Attributes pAttributes) {
+	public SVGProperties(final Attributes pAttributes, final SVGProperties pParentSVGProperties) {
 		this.mAttributes = pAttributes;
+		this.mParentSVGProperties = pParentSVGProperties;
 		final String styleAttr = SAXHelper.getStringAttribute(pAttributes, "style");
 		if (styleAttr != null) {
 			this.mSVGStyleSet = new SVGStyleSet(styleAttr);
@@ -55,7 +58,19 @@ public class SVGProperties {
 		if (s == null) {
 			s = SAXHelper.getStringAttribute(this.mAttributes, pPropertyName);
 		}
-		return s;
+		if(s == null) {
+			if(this.mParentSVGProperties == null) {
+				return null;
+			} else {
+				return this.mParentSVGProperties.getStringProperty(pPropertyName);
+			}
+		} else {
+			return s;
+		}
+	}
+
+	public Float getFloatProperty(final String pPropertyName) {
+		return SVGParserUtils.parseFloatAttribute(this.getStringProperty(pPropertyName));
 	}
 
 	public Float getFloatProperty(final String pPropertyName, final float pDefaultValue) {
@@ -64,23 +79,6 @@ public class SVGProperties {
 			return pDefaultValue;
 		} else {
 			return f;
-		}
-	}
-
-	public Float getFloatProperty(final String pPropertyName) {
-		final String f = this.getStringProperty(pPropertyName);
-		if (f == null) {
-			return null;
-		} else {
-			try {
-				if (f.endsWith("px")) {
-					return Float.parseFloat(f.substring(0, f.length() - 2));
-				} else {
-					return Float.parseFloat(f);
-				}
-			} catch (final NumberFormatException nfe) {
-				return null;
-			}
 		}
 	}
 

@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid.util;
+package com.larvalabs.svgandroid.util.constants;
 
 import java.util.HashMap;
 import java.util.regex.Pattern;
