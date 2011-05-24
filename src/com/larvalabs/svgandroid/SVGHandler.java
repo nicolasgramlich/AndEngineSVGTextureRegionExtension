@@ -1,6 +1,5 @@
 package com.larvalabs.svgandroid;
 
-import java.util.ArrayList;
 import java.util.Stack;
 
 import org.anddev.andengine.util.Debug;
@@ -23,6 +22,7 @@ import com.larvalabs.svgandroid.adt.gradient.SVGGradient;
 import com.larvalabs.svgandroid.adt.gradient.SVGGradient.Stop;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.SVGNumberParser;
+import com.larvalabs.svgandroid.util.SVGPolyParser;
 import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserResult;
 import com.larvalabs.svgandroid.util.SVGPathParser;
 import com.larvalabs.svgandroid.util.SVGTransformParser;
@@ -57,6 +57,7 @@ public class SVGHandler extends DefaultHandler {
 	private int mHiddenLevel;
 	private final Stack<SVGGroup> mSVGGroupStack = new Stack<SVGGroup>();
 	private final SVGPaint mSVGPaint = new SVGPaint(this.mPaint);
+	private final SVGPathParser mSVGPathParser = new SVGPathParser();
 
 	// ===========================================================
 	// Constructors
@@ -204,22 +205,14 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && (pLocalName.equals("polygon") || pLocalName.equals("polyline"))) {
-			final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parseFromAttributes(pAttributes, "points");
+			final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(SAXHelper.getStringAttribute(pAttributes, "points"));
 			if (svgNumberParserResult != null) {
-				final Path path = new Path();
-				final ArrayList<Float> points = svgNumberParserResult.getNumbers();
-				if (points.size() > 1) {
+				final float[] points = svgNumberParserResult.getNumbers();
+				if (points.length >= 2) {
 					final boolean pushed = this.pushTransform(pAttributes);
 					final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
-					path.moveTo(points.get(0), points.get(1));
-					for (int i = 2; i < points.size(); i += 2) {
-						final float x = points.get(i);
-						final float y = points.get(i + 1);
-						path.lineTo(x, y);
-					}
-					if (!pLocalName.equals("polyline")) {
-						path.close();
-					}
+					final boolean closePath = pLocalName.equals("polygone");
+					final Path path = SVGPolyParser.parse(points, closePath); 
 					if (this.setFill(svgProperties)) {
 						this.ensureComputedBoundsInclude(path);
 						this.mCanvas.drawPath(path, this.mPaint);
@@ -235,7 +228,7 @@ public class SVGHandler extends DefaultHandler {
 			}
 		} else if (!this.mHidden && pLocalName.equals("path")) {
 			final String pathString = SAXHelper.getStringAttribute(pAttributes, "d");
-			final Path path = new SVGPathParser().parse(pathString);
+			final Path path = this.mSVGPathParser.parse(pathString);
 			final boolean pushed = this.pushTransform(pAttributes);
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setFill(svgProperties)) {
