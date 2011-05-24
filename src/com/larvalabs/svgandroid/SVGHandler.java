@@ -6,7 +6,6 @@ import java.util.Stack;
 import org.anddev.andengine.util.Debug;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributeListImpl;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -47,7 +46,7 @@ public class SVGHandler extends DefaultHandler {
 	private final Paint mPaint = new Paint();
 	private final RectF mRect = new RectF();
 	private RectF mBounds;
-	private final RectF mLimits = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+	private final RectF mComputedBounds = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
 
 	private SVGGradient mCurrentSVGGradient;
 
@@ -76,8 +75,8 @@ public class SVGHandler extends DefaultHandler {
 		return this.mBounds;
 	}
 
-	public RectF getLimits() {
-		return this.mLimits;
+	public RectF getComputedBounds() {
+		return this.mComputedBounds;
 	}
 
 	// ===========================================================
@@ -137,7 +136,7 @@ public class SVGHandler extends DefaultHandler {
 			final boolean pushed = this.pushTransform(pAttributes);
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setFill(svgProperties)) {
-				this.setLimits(x, y, width, height);
+				this.ensureComputedBoundsInclude(x, y, width, height);
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
 			if (this.setStroke(svgProperties)) {
@@ -155,8 +154,8 @@ public class SVGHandler extends DefaultHandler {
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setStroke(svgProperties)) {
 				final boolean pushed = this.pushTransform(pAttributes);
-				this.setLimits(x1, y1);
-				this.setLimits(x2, y2);
+				this.ensureComputedBoundsInclude(x1, y1);
+				this.ensureComputedBoundsInclude(x2, y2);
 				this.mCanvas.drawLine(x1, y1, x2, y2, this.mPaint);
 				if(pushed) {
 					this.popTransform();
@@ -170,8 +169,8 @@ public class SVGHandler extends DefaultHandler {
 				final boolean pushed = this.pushTransform(pAttributes);
 				final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 				if (this.setFill(svgProperties)) {
-					this.setLimits(centerX - radius, centerY - radius);
-					this.setLimits(centerX + radius, centerY + radius);
+					this.ensureComputedBoundsInclude(centerX - radius, centerY - radius);
+					this.ensureComputedBoundsInclude(centerX + radius, centerY + radius);
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
 				if (this.setStroke(svgProperties)) {
@@ -192,8 +191,8 @@ public class SVGHandler extends DefaultHandler {
 				final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 				this.mRect.set(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY);
 				if (this.setFill(svgProperties)) {
-					this.setLimits(centerX - radiusX, centerY - radiusY);
-					this.setLimits(centerX + radiusX, centerY + radiusY);
+					this.ensureComputedBoundsInclude(centerX - radiusX, centerY - radiusY);
+					this.ensureComputedBoundsInclude(centerX + radiusX, centerY + radiusY);
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
 				if (this.setStroke(svgProperties)) {
@@ -222,7 +221,7 @@ public class SVGHandler extends DefaultHandler {
 						path.close();
 					}
 					if (this.setFill(svgProperties)) {
-						this.setLimits(path);
+						this.ensureComputedBoundsInclude(path);
 						this.mCanvas.drawPath(path, this.mPaint);
 					}
 					if (this.setStroke(svgProperties)) {
@@ -240,7 +239,7 @@ public class SVGHandler extends DefaultHandler {
 			final boolean pushed = this.pushTransform(pAttributes);
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setFill(svgProperties)) {
-				this.setLimits(path);
+				this.ensureComputedBoundsInclude(path);
 				this.mCanvas.drawPath(path, this.mPaint);
 			}
 			if (this.setStroke(svgProperties)) {
@@ -359,30 +358,30 @@ public class SVGHandler extends DefaultHandler {
 		}
 	}
 
-	private void setLimits(final float pX, final float pY) {
-		if (pX < this.mLimits.left) {
-			this.mLimits.left = pX;
+	private void ensureComputedBoundsInclude(final float pX, final float pY) {
+		if (pX < this.mComputedBounds.left) {
+			this.mComputedBounds.left = pX;
 		}
-		if (pX > this.mLimits.right) {
-			this.mLimits.right = pX;
+		if (pX > this.mComputedBounds.right) {
+			this.mComputedBounds.right = pX;
 		}
-		if (pY < this.mLimits.top) {
-			this.mLimits.top = pY;
+		if (pY < this.mComputedBounds.top) {
+			this.mComputedBounds.top = pY;
 		}
-		if (pY > this.mLimits.bottom) {
-			this.mLimits.bottom = pY;
+		if (pY > this.mComputedBounds.bottom) {
+			this.mComputedBounds.bottom = pY;
 		}
 	}
 
-	private void setLimits(final float pX, final float pY, final float pWidth, final float pHeight) {
-		this.setLimits(pX, pY);
-		this.setLimits(pX + pWidth, pY + pHeight);
+	private void ensureComputedBoundsInclude(final float pX, final float pY, final float pWidth, final float pHeight) {
+		this.ensureComputedBoundsInclude(pX, pY);
+		this.ensureComputedBoundsInclude(pX + pWidth, pY + pHeight);
 	}
 
-	private void setLimits(final Path pPath) {
+	private void ensureComputedBoundsInclude(final Path pPath) {
 		pPath.computeBounds(this.mRect, false);
-		this.setLimits(this.mRect.left, this.mRect.top);
-		this.setLimits(this.mRect.right, this.mRect.bottom);
+		this.ensureComputedBoundsInclude(this.mRect.left, this.mRect.top);
+		this.ensureComputedBoundsInclude(this.mRect.right, this.mRect.bottom);
 	}
 
 	private boolean pushTransform(final Attributes pAttributes) {

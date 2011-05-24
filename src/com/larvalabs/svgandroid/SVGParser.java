@@ -73,14 +73,10 @@ public class SVGParser {
 			final SAXParser sp = spf.newSAXParser();
 			final XMLReader xr = sp.getXMLReader();
 			final Picture picture = new Picture();
-			final SVGHandler handler = new SVGHandler(picture);
-			xr.setContentHandler(handler);
+			final SVGHandler svgHandler = new SVGHandler(picture);
+			xr.setContentHandler(svgHandler);
 			xr.parse(new InputSource(pInputStream));
-			final SVG svg = new SVG(picture, handler.getBounds());
-			/* Skip bounds if it was an empty picture. */
-			if (!Float.isInfinite(handler.getLimits().top)) {
-				svg.setLimits(handler.getLimits());
-			}
+			final SVG svg = new SVG(picture, svgHandler.getBounds(), svgHandler.getComputedBounds());
 			return svg;
 		} catch (final Exception e) {
 			throw new SVGParseException(e);
