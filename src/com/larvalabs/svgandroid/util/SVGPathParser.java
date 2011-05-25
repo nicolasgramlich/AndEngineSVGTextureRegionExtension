@@ -5,7 +5,10 @@ import java.util.Queue;
 
 import org.anddev.andengine.util.Debug;
 
+import com.larvalabs.svgandroid.adt.SVGProperties;
+
 import android.graphics.Path;
+import android.graphics.Path.FillType;
 
 
 /**
@@ -84,11 +87,28 @@ public class SVGPathParser {
 	 * <p/>
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
-	public Path parse(final String pString) {
-		if(pString == null) {
+	public Path parse(final SVGProperties pSVGProperties) {
+		final String pathString = pSVGProperties.getStringProperty("d");
+		if(pathString == null) {
 			return null;
 		}
-		this.mString = pString.trim();
+		
+		final String fillrule = pSVGProperties.getStringProperty("fill-rule");
+		if(fillrule != null) {
+			if("evenodd".equals(fillrule)) {
+				this.mPath.setFillType(FillType.EVEN_ODD);
+			} else {
+				this.mPath.setFillType(FillType.WINDING);
+			}
+			
+			/*
+			 *  TODO Check against: 
+			 *  http://www.w3.org/TR/SVG/images/painting/fillrule-nonzero.svg / http://www.w3.org/TR/SVG/images/painting/fillrule-nonzero.png
+			 *  http://www.w3.org/TR/SVG/images/painting/fillrule-evenodd.svg / http://www.w3.org/TR/SVG/images/painting/fillrule-evenodd.png
+			 */
+		}
+		
+		this.mString = pathString.trim();
 		this.mLastX = 0;
 		this.mLastY = 0;
 		this.mLastCubicBezierX2 = 0;

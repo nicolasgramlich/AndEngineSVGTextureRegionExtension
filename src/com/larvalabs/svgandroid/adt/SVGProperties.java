@@ -69,6 +69,15 @@ public class SVGProperties {
 		}
 	}
 
+	public String getStringProperty(final String pPropertyName, final String pDefaultValue) {
+		final String s = this.getStringProperty(pPropertyName);
+		if (s == null) {
+			return pDefaultValue;
+		} else {
+			return s;
+		}
+	}
+
 	public Float getFloatProperty(final String pPropertyName) {
 		return SVGParserUtils.parseFloatAttribute(this.getStringProperty(pPropertyName));
 	}

@@ -233,12 +233,9 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && pLocalName.equals("path")) {
-			final String pathString = SAXHelper.getStringAttribute(pAttributes, "d");
-			final Path path = this.mSVGPathParser.parse(pathString);
-			/* TODO Respect: "fill-rule"-property, i.e.
-			 * "evenodd" --> this.mPath.setFillType(FillType.EVEN_ODD); */
-			final boolean pushed = this.pushTransform(pAttributes);
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
+			final Path path = this.mSVGPathParser.parse(svgProperties);
+			final boolean pushed = this.pushTransform(pAttributes);
 			if (this.setFill(svgProperties)) {
 				this.ensureComputedBoundsInclude(path);
 				this.mCanvas.drawPath(path, this.mPaint);
@@ -314,7 +311,7 @@ public class SVGHandler extends DefaultHandler {
 				return false;
 			}
 		} else {
-			return this.mSVGPaint.setColor(pSVGProperties, true);
+			return this.mSVGPaint.setPaintProperties(pSVGProperties, true);
 		}
 	}
 
@@ -325,7 +322,7 @@ public class SVGHandler extends DefaultHandler {
 
 		this.mSVGPaint.resetPaint(Paint.Style.STROKE);
 
-		return this.mSVGPaint.setColor(pSVGProperties, false);
+		return this.mSVGPaint.setPaintProperties(pSVGProperties, false);
 	}
 
 	private void ensureComputedBoundsInclude(final float pX, final float pY) {

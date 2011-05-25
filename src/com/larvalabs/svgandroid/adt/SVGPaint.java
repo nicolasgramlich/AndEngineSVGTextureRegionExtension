@@ -74,7 +74,19 @@ public class SVGPaint {
 		this.mPaint.setStyle(pStyle);
 	}
 
-	public boolean setColor(final SVGProperties pSVGProperties, final boolean pModeFill) {
+	public boolean setPaintProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
+		if(this.applyColorProperties(pSVGProperties, pModeFill)) {
+			if(pModeFill) {
+				return this.applyFillProperties(pSVGProperties);
+			} else {
+				return this.applyStrokeProperties(pSVGProperties);
+			}
+		} else {
+			return false;
+		}
+	}
+
+	private boolean applyColorProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
 		final String colorProperty = pSVGProperties.getStringProperty(pModeFill ? "fill" : "stroke");
 		if(colorProperty == null) {
 			return false;
@@ -94,17 +106,11 @@ public class SVGPaint {
 				}
 			}
 			this.mPaint.setShader(gradientShader);
-			if(!pModeFill) {
-				this.applyStrokeProperties(pSVGProperties);
-			}
 			return true;
 		} else {
 			final Integer color = this.parseColor(colorProperty);
 			if(color != null) {
 				this.applyColor(pSVGProperties, color, pModeFill);
-				if(!pModeFill) {
-					this.applyStrokeProperties(pSVGProperties);
-				}
 				return true;
 			} else {
 				return false;
@@ -112,7 +118,11 @@ public class SVGPaint {
 		}
 	}
 
-	private void applyStrokeProperties(final SVGProperties pSVGProperties) {
+	private boolean applyFillProperties(final SVGProperties pSVGProperties) {
+		return true;
+	}
+
+	private boolean applyStrokeProperties(final SVGProperties pSVGProperties) {
 		final Float width = pSVGProperties.getFloatProperty("stroke-width");
 		if (width != null) {
 			this.mPaint.setStrokeWidth(width);
@@ -133,6 +143,7 @@ public class SVGPaint {
 		} else if ("bevel".equals(linejoin)) {
 			this.mPaint.setStrokeJoin(Paint.Join.BEVEL);
 		}
+		return true;
 	}
 
 	private void applyColor(final SVGProperties pSVGProperties, final Integer pColor, final boolean pModeFill) {
@@ -197,12 +208,12 @@ public class SVGPaint {
 	}
 
 	private Integer parseColor(final String pString) {
-        /* 
-         * TODO Test if explicit pattern matching is faster: 
-         * /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/
-         * /^(\w{2})(\w{2})(\w{2})$/
-         * /^(\w{1})(\w{1})(\w{1})$/
-         */
+		/*
+		 * TODO Test if explicit pattern matching is faster:
+		 * /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/
+		 * /^(\w{2})(\w{2})(\w{2})$/
+		 * /^(\w{1})(\w{1})(\w{1})$/
+		 */
 
 		final Integer parsedColor;
 		if(pString == null) {
