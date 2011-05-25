@@ -3,7 +3,7 @@ package com.larvalabs.svgandroid.util;
 import android.graphics.Matrix;
 
 import com.larvalabs.svgandroid.exception.SVGParseException;
-import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserResult;
+import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserFloatResult;
 
 
 /**
@@ -67,15 +67,15 @@ public class SVGTransformParser {
 	}
 
 	public static Matrix parseTransformRotate(final String pString) {
-		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(pString.substring("rotate(".length(), pString.indexOf(')')));
-		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserResult, 1);
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("rotate(".length(), pString.indexOf(')')));
+		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 
-		final float angle = svgNumberParserResult.getNumber(0);
+		final float angle = svgNumberParserFloatResult.getNumber(0);
 		float cx = 0;
 		float cy = 0;
-		if (svgNumberParserResult.getNumberCount() > 2) {
-			cx = svgNumberParserResult.getNumber(1);
-			cy = svgNumberParserResult.getNumber(2);
+		if (svgNumberParserFloatResult.getNumberCount() > 2) {
+			cx = svgNumberParserFloatResult.getNumber(1);
+			cy = svgNumberParserFloatResult.getNumber(2);
 		}
 		final Matrix matrix = new Matrix();
 		matrix.postTranslate(cx, cy);
@@ -85,32 +85,32 @@ public class SVGTransformParser {
 	}
 
 	public static Matrix parseTransformSkewY(final String pString) {
-		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(pString.substring("skewY(".length(), pString.indexOf(')')));
-		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserResult, 1);
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("skewY(".length(), pString.indexOf(')')));
+		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 
-		final float angle = svgNumberParserResult.getNumber(0);
+		final float angle = svgNumberParserFloatResult.getNumber(0);
 		final Matrix matrix = new Matrix();
 		matrix.postSkew(0, (float) Math.tan(angle));
 		return matrix;
 	}
 
 	static Matrix parseTransformSkewX(final String pString) {
-		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(pString.substring("skewX(".length(), pString.indexOf(')')));
-		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserResult, 1);
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("skewX(".length(), pString.indexOf(')')));
+		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 
-		final float angle = svgNumberParserResult.getNumber(0);
+		final float angle = svgNumberParserFloatResult.getNumber(0);
 		final Matrix matrix = new Matrix();
 		matrix.postSkew((float) Math.tan(angle), 0);
 		return matrix;
 	}
 
 	public static Matrix parseTransformScale(final String pString) {
-		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(pString.substring("scale(".length(), pString.indexOf(')')));
-		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserResult, 1);
-		final float sx = svgNumberParserResult.getNumber(0);
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("scale(".length(), pString.indexOf(')')));
+		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
+		final float sx = svgNumberParserFloatResult.getNumber(0);
 		float sy = 0;
-		if (svgNumberParserResult.getNumberCount() > 1) {
-			sy = svgNumberParserResult.getNumber(1);
+		if (svgNumberParserFloatResult.getNumberCount() > 1) {
+			sy = svgNumberParserFloatResult.getNumber(1);
 		}
 		final Matrix matrix = new Matrix();
 		matrix.postScale(sx, sy);
@@ -118,12 +118,12 @@ public class SVGTransformParser {
 	}
 
 	public static Matrix parseTransformTranslate(final String pString) {
-		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(pString.substring("translate(".length(), pString.indexOf(')')));
-		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserResult, 1);
-		final float tx = svgNumberParserResult.getNumber(0);
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("translate(".length(), pString.indexOf(')')));
+		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
+		final float tx = svgNumberParserFloatResult.getNumber(0);
 		float ty = 0;
-		if (svgNumberParserResult.getNumberCount() > 1) {
-			ty = svgNumberParserResult.getNumber(1);
+		if (svgNumberParserFloatResult.getNumberCount() > 1) {
+			ty = svgNumberParserFloatResult.getNumber(1);
 		}
 		final Matrix matrix = new Matrix();
 		matrix.postTranslate(tx, ty);
@@ -131,18 +131,18 @@ public class SVGTransformParser {
 	}
 
 	public static Matrix parseTransformMatrix(final String pString) {
-		final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(pString.substring("matrix(".length(), pString.indexOf(')')));
-		SVGTransformParser.assertNumberParserResultNumberCount(svgNumberParserResult, 6);
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("matrix(".length(), pString.indexOf(')')));
+		SVGTransformParser.assertNumberParserResultNumberCount(svgNumberParserFloatResult, 6);
 		final Matrix matrix = new Matrix();
 		matrix.setValues(new float[]{
 				// Row 1
-				svgNumberParserResult.getNumber(0),
-				svgNumberParserResult.getNumber(2),
-				svgNumberParserResult.getNumber(4),
+				svgNumberParserFloatResult.getNumber(0),
+				svgNumberParserFloatResult.getNumber(2),
+				svgNumberParserFloatResult.getNumber(4),
 				// Row 2
-				svgNumberParserResult.getNumber(1),
-				svgNumberParserResult.getNumber(3),
-				svgNumberParserResult.getNumber(5),
+				svgNumberParserFloatResult.getNumber(1),
+				svgNumberParserFloatResult.getNumber(3),
+				svgNumberParserFloatResult.getNumber(5),
 				// Row 3
 				0,
 				0,
@@ -151,17 +151,17 @@ public class SVGTransformParser {
 		return matrix;
 	}
 
-	private static void assertNumberParserResultNumberCountMinimum(final SVGNumberParserResult pSVGNumberParserResult, final int pNumberParserResultNumberCountMinimum) {
-		final int svgNumberParserResultNumberCount = pSVGNumberParserResult.getNumberCount();
-		if(svgNumberParserResultNumberCount < pNumberParserResultNumberCountMinimum) {
-			throw new SVGParseException("Not enough data. Minimum Expected: '" + pNumberParserResultNumberCountMinimum + "'. Actual: '" + svgNumberParserResultNumberCount + "'.");
+	private static void assertNumberParserResultNumberCountMinimum(final SVGNumberParserFloatResult pSVGNumberParserFloatResult, final int pNumberParserResultNumberCountMinimum) {
+		final int svgNumberParserFloatResultNumberCount = pSVGNumberParserFloatResult.getNumberCount();
+		if(svgNumberParserFloatResultNumberCount < pNumberParserResultNumberCountMinimum) {
+			throw new SVGParseException("Not enough data. Minimum Expected: '" + pNumberParserResultNumberCountMinimum + "'. Actual: '" + svgNumberParserFloatResultNumberCount + "'.");
 		}
 	}
 
-	private static void assertNumberParserResultNumberCount(final SVGNumberParserResult pSVGNumberParserResult, final int pNumberParserResultNumberCount) {
-		final int svgNumberParserResultNumberCount = pSVGNumberParserResult.getNumberCount();
-		if(svgNumberParserResultNumberCount != pNumberParserResultNumberCount) {
-			throw new SVGParseException("Unexpected number count. Expected: '" + pNumberParserResultNumberCount + "'. Actual: '" + svgNumberParserResultNumberCount + "'.");
+	private static void assertNumberParserResultNumberCount(final SVGNumberParserFloatResult pSVGNumberParserFloatResult, final int pNumberParserResultNumberCount) {
+		final int svgNumberParserFloatResultNumberCount = pSVGNumberParserFloatResult.getNumberCount();
+		if(svgNumberParserFloatResultNumberCount != pNumberParserResultNumberCount) {
+			throw new SVGParseException("Unexpected number count. Expected: '" + pNumberParserResultNumberCount + "'. Actual: '" + svgNumberParserFloatResultNumberCount + "'.");
 		}
 	}
 

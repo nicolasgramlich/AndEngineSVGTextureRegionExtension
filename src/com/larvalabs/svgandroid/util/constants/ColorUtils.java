@@ -12,11 +12,16 @@ public class ColorUtils {
 	// Constants
 	// ===========================================================
 
-	public static final int COLOR_MASK_RGB = 0xFFFFFF;
-	public static final int SHORTCOLOR_MASK_R = 0xF00;
-	public static final int SHORTCOLOR_MASK_G = 0x0F0;
-	public static final int SHORTCOLOR_MASK_B = 0x00F;
-	public static final int COLOR_MASK_ALPHA = 0xFF000000;
+	public static final int COLOR_MASK_32BIT_ARGB_ALPHA = 0xFF000000;
+	public static final int COLOR_MASK_32BIT_ARGB_RGB = 0xFFFFFF;
+	public static final int COLOR_MASK_32BIT_ARGB_R = 0xFF0000;
+	public static final int COLOR_MASK_32BIT_ARGB_G = 0x00FF00;
+	public static final int COLOR_MASK_32BIT_ARGB_B = 0x0000FF;
+	
+	public static final int COLOR_MASK_12BIT_RGB_R = 0xF00;
+	public static final int COLOR_MASK_12BIT_RGB_G = 0x0F0;
+	public static final int COLOR_MASK_12BIT_RGB_B = 0x00F;
+	
 	public static final Pattern RGB_PATTERN = Pattern.compile("rgb\\((.*[\\d]+),.*([\\d]+),.*([\\d]+).*\\)");
 
 	private static HashMap<String, Integer> NAMED_COLORS = new HashMap<String, Integer>();

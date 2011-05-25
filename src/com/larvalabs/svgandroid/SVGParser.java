@@ -17,7 +17,7 @@ import android.graphics.Picture;
 import com.larvalabs.svgandroid.exception.SVGParseException;
 
 /**
- * TODO To allow modifications like color-replacements, the 'parse' methods could take a ColorParser object, which would then be no more static.
+ * TODO Eventually add support for ".svgz" format. (Not totally useful as the apk itself gets zipped anyway. But might be useful, when loading from an external source.) 
  * 
  * @author Larva Labs, LLC
  * @author Nicolas Gramlich

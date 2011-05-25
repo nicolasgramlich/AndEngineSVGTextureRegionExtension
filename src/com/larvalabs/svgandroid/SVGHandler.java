@@ -23,7 +23,7 @@ import com.larvalabs.svgandroid.adt.gradient.SVGGradient.Stop;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.SVGNumberParser;
 import com.larvalabs.svgandroid.util.SVGPolyParser;
-import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserResult;
+import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserFloatResult;
 import com.larvalabs.svgandroid.util.SVGPathParser;
 import com.larvalabs.svgandroid.util.SVGTransformParser;
 
@@ -141,7 +141,7 @@ public class SVGHandler extends DefaultHandler {
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
 			if (this.setStroke(svgProperties)) {
-				// TODO are we missing a this.setLimits(...); here?
+				// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
 				this.mCanvas.drawRect(x, y, x + width, y + height, this.mPaint);
 			}
 			if(pushed) {
@@ -175,7 +175,7 @@ public class SVGHandler extends DefaultHandler {
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
 				if (this.setStroke(svgProperties)) {
-					// TODO are we missing a this.setLimits(...); here?
+					// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
 					this.mCanvas.drawCircle(centerX, centerY, radius, this.mPaint);
 				}
 				if(pushed) {
@@ -197,7 +197,7 @@ public class SVGHandler extends DefaultHandler {
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
 				if (this.setStroke(svgProperties)) {
-					// TODO are we missing a this.setLimits(...); here?
+					// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
 					this.mCanvas.drawOval(this.mRect, this.mPaint);
 				}
 				if(pushed) {
@@ -205,9 +205,9 @@ public class SVGHandler extends DefaultHandler {
 				}
 			}
 		} else if (!this.mHidden && (pLocalName.equals("polygon") || pLocalName.equals("polyline"))) {
-			final SVGNumberParserResult svgNumberParserResult = SVGNumberParser.parse(SAXHelper.getStringAttribute(pAttributes, "points"));
-			if (svgNumberParserResult != null) {
-				final float[] points = svgNumberParserResult.getNumbers();
+			final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(SAXHelper.getStringAttribute(pAttributes, "points"));
+			if (svgNumberParserFloatResult != null) {
+				final float[] points = svgNumberParserFloatResult.getNumbers();
 				if (points.length >= 2) {
 					final boolean pushed = this.pushTransform(pAttributes);
 					final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
@@ -218,7 +218,7 @@ public class SVGHandler extends DefaultHandler {
 						this.mCanvas.drawPath(path, this.mPaint);
 					}
 					if (this.setStroke(svgProperties)) {
-						// TODO are we missing a this.setLimits(...); here?
+						// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
 						this.mCanvas.drawPath(path, this.mPaint);
 					}
 					if(pushed) {
@@ -236,6 +236,7 @@ public class SVGHandler extends DefaultHandler {
 				this.mCanvas.drawPath(path, this.mPaint);
 			}
 			if (this.setStroke(svgProperties)) {
+				// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
 				this.mCanvas.drawPath(path, this.mPaint);
 			}
 			if(pushed) {
@@ -300,13 +301,13 @@ public class SVGHandler extends DefaultHandler {
 		if(fillProperty == null) {
 			if(pSVGProperties.getStringProperty("stroke") == null) {
 				/* Default is black fill. */
-				this.mPaint.setColor(0xFF000000);
+				this.mPaint.setColor(0xFF000000); // TODO Respect color mapping?
 				return true;
 			} else {
 				return false;
 			}
 		} else {
-			return this.mSVGPaint.setColor(pSVGProperties, fillProperty);
+			return this.mSVGPaint.setColor(pSVGProperties, true);
 		}
 	}
 
@@ -323,32 +324,7 @@ public class SVGHandler extends DefaultHandler {
 		this.resetPaint();
 		this.mPaint.setStyle(Paint.Style.STROKE);
 
-		final String strokeProperty = pSVGProperties.getStringProperty("stroke");
-		if(this.mSVGPaint.setColor(pSVGProperties, strokeProperty)) {
-			final Float width = pSVGProperties.getFloatProperty("stroke-width");
-			if (width != null) {
-				this.mPaint.setStrokeWidth(width);
-			}
-			final String linecap = pSVGProperties.getStringProperty("stroke-linecap");
-			if ("round".equals(linecap)) {
-				this.mPaint.setStrokeCap(Paint.Cap.ROUND);
-			} else if ("square".equals(linecap)) {
-				this.mPaint.setStrokeCap(Paint.Cap.SQUARE);
-			} else if ("butt".equals(linecap)) {
-				this.mPaint.setStrokeCap(Paint.Cap.BUTT);
-			}
-			final String linejoin = pSVGProperties.getStringProperty("stroke-linejoin");
-			if ("miter".equals(linejoin)) {
-				this.mPaint.setStrokeJoin(Paint.Join.MITER);
-			} else if ("round".equals(linejoin)) {
-				this.mPaint.setStrokeJoin(Paint.Join.ROUND);
-			} else if ("bevel".equals(linejoin)) {
-				this.mPaint.setStrokeJoin(Paint.Join.BEVEL);
-			}
-			return true;
-		} else {
-			return false;
-		}
+		return this.mSVGPaint.setColor(pSVGProperties, false);
 	}
 
 	private void ensureComputedBoundsInclude(final float pX, final float pY) {
