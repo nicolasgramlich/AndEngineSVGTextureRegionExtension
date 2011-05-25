@@ -23,7 +23,7 @@ public class SVG {
 	private final RectF mBounds;
 
 	/** These are the estimated bounds of the SVG computed from the SVG elements while parsing.
-	 * Note that this could be null if there was a failure to compute limits (ie. an empty SVG). */
+	 * Note that this could be null if there was a failure to compute limits (i.e. an empty SVG). */
 	private RectF mComputedBounds = null;
 
 	// ===========================================================
@@ -57,7 +57,7 @@ public class SVG {
 	}
 
 	/**
-	 * Gets the bounding rectangle for the SVG that was computed upon parsing. 
+	 * Gets the computed bounding rectangle for the SVG that was computed upon parsing. 
 	 * It may not be entirely accurate for certain curves or transformations, but is often better than nothing.
 	 * @return rectangle representing the computed bounds.
 	 */
