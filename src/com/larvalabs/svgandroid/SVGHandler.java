@@ -266,7 +266,7 @@ public class SVGHandler extends DefaultHandler {
 	private void parseRect(final Attributes pAttributes) {
 		final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 		final boolean pushed = this.pushTransform(pAttributes);
-		SVGRectParser.parse(svgProperties, this.mCanvas, this.mSVGPaint);
+		SVGRectParser.parse(svgProperties, this.mCanvas, this.mSVGPaint, this.mRect);
 		if(pushed) {
 			this.popTransform();
 		}
