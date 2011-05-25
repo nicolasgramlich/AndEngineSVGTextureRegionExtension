@@ -22,9 +22,9 @@ import com.larvalabs.svgandroid.adt.gradient.SVGGradient;
 import com.larvalabs.svgandroid.adt.gradient.SVGGradient.Stop;
 import com.larvalabs.svgandroid.util.SAXHelper;
 import com.larvalabs.svgandroid.util.SVGNumberParser;
-import com.larvalabs.svgandroid.util.SVGPolyParser;
 import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserFloatResult;
 import com.larvalabs.svgandroid.util.SVGPathParser;
+import com.larvalabs.svgandroid.util.SVGPolyParser;
 import com.larvalabs.svgandroid.util.SVGTransformParser;
 
 /**
@@ -43,21 +43,24 @@ public class SVGHandler extends DefaultHandler {
 
 	private final Picture mPicture;
 	private Canvas mCanvas;
-	private final Paint mPaint = new Paint();
-	private final RectF mRect = new RectF();
+	private final Paint mPaint;
+	private final SVGPaint mSVGPaint;
+
+	private boolean mBoundsMode;
 	private RectF mBounds;
 	private final RectF mComputedBounds = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
 
-	private SVGGradient mCurrentSVGGradient;
+	private final Stack<SVGGroup> mSVGGroupStack = new Stack<SVGGroup>();
+	private final SVGPathParser mSVGPathParser = new SVGPathParser();
 
-	private boolean mBoundsMode;
+	private SVGGradient mCurrentSVGGradient;
 
 	// TODO Put Hidden into SVGGroup?
 	private boolean mHidden;
 	private int mHiddenLevel;
-	private final Stack<SVGGroup> mSVGGroupStack = new Stack<SVGGroup>();
-	private final SVGPaint mSVGPaint = new SVGPaint(this.mPaint);
-	private final SVGPathParser mSVGPathParser = new SVGPathParser();
+
+	/** Multy purpose dummy rectangle. */
+	private final RectF mRect = new RectF();
 
 	// ===========================================================
 	// Constructors
@@ -65,7 +68,9 @@ public class SVGHandler extends DefaultHandler {
 
 	public SVGHandler(final Picture pPicture) {
 		this.mPicture = pPicture;
+		this.mPaint = new Paint();
 		this.mPaint.setAntiAlias(true);
+		this.mSVGPaint = new SVGPaint(this.mPaint);
 	}
 
 	// ===========================================================
@@ -212,7 +217,7 @@ public class SVGHandler extends DefaultHandler {
 					final boolean pushed = this.pushTransform(pAttributes);
 					final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 					final boolean closePath = pLocalName.equals("polygone");
-					final Path path = SVGPolyParser.parse(points, closePath); 
+					final Path path = SVGPolyParser.parse(points, closePath);
 					if (this.setFill(svgProperties)) {
 						this.ensureComputedBoundsInclude(path);
 						this.mCanvas.drawPath(path, this.mPaint);
@@ -294,8 +299,7 @@ public class SVGHandler extends DefaultHandler {
 			return false;
 		}
 
-		this.resetPaint();
-		this.mPaint.setStyle(Paint.Style.FILL);
+		this.mSVGPaint.resetPaint(Paint.Style.FILL);
 
 		final String fillProperty = pSVGProperties.getStringProperty("fill");
 		if(fillProperty == null) {
@@ -311,18 +315,12 @@ public class SVGHandler extends DefaultHandler {
 		}
 	}
 
-	private void resetPaint() {
-		this.mPaint.reset();
-		this.mPaint.setAntiAlias(true);
-	}
-
 	private boolean setStroke(final SVGProperties pSVGProperties) {
 		if(this.isDisplayNone(pSVGProperties) || this.isStrokeNone(pSVGProperties)) {
 			return false;
 		}
 
-		this.resetPaint();
-		this.mPaint.setStyle(Paint.Style.STROKE);
+		this.mSVGPaint.resetPaint(Paint.Style.STROKE);
 
 		return this.mSVGPaint.setColor(pSVGProperties, false);
 	}

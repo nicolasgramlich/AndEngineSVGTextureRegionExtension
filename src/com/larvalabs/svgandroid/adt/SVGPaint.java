@@ -7,6 +7,7 @@ import org.xml.sax.Attributes;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Shader;
 
 import com.larvalabs.svgandroid.adt.gradient.SVGGradient;
@@ -66,6 +67,12 @@ public class SVGPaint {
 	// ===========================================================
 	// Methods
 	// ===========================================================
+
+	public void resetPaint(final Style pStyle) {
+		this.mPaint.reset();
+		this.mPaint.setAntiAlias(true);
+		this.mPaint.setStyle(pStyle);
+	}
 
 	public boolean setColor(final SVGProperties pSVGProperties, final boolean pModeFill) {
 		final String colorProperty = pSVGProperties.getStringProperty(pModeFill ? "fill" : "stroke");
