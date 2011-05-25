@@ -31,19 +31,23 @@ public class SVGPathParser {
 	private int mPosition;
 	private char mCurrentChar;
 
+	private final PathParserHelper mPathParserHelper = new PathParserHelper();
+
 	private Path mPath;
 	private Character mCommand = null;
 	private int mCommandStart = 0;
 	private final Queue<Float> mCommandParameters = new LinkedList<Float>();
 
-	//	private final RectF mRectF = new RectF();
+	private float mSubPathStartX;
+	private float mSubPathStartY;
 	private float mLastX;
 	private float mLastY;
 	private float mLastCubicBezierX2;
 	private float mLastCubicBezierY2;
-	private final PathParserHelper mPathParserHelper = new PathParserHelper();
 	private float mLastQuadraticBezierX2;
 	private float mLastQuadraticBezierY2;
+
+	//	private final RectF mRectF = new RectF();
 
 	// ===========================================================
 	// Constructors
@@ -81,7 +85,10 @@ public class SVGPathParser {
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
 	public Path parse(final String pString) {
-		this.mString = pString.trim();;
+		if(pString == null) {
+			return null;
+		}
+		this.mString = pString.trim();
 		this.mLastX = 0;
 		this.mLastY = 0;
 		this.mLastCubicBezierX2 = 0;
@@ -89,13 +96,13 @@ public class SVGPathParser {
 		this.mCommand = null;
 		this.mCommandParameters.clear();
 		this.mPath = new Path();
-		if(mString.length() == 0) {
+		if(this.mString.length() == 0) {
 			return this.mPath;
 		}
-		this.mCurrentChar = mString.charAt(0);
+		this.mCurrentChar = this.mString.charAt(0);
 
 		this.mPosition = 0;
-		this.mLength = mString.length();
+		this.mLength = this.mString.length();
 		while (this.mPosition < this.mLength) {
 			try {
 				this.mPathParserHelper.skipWhitespace();
@@ -110,7 +117,7 @@ public class SVGPathParser {
 					this.mCommandParameters.add(parameter);
 				}
 			} catch(final Throwable t) {
-				throw new IllegalArgumentException("Error parsing: '" + mString.substring(this.mCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
+				throw new IllegalArgumentException("Error parsing: '" + this.mString.substring(this.mCommandStart, this.mPosition) + "'. Command: '" + this.mCommand + "'. Parameters: '" + this.mCommandParameters.size() + "'.", t);
 			}
 		}
 		this.processCommand();
@@ -234,6 +241,8 @@ public class SVGPathParser {
 			this.mLastX += x;
 			this.mLastY += y;
 		}
+		this.mSubPathStartX = this.mLastX;
+		this.mSubPathStartY = this.mLastY;
 		if(this.mCommandParameters.size() >= 2) {
 			this.generateLine(pAbsolute);
 		}
@@ -431,6 +440,7 @@ public class SVGPathParser {
 	}
 
 	private void generateArc(final boolean pAbsolute) {
+		// TODO This implementation might be useful: https://code.google.com/p/svg-edit/source/browse/trunk/editor/canvg/canvg.js?r=2031#1244
 		this.assertParameterCountMinimum(7);
 		Debug.w("The arc command ('A'/'a') is not supported yet!");
 		if(pAbsolute) {
@@ -475,6 +485,8 @@ public class SVGPathParser {
 	private void generateClose() {
 		this.assertParameterCount(0);
 		this.mPath.close();
+		this.mLastX = this.mSubPathStartX;
+		this.mLastY = this.mSubPathStartY;
 	}
 
 	// ===========================================================
