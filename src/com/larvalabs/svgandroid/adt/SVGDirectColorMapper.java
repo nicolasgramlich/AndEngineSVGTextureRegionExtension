@@ -21,6 +21,14 @@ public class SVGDirectColorMapper implements ISVGColorMapper {
 	// Constructors
 	// ===========================================================
 
+	public SVGDirectColorMapper() {
+
+	}
+
+	public SVGDirectColorMapper(final Integer pColorFrom, final Integer pColorTo) {
+		this.addColorMapping(pColorFrom, pColorTo);
+	}
+
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
