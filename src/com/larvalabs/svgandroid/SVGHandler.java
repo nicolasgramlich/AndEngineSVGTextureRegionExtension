@@ -235,6 +235,8 @@ public class SVGHandler extends DefaultHandler {
 		} else if (!this.mHidden && pLocalName.equals("path")) {
 			final String pathString = SAXHelper.getStringAttribute(pAttributes, "d");
 			final Path path = this.mSVGPathParser.parse(pathString);
+			/* TODO Respect: "fill-rule"-property, i.e.
+			 * "evenodd" --> this.mPath.setFillType(FillType.EVEN_ODD); */
 			final boolean pushed = this.pushTransform(pAttributes);
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setFill(svgProperties)) {

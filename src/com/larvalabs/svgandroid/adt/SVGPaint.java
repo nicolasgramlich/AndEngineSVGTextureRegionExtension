@@ -197,6 +197,13 @@ public class SVGPaint {
 	}
 
 	private Integer parseColor(final String pString) {
+        /* 
+         * TODO Test if explicit pattern matching is faster: 
+         * /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/
+         * /^(\w{2})(\w{2})(\w{2})$/
+         * /^(\w{1})(\w{1})(\w{1})$/
+         */
+
 		final Integer parsedColor;
 		if(pString == null) {
 			parsedColor = null;
