@@ -4,11 +4,14 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.anddev.andengine.util.Debug;
-
-import com.larvalabs.svgandroid.adt.SVGProperties;
+import org.anddev.andengine.util.MathUtils;
 
 import android.graphics.Path;
 import android.graphics.Path.FillType;
+import android.graphics.RectF;
+import android.util.FloatMath;
+
+import com.larvalabs.svgandroid.adt.SVGProperties;
 
 
 /**
@@ -50,7 +53,7 @@ public class SVGPathParser {
 	private float mLastQuadraticBezierX2;
 	private float mLastQuadraticBezierY2;
 
-	//	private final RectF mRectF = new RectF();
+	private final RectF mRectF = new RectF();
 
 	// ===========================================================
 	// Constructors
@@ -92,7 +95,7 @@ public class SVGPathParser {
 		if(pathString == null) {
 			return null;
 		}
-		
+
 		this.mString = pathString.trim();
 		this.mLastX = 0;
 		this.mLastY = 0;
@@ -104,7 +107,7 @@ public class SVGPathParser {
 		if(this.mString.length() == 0) {
 			return this.mPath;
 		}
-		
+
 		final String fillrule = pSVGProperties.getStringProperty("fill-rule");
 		if(fillrule != null) {
 			if("evenodd".equals(fillrule)) {
@@ -112,14 +115,14 @@ public class SVGPathParser {
 			} else {
 				this.mPath.setFillType(FillType.WINDING);
 			}
-			
+
 			/*
-			 *  TODO Check against: 
+			 *  TODO Check against:
 			 *  http://www.w3.org/TR/SVG/images/painting/fillrule-nonzero.svg / http://www.w3.org/TR/SVG/images/painting/fillrule-nonzero.png
 			 *  http://www.w3.org/TR/SVG/images/painting/fillrule-evenodd.svg / http://www.w3.org/TR/SVG/images/painting/fillrule-evenodd.png
 			 */
 		}
-		
+
 		this.mCurrentChar = this.mString.charAt(0);
 
 		this.mPosition = 0;
@@ -469,15 +472,12 @@ public class SVGPathParser {
 				final float rx = this.mCommandParameters.poll();
 				final float ry = this.mCommandParameters.poll();
 				final float theta = this.mCommandParameters.poll();
-				final int largeArc = this.mCommandParameters.poll().intValue();
-				final int sweepArc = this.mCommandParameters.poll().intValue();
+				final boolean largeArcFlag = this.mCommandParameters.poll().intValue() == 1;
+				final boolean sweepFlag = this.mCommandParameters.poll().intValue() == 1;
 				final float x = this.mCommandParameters.poll();
 				final float y = this.mCommandParameters.poll();
 
-				// TODO Implement
-				//				this.mRectF.set(left, top, right, bottom);
-				//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
-				this.mPath.lineTo(x, y);
+				this.generateArc(rx, ry, theta, largeArcFlag, sweepFlag, x, y);
 
 				this.mLastX = x;
 				this.mLastY = y;
@@ -487,20 +487,99 @@ public class SVGPathParser {
 				final float rx = this.mCommandParameters.poll();
 				final float ry = this.mCommandParameters.poll();
 				final float theta = this.mCommandParameters.poll();
-				final int largeArc = this.mCommandParameters.poll().intValue();
-				final int sweepArc = this.mCommandParameters.poll().intValue();
+				final boolean largeArcFlag = this.mCommandParameters.poll().intValue() == 1;
+				final boolean sweepFlag = this.mCommandParameters.poll().intValue() == 1;
 				final float x = this.mCommandParameters.poll() + this.mLastX;
 				final float y = this.mCommandParameters.poll() + this.mLastY;
 
-				//				this.mRectF.set(left, top, right, bottom);
-				//				this.mPath.addArc(this.mRectF, startAngle, sweepAngle); // or arcTo?
-				this.mPath.lineTo(x, y);
+				this.generateArc(rx, ry, theta, largeArcFlag, sweepFlag, x, y);
 
-				// TODO Implement
 				this.mLastX = x;
 				this.mLastY = y;
 			}
 		}
+	}
+
+	/**
+	 * Based on: org.apache.batik.ext.awt.geom.ExtendedGeneralPath.computeArc(...)
+	 * @see <a href="http://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter">http://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter</a>
+	 */
+	private void generateArc(final float rx, final float ry, final float pTheta, final boolean pLargeArcFlag, final boolean pSweepFlag, final float pX, final float pY) {
+		/* Compute the half distance between the current and the end point. */
+		final float dx = (this.mLastX - pX) * 0.5f;
+		final float dy = (this.mLastY - pY) * 0.5f;
+
+		/* Convert theta to radians. */
+		final float thetaRad = MathUtils.degToRad(pTheta % 360f);
+		final float cosAngle = FloatMath.cos(thetaRad);
+		final float sinAngle = FloatMath.sin(thetaRad);
+
+		/* Step 1 : Compute (x1, y1) */
+		final float x1 = (cosAngle * dx + sinAngle * dy);
+		final float y1 = (-sinAngle * dx + cosAngle * dy);
+
+		/* Ensure radii are large enough. */
+		float radiusX = Math.abs(rx);
+		float radiusY = Math.abs(ry);
+		float Prx = radiusX * radiusX;
+		float Pry = radiusY * radiusY;
+		final float Px1 = x1 * x1;
+		final float Py1 = y1 * y1;
+		/* Check that radii are large enough. */
+		final float radiiCheck = Px1/Prx + Py1/Pry;
+		if (radiiCheck > 1) {
+			radiusX = FloatMath.sqrt(radiiCheck) * radiusX;
+			radiusY = FloatMath.sqrt(radiiCheck) * radiusY;
+			Prx = radiusX * radiusX;
+			Pry = radiusY * radiusY;
+		}
+
+		/* Step 2 : Compute (cx_dash, cy_dash) */
+		float sign = (pLargeArcFlag == pSweepFlag) ? -1 : 1;
+		float sq = ((Prx*Pry)-(Prx*Py1)-(Pry*Px1)) / ((Prx*Py1)+(Pry*Px1));
+		sq = (sq < 0) ? 0 : sq;
+		final float coef = sign * FloatMath.sqrt(sq);
+		final float cx_dash = coef * ((radiusX * y1) / radiusY);
+		final float cy_dash = coef * -((radiusY * x1) / radiusX);
+
+		//- Step 3 : Compute (cx, cy) from (cx_dash, cy_dash) */
+		final float cx = ((this.mLastX + pX) * 0.5f) + (cosAngle * cx_dash - sinAngle * cy_dash);
+		final float cy = ((this.mLastY + pY) * 0.5f) + (sinAngle * cx_dash + cosAngle * cy_dash);
+
+		/* Step 4 : Compute the angleStart (angle1) and the sweepAngle (dangle). */
+		final float ux = (x1 - cx_dash) / radiusX;
+		final float uy = (y1 - cy_dash) / radiusY;
+		final float vx = (-x1 - cx_dash) / radiusX;
+		final float vy = (-y1 - cy_dash) / radiusY;
+
+		/* Compute the startAngle. */
+		float p = ux; // (1 * ux) + (0 * uy)
+		float n = FloatMath.sqrt((ux * ux) + (uy * uy));
+		sign = (uy < 0) ? -1f : 1f;
+		float startAngle = MathUtils.radToDeg(sign * (float)Math.acos(p / n));
+
+		/* Compute the sweepAngle. */
+		n = FloatMath.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+		p = ux * vx + uy * vy;
+		sign = (ux * vy - uy * vx < 0) ? -1f : 1f;
+		float sweepAngle = MathUtils.radToDeg(sign * (float)Math.acos(p / n));
+		if(!pSweepFlag && sweepAngle > 0) {
+			sweepAngle -= 360f;
+		} else if (pSweepFlag && sweepAngle < 0) {
+			sweepAngle += 360f;
+		}
+		sweepAngle %= 360f;
+		startAngle %= 360f;
+
+		/* Generate bounding rect. */
+		final float left = cx - radiusX;
+		final float top = cy - radiusY;
+		final float right = cx + radiusX;
+		final float bottom = cy + radiusY;
+		this.mRectF.set(left, top, right, bottom);
+
+		/* Append the arc to the path. */
+		this.mPath.arcTo(this.mRectF, startAngle, sweepAngle);
 	}
 
 	private void generateClose() {
