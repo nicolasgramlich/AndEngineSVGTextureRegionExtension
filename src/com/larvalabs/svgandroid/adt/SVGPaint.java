@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.graphics.Shader;
 
 import com.larvalabs.svgandroid.adt.gradient.SVGGradient;
@@ -37,7 +39,11 @@ public class SVGPaint {
 	// Fields
 	// ===========================================================
 
-	private final Paint mPaint;
+	private final Paint mPaint = new Paint();
+
+	/** Multi purpose dummy rectangle. */
+	private final RectF mRect = new RectF();
+	private final RectF mComputedBounds = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
 
 	private final HashMap<String, Shader> mSVGGradientShaderMap = new HashMap<String, Shader>();
 	private final HashMap<String, SVGGradient> mSVGGradientMap = new HashMap<String, SVGGradient>();
@@ -47,18 +53,21 @@ public class SVGPaint {
 	// Constructors
 	// ===========================================================
 
-	public SVGPaint(final Paint pPaint) {
-		this(pPaint, null);
-	}
-
-	public SVGPaint(final Paint pPaint, final ISVGColorMapper pSVGColorMapper) {
-		this.mPaint = pPaint;
+	public SVGPaint(final ISVGColorMapper pSVGColorMapper) {
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
+
+	public Paint getPaint() {
+		return this.mPaint;
+	}
+
+	public RectF getComputedBounds() {
+		return this.mComputedBounds;
+	}
 
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces
@@ -72,6 +81,49 @@ public class SVGPaint {
 		this.mPaint.reset();
 		this.mPaint.setAntiAlias(true); // TODO AntiAliasing could be made optional through some SVGOptions object.
 		this.mPaint.setStyle(pStyle);
+	}
+
+	public boolean setFill(final SVGProperties pSVGProperties) {
+		if(this.isDisplayNone(pSVGProperties) || this.isFillNone(pSVGProperties)) {
+			return false;
+		}
+
+		this.resetPaint(Paint.Style.FILL);
+
+		final String fillProperty = pSVGProperties.getStringProperty("fill");
+		if(fillProperty == null) {
+			if(pSVGProperties.getStringProperty("stroke") == null) {
+				/* Default is black fill. */
+				this.mPaint.setColor(0xFF000000); // TODO Respect color mapping?
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return this.setPaintProperties(pSVGProperties, true);
+		}
+	}
+
+	public boolean setStroke(final SVGProperties pSVGProperties) {
+		if(this.isDisplayNone(pSVGProperties) || this.isStrokeNone(pSVGProperties)) {
+			return false;
+		}
+
+		this.resetPaint(Paint.Style.STROKE);
+
+		return this.setPaintProperties(pSVGProperties, false);
+	}
+
+	private boolean isDisplayNone(final SVGProperties pSVGProperties) {
+		return "none".equals(pSVGProperties.getStringProperty("display"));
+	}
+
+	private boolean isFillNone(final SVGProperties pSVGProperties) {
+		return "none".equals(pSVGProperties.getStringProperty("fill"));
+	}
+
+	private boolean isStrokeNone(final SVGProperties pSVGProperties) {
+		return "none".equals(pSVGProperties.getStringProperty("stroke"));
 	}
 
 	public boolean setPaintProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
@@ -149,10 +201,10 @@ public class SVGPaint {
 	private void applyColor(final SVGProperties pSVGProperties, final Integer pColor, final boolean pModeFill) {
 		final int c = (ColorUtils.COLOR_MASK_32BIT_ARGB_RGB & pColor) | ColorUtils.COLOR_MASK_32BIT_ARGB_ALPHA;
 		this.mPaint.setColor(c);
-		this.mPaint.setAlpha(this.getAlpha(pSVGProperties, pModeFill));
+		this.mPaint.setAlpha(SVGPaint.parseAlpha(pSVGProperties, pModeFill));
 	}
 
-	private int getAlpha(final SVGProperties pSVGProperties, final boolean pModeFill) {
+	private static int parseAlpha(final SVGProperties pSVGProperties, final boolean pModeFill) {
 		Float opacity = pSVGProperties.getFloatProperty("opacity");
 		if(opacity == null) {
 			opacity = pSVGProperties.getFloatProperty(pModeFill ? "fill-opacity" : "stroke-opacity");
@@ -192,6 +244,32 @@ public class SVGPaint {
 
 	public void clearGradientShaders() {
 		this.mSVGGradientShaderMap.clear();
+	}
+
+	public void ensureComputedBoundsInclude(final float pX, final float pY) {
+		if (pX < this.mComputedBounds.left) {
+			this.mComputedBounds.left = pX;
+		}
+		if (pX > this.mComputedBounds.right) {
+			this.mComputedBounds.right = pX;
+		}
+		if (pY < this.mComputedBounds.top) {
+			this.mComputedBounds.top = pY;
+		}
+		if (pY > this.mComputedBounds.bottom) {
+			this.mComputedBounds.bottom = pY;
+		}
+	}
+
+	public void ensureComputedBoundsInclude(final float pX, final float pY, final float pWidth, final float pHeight) {
+		this.ensureComputedBoundsInclude(pX, pY);
+		this.ensureComputedBoundsInclude(pX + pWidth, pY + pHeight);
+	}
+
+	public void ensureComputedBoundsInclude(final Path pPath) {
+		pPath.computeBounds(this.mRect, false);
+		this.ensureComputedBoundsInclude(this.mRect.left, this.mRect.top);
+		this.ensureComputedBoundsInclude(this.mRect.right, this.mRect.bottom);
 	}
 
 	// ===========================================================

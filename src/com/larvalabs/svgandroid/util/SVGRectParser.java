@@ -1,12 +1,15 @@
 package com.larvalabs.svgandroid.util;
 
-import android.graphics.Path;
+import android.graphics.Canvas;
+
+import com.larvalabs.svgandroid.adt.SVGPaint;
+import com.larvalabs.svgandroid.adt.SVGProperties;
 
 /**
  * @author Nicolas Gramlich
- * @since 19:23:07 - 24.05.2011
+ * @since 19:27:42 - 25.05.2011
  */
-public class SVGPolyParser {
+public class SVGRectParser {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -31,18 +34,20 @@ public class SVGPolyParser {
 	// Methods
 	// ===========================================================
 
-	public static Path parse(final float[] pPoints, boolean pClosePath) {
-		final Path path = new Path();
-		path.moveTo(pPoints[0], pPoints[1]);
-		for (int i = 2; i < pPoints.length; i += 2) {
-			final float x = pPoints[i];
-			final float y = pPoints[i + 1];
-			path.lineTo(x, y);
+	public static void parse(final SVGProperties pSVGProperties, final Canvas pCanvas, final SVGPaint pSVGPaint) {
+		final float x = pSVGProperties.getFloatAttribute("x", 0f);
+		final float y = pSVGProperties.getFloatAttribute("y", 0f);
+		final float width = pSVGProperties.getFloatAttribute("width", 0f);
+		final float height = pSVGProperties.getFloatAttribute("height", 0f);
+		// TODO Support rounded corners "rx"/"ry". --> this.mCanvas.drawRoundRect(rect, rx, ry, paint) 
+		if (pSVGPaint.setFill(pSVGProperties)) {
+			pSVGPaint.ensureComputedBoundsInclude(x, y, width, height);
+			pCanvas.drawRect(x, y, x + width, y + height, pSVGPaint.getPaint());
 		}
-		if(pClosePath) {
-			path.close();
+		if (pSVGPaint.setStroke(pSVGProperties)) {
+			// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+			pCanvas.drawRect(x, y, x + width, y + height, pSVGPaint.getPaint());
 		}
-		return path;
 	}
 
 	// ===========================================================

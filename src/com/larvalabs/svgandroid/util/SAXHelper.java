@@ -41,12 +41,21 @@ public class SAXHelper {
 		return null;
 	}
 
+	public static String getStringAttribute(final Attributes pAttributes, final String pAttributeName, final String pDefaultValue) {
+		final String s = SAXHelper.getStringAttribute(pAttributes, pAttributeName);
+		if(s == null) {
+			return pDefaultValue;
+		} else {
+			return s;
+		}
+	}
+
 	public static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
 		return SVGParserUtils.parseFloatAttribute(SAXHelper.getStringAttribute(pAttributes, pAttributeName));
 	}
 
 	public static float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final float pDefaultValue) {
-		final Float f = getFloatAttribute(pAttributes, pAttributeName);
+		final Float f = SAXHelper.getFloatAttribute(pAttributes, pAttributeName);
 		if(f == null) {
 			return pDefaultValue;
 		} else {

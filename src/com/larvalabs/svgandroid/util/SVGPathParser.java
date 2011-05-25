@@ -6,11 +6,13 @@ import java.util.Queue;
 import org.anddev.andengine.util.Debug;
 import org.anddev.andengine.util.MathUtils;
 
+import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Path.FillType;
 import android.graphics.RectF;
 import android.util.FloatMath;
 
+import com.larvalabs.svgandroid.adt.SVGPaint;
 import com.larvalabs.svgandroid.adt.SVGProperties;
 
 
@@ -53,7 +55,7 @@ public class SVGPathParser {
 	private float mLastQuadraticBezierX2;
 	private float mLastQuadraticBezierY2;
 
-	private final RectF mRectF = new RectF();
+	private final RectF mArcRect = new RectF();
 
 	// ===========================================================
 	// Constructors
@@ -70,6 +72,18 @@ public class SVGPathParser {
 	// ===========================================================
 	// Methods
 	// ===========================================================
+	
+	public void parse(SVGProperties pSVGProperties, Canvas pCanvas, SVGPaint pSVGPaint) {
+		final Path path = this.parse(pSVGProperties);
+		if (pSVGPaint.setFill(pSVGProperties)) {
+			pSVGPaint.ensureComputedBoundsInclude(path);
+			pCanvas.drawPath(path, pSVGPaint.getPaint());
+		}
+		if (pSVGPaint.setStroke(pSVGProperties)) {
+			// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+			pCanvas.drawPath(path, pSVGPaint.getPaint());
+		}
+	}
 
 	/**
 	 * Uppercase rules are absolute positions, lowercase are relative.
@@ -90,7 +104,7 @@ public class SVGPathParser {
 	 * <p/>
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
-	public Path parse(final SVGProperties pSVGProperties) {
+	private Path parse(final SVGProperties pSVGProperties) {
 		final String pathString = pSVGProperties.getStringProperty("d");
 		if(pathString == null) {
 			return null;
@@ -576,10 +590,10 @@ public class SVGPathParser {
 		final float top = cy - radiusY;
 		final float right = cx + radiusX;
 		final float bottom = cy + radiusY;
-		this.mRectF.set(left, top, right, bottom);
+		this.mArcRect.set(left, top, right, bottom);
 
 		/* Append the arc to the path. */
-		this.mPath.arcTo(this.mRectF, startAngle, sweepAngle);
+		this.mPath.arcTo(this.mArcRect, startAngle, sweepAngle);
 	}
 
 	private void generateClose() {

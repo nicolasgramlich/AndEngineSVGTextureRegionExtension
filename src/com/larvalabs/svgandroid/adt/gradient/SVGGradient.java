@@ -105,7 +105,7 @@ public abstract class SVGGradient {
 		return positions;
 	}
 
-	public void addStop(final Stop pStop) {
+	public void addGradientStop(final Stop pStop) {
 		this.mStops.add(pStop);
 	}
 

@@ -91,6 +91,22 @@ public class SVGProperties {
 		}
 	}
 
+	public String getStringAttribute(final String pAttributeName) {
+		return SAXHelper.getStringAttribute(this.mAttributes, pAttributeName);
+	}
+
+	public String getStringAttribute(final String pAttributeName, final String pDefaultValue) {
+		return SAXHelper.getStringAttribute(this.mAttributes, pAttributeName, pDefaultValue);
+	}
+
+	public Float getFloatAttribute(final String pAttributeName) {
+		return SAXHelper.getFloatAttribute(this.mAttributes, pAttributeName);
+	}
+
+	public float getFloatAttribute(final String pAttributeName, final float pDefaultValue) {
+		return SAXHelper.getFloatAttribute(this.mAttributes, pAttributeName, pDefaultValue);
+	}
+
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================
