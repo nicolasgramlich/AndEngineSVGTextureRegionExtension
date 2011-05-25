@@ -14,10 +14,11 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Picture;
 
+import com.larvalabs.svgandroid.adt.ISVGColorMapper;
 import com.larvalabs.svgandroid.exception.SVGParseException;
 
 /**
- * TODO Eventually add support for ".svgz" format. (Not totally useful as the apk itself gets zipped anyway. But might be useful, when loading from an external source.) 
+ * TODO Eventually add support for ".svgz" format. (Not totally useful as the apk itself gets zipped anyway. But might be useful, when loading from an external source.)
  * 
  * @author Larva Labs, LLC
  * @author Nicolas Gramlich
@@ -37,22 +38,30 @@ public class SVGParser {
 	// ===========================================================
 
 	public static SVG parseSVGFromString(final String pString) throws SVGParseException {
-		return SVGParser.parse(new ByteArrayInputStream(pString.getBytes()));
+		return SVGParser.parseSVGFromString(pString, null);
+	}
+
+	public static SVG parseSVGFromString(final String pString, final ISVGColorMapper pSVGColorMapper) throws SVGParseException {
+		return SVGParser.parseSVGFromInputStream(new ByteArrayInputStream(pString.getBytes()), pSVGColorMapper);
 	}
 
 	public static SVG parseSVGFromResource(final Resources pResources, final int pRawResourceID) throws SVGParseException {
-		return SVGParser.parse(pResources.openRawResource(pRawResourceID));
+		return SVGParser.parseSVGFromResource(pResources, pRawResourceID, null);
+	}
+
+	public static SVG parseSVGFromResource(final Resources pResources, final int pRawResourceID, final ISVGColorMapper pSVGColorMapper) throws SVGParseException {
+		return SVGParser.parseSVGFromInputStream(pResources.openRawResource(pRawResourceID), pSVGColorMapper);
 	}
 
 	public static SVG parseSVGFromAsset(final AssetManager pAssetManager, final String pAssetPath) throws SVGParseException, IOException {
-		final InputStream inputStream = pAssetManager.open(pAssetPath);
-		final SVG svg = SVGParser.parseSVGFromInputStream(inputStream);
-		inputStream.close();
-		return svg;
+		return SVGParser.parseSVGFromAsset(pAssetManager, pAssetPath, null);
 	}
 
-	public static SVG parseSVGFromInputStream(final InputStream pInputStream) throws SVGParseException {
-		return SVGParser.parse(pInputStream);
+	public static SVG parseSVGFromAsset(final AssetManager pAssetManager, final String pAssetPath, final ISVGColorMapper pSVGColorMapper) throws SVGParseException, IOException {
+		final InputStream inputStream = pAssetManager.open(pAssetPath);
+		final SVG svg = SVGParser.parseSVGFromInputStream(inputStream, pSVGColorMapper);
+		inputStream.close();
+		return svg;
 	}
 
 	// ===========================================================
@@ -67,13 +76,13 @@ public class SVGParser {
 	// Methods
 	// ===========================================================
 
-	private static SVG parse(final InputStream pInputStream) throws SVGParseException {
+	public static SVG parseSVGFromInputStream(final InputStream pInputStream, final ISVGColorMapper pSVGColorMapper) throws SVGParseException {
 		try {
 			final SAXParserFactory spf = SAXParserFactory.newInstance();
 			final SAXParser sp = spf.newSAXParser();
 			final XMLReader xr = sp.getXMLReader();
 			final Picture picture = new Picture();
-			final SVGHandler svgHandler = new SVGHandler(picture);
+			final SVGHandler svgHandler = new SVGHandler(picture, pSVGColorMapper);
 			xr.setContentHandler(svgHandler);
 			xr.parse(new InputSource(pInputStream));
 			final SVG svg = new SVG(picture, svgHandler.getBounds(), svgHandler.getComputedBounds());

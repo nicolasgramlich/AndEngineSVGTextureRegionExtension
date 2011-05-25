@@ -6,6 +6,7 @@ import android.content.Context;
 
 import com.larvalabs.svgandroid.SVG;
 import com.larvalabs.svgandroid.SVGParser;
+import com.larvalabs.svgandroid.adt.ISVGColorMapper;
 
 /**
  * @author Nicolas Gramlich
@@ -22,21 +23,32 @@ public class SVGAssetTextureSource extends SVGBaseTextureSource {
 
 	private final Context mContext;
 	private final String mAssetPath;
+	private final ISVGColorMapper mSVGColorMapper;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
 	public SVGAssetTextureSource(final Context pContext, final String pAssetPath) {
-		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath));
-		this.mContext = pContext;
-		this.mAssetPath = pAssetPath;
+		this(pContext, pAssetPath, null);
 	}
 
 	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final int pWidth, final int pHeight) {
-		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath), pWidth, pHeight);
+		this(pContext, pAssetPath, pWidth, pHeight, null);
+	}
+
+	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath, pSVGColorMapper));
 		this.mContext = pContext;
 		this.mAssetPath = pAssetPath;
+		this.mSVGColorMapper = pSVGColorMapper;
+	}
+
+	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pWidth, pHeight);
+		this.mContext = pContext;
+		this.mAssetPath = pAssetPath;
+		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
 	// ===========================================================
@@ -49,16 +61,16 @@ public class SVGAssetTextureSource extends SVGBaseTextureSource {
 
 	@Override
 	public SVGAssetTextureSource clone() {
-		return new SVGAssetTextureSource(this.mContext, this.mAssetPath, this.mWidth, this.mHeight);
+		return new SVGAssetTextureSource(this.mContext, this.mAssetPath, this.mWidth, this.mHeight, this.mSVGColorMapper);
 	}
 
 	// ===========================================================
 	// Methods
 	// ===========================================================
 
-	private static SVG getSVG(final Context pContext, final String pAssetPath) {
+	private static SVG getSVG(final Context pContext, final String pAssetPath, final ISVGColorMapper pSVGColorMapper) {
 		try {
-			return SVGParser.parseSVGFromAsset(pContext.getAssets(), pAssetPath);
+			return SVGParser.parseSVGFromAsset(pContext.getAssets(), pAssetPath, pSVGColorMapper);
 		} catch (final Throwable t) {
 			Debug.e("Failed loading SVG in SVGAssetTextureSource. AssetPath: " + pAssetPath, t);
 			return null;

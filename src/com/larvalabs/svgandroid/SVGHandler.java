@@ -15,6 +15,7 @@ import android.graphics.Path;
 import android.graphics.Picture;
 import android.graphics.RectF;
 
+import com.larvalabs.svgandroid.adt.ISVGColorMapper;
 import com.larvalabs.svgandroid.adt.SVGGroup;
 import com.larvalabs.svgandroid.adt.SVGPaint;
 import com.larvalabs.svgandroid.adt.SVGProperties;
@@ -66,11 +67,11 @@ public class SVGHandler extends DefaultHandler {
 	// Constructors
 	// ===========================================================
 
-	public SVGHandler(final Picture pPicture) {
+	public SVGHandler(final Picture pPicture, final ISVGColorMapper pSVGColorMapper) {
 		this.mPicture = pPicture;
 		this.mPaint = new Paint();
 		this.mPaint.setAntiAlias(true);
-		this.mSVGPaint = new SVGPaint(this.mPaint);
+		this.mSVGPaint = new SVGPaint(this.mPaint, pSVGColorMapper);
 	}
 
 	// ===========================================================

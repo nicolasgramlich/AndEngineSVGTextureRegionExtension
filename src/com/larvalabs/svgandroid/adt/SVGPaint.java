@@ -70,7 +70,7 @@ public class SVGPaint {
 
 	public void resetPaint(final Style pStyle) {
 		this.mPaint.reset();
-		this.mPaint.setAntiAlias(true);
+		this.mPaint.setAntiAlias(true); // TODO AntiAliasing could be made optional through some SVGOptions object.
 		this.mPaint.setStyle(pStyle);
 	}
 

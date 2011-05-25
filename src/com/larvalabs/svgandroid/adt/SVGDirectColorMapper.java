@@ -37,6 +37,7 @@ public class SVGDirectColorMapper implements ISVGColorMapper {
 		this.mColorMappings.put(pColorFrom, pColorTo);
 	}
 
+	@Override
 	public Integer mapColor(final Integer pColor) {
 		final Integer mappedColor = this.mColorMappings.get(pColor);
 		if(mappedColor == null) {

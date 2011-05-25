@@ -1,6 +1,7 @@
 package org.anddev.andengine.extension.svg.opengl.texture.region;
 
 import org.anddev.andengine.extension.svg.opengl.texture.source.SVGAssetTextureSource;
+import org.anddev.andengine.extension.svg.opengl.texture.source.SVGBaseTextureSource;
 import org.anddev.andengine.extension.svg.opengl.texture.source.SVGResourceTextureSource;
 import org.anddev.andengine.opengl.texture.BuildableTexture;
 import org.anddev.andengine.opengl.texture.Texture;
@@ -10,6 +11,8 @@ import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.opengl.texture.source.ITextureSource;
 
 import android.content.Context;
+
+import com.larvalabs.svgandroid.SVG;
 
 /**
  * TODO Add possibility to set the bounds/clipping to be rendered. Useful to render only a specific region of a big svg file.
@@ -76,6 +79,17 @@ public class SVGTextureRegionFactory {
 	// Methods using Texture
 	// ===========================================================
 
+	public static TextureRegion createFromSVG(final Texture pTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
+		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return TextureRegionFactory.createFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY);
+	}
+
+	public static TiledTextureRegion createTiledFromSVG(final Texture pTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
+		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return TextureRegionFactory.createTiledFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
+	}
+
+
 	public static TextureRegion createFromAsset(final Texture pTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
 		final ITextureSource textureSource = new SVGAssetTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
 		return TextureRegionFactory.createFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY);
@@ -100,6 +114,17 @@ public class SVGTextureRegionFactory {
 	// ===========================================================
 	// Methods using BuildableTexture
 	// ===========================================================
+
+	public static TextureRegion createFromSVG(final BuildableTexture pBuildableTexture, final SVG pSVG, final int pWidth, final int pHeight) {
+		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return TextureRegionFactory.createFromSource(pBuildableTexture, textureSource);
+	}
+
+	public static TiledTextureRegion createTiledFromSVG(final BuildableTexture pBuildableTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
+		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return TextureRegionFactory.createTiledFromSource(pBuildableTexture, textureSource, pTileColumns, pTileRows);
+	}
+
 
 	public static TextureRegion createFromAsset(final BuildableTexture pBuildableTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight) {
 		final ITextureSource textureSource = new SVGAssetTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
