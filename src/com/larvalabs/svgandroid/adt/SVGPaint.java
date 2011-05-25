@@ -183,7 +183,7 @@ public class SVGPaint {
 	private Integer parseColor(final String pString, final Integer pDefault) {
 		final Integer color = this.parseColor(pString);
 		if(color == null) {
-			return pDefault;
+			return this.applySVGColorMapper(pDefault);
 		} else {
 			return color;
 		}
@@ -222,6 +222,10 @@ public class SVGPaint {
 				parsedColor = Integer.parseInt(pString, 16);
 			}
 		}
+		return this.applySVGColorMapper(parsedColor);
+	}
+
+	private Integer applySVGColorMapper(final Integer parsedColor) {
 		if(this.mSVGColorMapper == null) {
 			return parsedColor;
 		} else {
