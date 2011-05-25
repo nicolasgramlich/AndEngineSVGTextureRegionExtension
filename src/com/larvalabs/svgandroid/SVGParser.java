@@ -15,6 +15,7 @@ import android.content.res.Resources;
 import android.graphics.Picture;
 
 import com.larvalabs.svgandroid.adt.ISVGColorMapper;
+import com.larvalabs.svgandroid.adt.SVG;
 import com.larvalabs.svgandroid.exception.SVGParseException;
 
 /**

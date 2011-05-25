@@ -1,4 +1,4 @@
-package com.larvalabs.svgandroid;
+package com.larvalabs.svgandroid.adt;
 
 import android.graphics.Picture;
 import android.graphics.RectF;

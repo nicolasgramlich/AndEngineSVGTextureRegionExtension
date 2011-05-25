@@ -4,9 +4,9 @@ import org.anddev.andengine.util.Debug;
 
 import android.content.Context;
 
-import com.larvalabs.svgandroid.SVG;
 import com.larvalabs.svgandroid.SVGParser;
 import com.larvalabs.svgandroid.adt.ISVGColorMapper;
+import com.larvalabs.svgandroid.adt.SVG;
 
 /**
  * @author Nicolas Gramlich

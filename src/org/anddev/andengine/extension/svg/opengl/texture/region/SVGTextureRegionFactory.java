@@ -12,11 +12,10 @@ import org.anddev.andengine.opengl.texture.source.ITextureSource;
 
 import android.content.Context;
 
-import com.larvalabs.svgandroid.SVG;
+import com.larvalabs.svgandroid.adt.SVG;
 
 /**
  * TODO Add possibility to set the bounds/clipping to be rendered. Useful to render only a specific region of a big svg file.
- * TODO Add possibility to set the render width/height instead of using the width/height defined in xml.
  * 
  * @author Nicolas Gramlich
  * @since 12:47:31 - 21.05.2011
@@ -72,7 +71,7 @@ public class SVGTextureRegionFactory {
 	// ===========================================================
 
 	private static int applyScaleFactor(final int pInt) {
-		return Math.round(pInt * sScaleFactor);
+		return Math.round(pInt * SVGTextureRegionFactory.sScaleFactor);
 	}
 
 	// ===========================================================

@@ -3,7 +3,7 @@ package org.anddev.andengine.extension.svg.opengl.texture.source;
 import org.anddev.andengine.opengl.texture.source.PictureTextureSource;
 import org.anddev.andengine.util.Debug;
 
-import com.larvalabs.svgandroid.SVG;
+import com.larvalabs.svgandroid.adt.SVG;
 
 /**
  * @author Nicolas Gramlich
