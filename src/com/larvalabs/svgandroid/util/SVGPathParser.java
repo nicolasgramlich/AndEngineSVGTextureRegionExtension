@@ -93,6 +93,18 @@ public class SVGPathParser {
 			return null;
 		}
 		
+		this.mString = pathString.trim();
+		this.mLastX = 0;
+		this.mLastY = 0;
+		this.mLastCubicBezierX2 = 0;
+		this.mLastCubicBezierY2 = 0;
+		this.mCommand = null;
+		this.mCommandParameters.clear();
+		this.mPath = new Path();
+		if(this.mString.length() == 0) {
+			return this.mPath;
+		}
+		
 		final String fillrule = pSVGProperties.getStringProperty("fill-rule");
 		if(fillrule != null) {
 			if("evenodd".equals(fillrule)) {
@@ -108,17 +120,6 @@ public class SVGPathParser {
 			 */
 		}
 		
-		this.mString = pathString.trim();
-		this.mLastX = 0;
-		this.mLastY = 0;
-		this.mLastCubicBezierX2 = 0;
-		this.mLastCubicBezierY2 = 0;
-		this.mCommand = null;
-		this.mCommandParameters.clear();
-		this.mPath = new Path();
-		if(this.mString.length() == 0) {
-			return this.mPath;
-		}
 		this.mCurrentChar = this.mString.charAt(0);
 
 		this.mPosition = 0;
