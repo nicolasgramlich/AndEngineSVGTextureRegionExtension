@@ -140,6 +140,7 @@ public class SVGHandler extends DefaultHandler {
 			final float y = SAXHelper.getFloatAttribute(pAttributes, "y", 0f);
 			final float width = SAXHelper.getFloatAttribute(pAttributes, "width", 0f);
 			final float height = SAXHelper.getFloatAttribute(pAttributes, "height", 0f);
+			// TODO Support rounded corners "rx"/"ry". --> this.mCanvas.drawRoundRect(rect, rx, ry, paint) 
 			final boolean pushed = this.pushTransform(pAttributes);
 			final SVGProperties svgProperties = this.getSVGPropertiesFromAttributes(pAttributes);
 			if (this.setFill(svgProperties)) {
