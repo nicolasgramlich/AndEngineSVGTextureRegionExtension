@@ -18,7 +18,7 @@ public interface ISVGConstants {
 	public static final String TAG_LINEARGRADIENT = "linearGradient";
 	public static final String TAG_RADIALGRADIENT = "radialGradient";
 	public static final String TAG_STOP = "stop";
-	
+
 	public static final String TAG_GROUP = "g";
 
 	public static final String TAG_CIRCLE = "circle";
@@ -33,7 +33,7 @@ public interface ISVGConstants {
 	public static final String ATTRIBUTE_HREF = "href";
 	public static final String ATTRIBUTE_STYLE = "style";
 	public static final String ATTRIBUTE_DISPLAY = "display";
-	
+
 	public static final String ATTRIBUTE_X = "x";
 	public static final String ATTRIBUTE_Y = "y";
 	public static final String ATTRIBUTE_X1 = "x1";
@@ -63,7 +63,7 @@ public interface ISVGConstants {
 	public static final String ATTRIBUTE_STOP_OPACITY = "stop-opacity";
 	public static final String ATTRIBUTE_STOP_COLOR = "stop-color";
 	public static final String ATTRIBUTE_OFFSET = "offset";
-	
+
 	public static final String ATTRIBUTE_OPACITY = "opacity";
 	public static final String ATTRIBUTE_FILL = "fill";
 	public static final String ATTRIBUTE_FILL_OPACITY = "fill-opacity";

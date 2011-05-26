@@ -25,8 +25,8 @@ public class SVGLinearGradient extends SVGGradient {
 	// Constructors
 	// ===========================================================
 
-	public SVGLinearGradient(final String pID, final float pX1, final float pX2, final float pY1, final float pY2, final Matrix pMatrix, final String pXLink) {
-		super(pID, pMatrix, pXLink);
+	public SVGLinearGradient(final String pID, final float pX1, final float pX2, final float pY1, final float pY2, final Matrix pMatrix, final String pHref) {
+		super(pID, pMatrix, pHref);
 		this.mX1 = pX1;
 		this.mX2 = pX2;
 		this.mY1 = pY1;
@@ -42,8 +42,8 @@ public class SVGLinearGradient extends SVGGradient {
 	// ===========================================================
 
 	@Override
-	protected SVGGradient copy(final String pID, final Matrix pMatrix, final String pXLink) {
-		return new SVGLinearGradient(pID, this.mX1, this.mX2, this.mY1, this.mY2, pMatrix, pXLink);
+	protected SVGGradient copy(final String pID, final Matrix pMatrix, final String pHref) {
+		return new SVGLinearGradient(pID, this.mX1, this.mX2, this.mY1, this.mY2, pMatrix, pHref);
 	}
 
 	@Override

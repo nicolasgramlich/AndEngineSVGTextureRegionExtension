@@ -3,14 +3,12 @@ package org.anddev.andengine.extension.svg.adt;
 import java.util.HashMap;
 
 import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient;
+import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient.Stop;
 import org.anddev.andengine.extension.svg.adt.gradient.SVGLinearGradient;
 import org.anddev.andengine.extension.svg.adt.gradient.SVGRadialGradient;
-import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient.Stop;
 import org.anddev.andengine.extension.svg.exception.SVGParseException;
 import org.anddev.andengine.extension.svg.util.SAXHelper;
-import org.anddev.andengine.extension.svg.util.SVGNumberParser;
 import org.anddev.andengine.extension.svg.util.SVGTransformParser;
-import org.anddev.andengine.extension.svg.util.SVGNumberParser.SVGNumberParserIntegerResult;
 import org.anddev.andengine.extension.svg.util.constants.ColorUtils;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.xml.sax.Attributes;
@@ -145,8 +143,8 @@ public class SVGPaint implements ISVGConstants {
 			return false;
 		}
 
-		if(colorProperty.startsWith("url(#")) {
-			final String id = colorProperty.substring("url(#".length(), colorProperty.length() - 1);
+		if(SVGProperties.isURLProperty(colorProperty)) {
+			final String id = SVGProperties.extractIDFromURLProperty(colorProperty);
 
 			Shader gradientShader = this.mSVGGradientShaderMap.get(id);
 			if(gradientShader == null) {
@@ -221,12 +219,12 @@ public class SVGPaint implements ISVGConstants {
 		final String gradientID = pSVGGradient.getID();
 		if(this.hasGradientShader(pSVGGradient)) {
 			/* Nothing to do, as Shader was already created. */
-		} else if(pSVGGradient.hasXLink()) {
-			final SVGGradient parent = this.mSVGGradientMap.get(pSVGGradient.getXLink());
+		} else if(pSVGGradient.hasHref()) {
+			final SVGGradient parent = this.mSVGGradientMap.get(pSVGGradient.getHref());
 			if(parent == null) {
-				throw new SVGParseException("Could not resolve xlink: '" + pSVGGradient.getXLink() + "' of gradient: '" + gradientID + "'.");
+				throw new SVGParseException("Could not resolve href: '" + pSVGGradient.getHref() + "' of gradient: '" + gradientID + "'.");
 			} else {
-				if(parent.hasXLink() && !this.hasGradientShader(parent)) {
+				if(parent.hasHref() && !this.hasGradientShader(parent)) {
 					this.registerGradientShader(parent);
 				}
 				final SVGGradient svgGradient = SVGGradient.deriveChild(parent, pSVGGradient);
@@ -287,43 +285,26 @@ public class SVGPaint implements ISVGConstants {
 	}
 
 	private Integer parseColor(final String pString) {
-		/*
-		 * TODO Test if explicit pattern matching is faster:
-		 * /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/
-		 * /^(\w{2})(\w{2})(\w{2})$/
-		 * /^(\w{1})(\w{1})(\w{1})$/
+		/* TODO Test if explicit pattern matching is faster:
+		 * 
+		 * RGB:		/^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/
+		 * #RRGGBB:	/^(\w{2})(\w{2})(\w{2})$/
+		 * #RGB:	/^(\w{1})(\w{1})(\w{1})$/
 		 */
 
 		final Integer parsedColor;
 		if(pString == null) {
 			parsedColor = null;
-		} else if(pString.startsWith("#")) {
-			final String hexColorString = pString.substring(1).trim();
-			if(hexColorString.length() == 3) {
-				final int parsedInt = Integer.parseInt(hexColorString, 16);
-				final int red = (parsedInt & ColorUtils.COLOR_MASK_12BIT_RGB_R) >> 8;
-				final int green = (parsedInt & ColorUtils.COLOR_MASK_12BIT_RGB_G) >> 4;
-				final int blue = (parsedInt & ColorUtils.COLOR_MASK_12BIT_RGB_B) >> 0;
-				/* Generate color, duplicating the bits, so that i.e.: #F46 gets #FFAA66. */
-				parsedColor = Color.argb(0, (red << 4) | red, (green << 4) | green, (blue << 4) | blue);
-			} else if(hexColorString.length() == 6) {
-				parsedColor = Integer.parseInt(hexColorString, 16);
-			} else {
-				parsedColor = null;
-			}
-		} else if(pString.startsWith("rgb(")) {
-			final SVGNumberParserIntegerResult svgNumberParserIntegerResult = SVGNumberParser.parseInts(pString.substring("rgb(".length(), pString.indexOf(')')));
-			if(svgNumberParserIntegerResult.getNumberCount() == 3) {
-				parsedColor = Color.argb(0, svgNumberParserIntegerResult.getNumber(0), svgNumberParserIntegerResult.getNumber(1), svgNumberParserIntegerResult.getNumber(2));
-			} else {
-				parsedColor = null;
-			}
+		} else if(SVGProperties.isHexProperty(pString)) {
+			parsedColor = SVGProperties.extractColorFromHexProperty(pString);
+		} else if(SVGProperties.isRGBProperty(pString)) {
+			parsedColor = SVGProperties.extractColorFromRGBProperty(pString);
 		} else {
 			final Integer colorByName = ColorUtils.getColorByName(pString.trim());
 			if(colorByName != null) {
 				parsedColor = colorByName;
 			} else {
-				parsedColor = Integer.parseInt(pString, 16);
+				parsedColor = SVGProperties.extraColorIntegerProperty(pString);
 			}
 		}
 		return this.applySVGColorMapper(parsedColor);
@@ -346,25 +327,27 @@ public class SVGPaint implements ISVGConstants {
 		if(id == null) {
 			return null;
 		}
-		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_GRADIENT_TRANSFORM));
-		String xlink = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_HREF);
-		if(xlink != null) {
-			if(xlink.startsWith("#")) {
-				xlink = xlink.substring(1);
+
+		String href = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_HREF);
+		if(href != null) {
+			if(href.startsWith("#")) {
+				href = href.substring(1);
 			}
 		}
+
+		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_GRADIENT_TRANSFORM));
 		final SVGGradient svgGradient;
 		if(pLinear) {
 			final float x1 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X1, 0f);
 			final float x2 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X2, 0f);
 			final float y1 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y1, 0f);
 			final float y2 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y2, 0f);
-			svgGradient = new SVGLinearGradient(id, x1, x2, y1, y2, matrix, xlink);
+			svgGradient = new SVGLinearGradient(id, x1, x2, y1, y2, matrix, href);
 		} else {
 			final float centerX = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_CENTER_X, 0f);
 			final float centerY = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_CENTER_Y, 0f);
 			final float radius = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_RADIUS, 0f);
-			svgGradient = new SVGRadialGradient(id, centerX, centerY, radius, matrix, xlink);
+			svgGradient = new SVGRadialGradient(id, centerX, centerY, radius, matrix, href);
 		}
 		this.mSVGGradientMap.put(id, svgGradient);
 		return svgGradient;

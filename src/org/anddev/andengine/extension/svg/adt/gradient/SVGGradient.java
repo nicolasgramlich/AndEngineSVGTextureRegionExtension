@@ -21,7 +21,7 @@ public abstract class SVGGradient {
 
 	protected String mID;
 	protected Matrix mMatrix = null;
-	protected String mXLink;
+	protected String mHref;
 
 	protected ArrayList<Stop> mStops = new ArrayList<Stop>();
 
@@ -29,10 +29,10 @@ public abstract class SVGGradient {
 	// Constructors
 	// ===========================================================
 
-	public SVGGradient(final String pID, final Matrix pMatrix, final String pXLink) {
+	public SVGGradient(final String pID, final Matrix pMatrix, final String pHref) {
 		this.mID = pID;
 		this.mMatrix = pMatrix;
-		this.mXLink = pXLink;
+		this.mHref = pHref;
 	}
 
 	public static SVGGradient deriveChild(final SVGGradient pParent, final SVGGradient pSVGGradient) {
@@ -45,7 +45,7 @@ public abstract class SVGGradient {
 			childMatrix = pSVGGradient.mMatrix;
 		}
 
-		final SVGGradient child = pSVGGradient.copy(pSVGGradient.mID, childMatrix, pParent.mXLink);
+		final SVGGradient child = pSVGGradient.copy(pSVGGradient.mID, childMatrix, pParent.mHref);
 		if(pSVGGradient.mStops.size() > 0) {
 			child.mStops = pSVGGradient.mStops;
 		} else {
@@ -58,12 +58,12 @@ public abstract class SVGGradient {
 	// Getter & Setter
 	// ===========================================================
 
-	public boolean hasXLink() {
-		return this.mXLink != null;
+	public boolean hasHref() {
+		return this.mHref != null;
 	}
 
-	public String getXLink() {
-		return this.mXLink;
+	public String getHref() {
+		return this.mHref;
 	}
 
 	public void setMatrix(final Matrix pMatrix) {
@@ -82,7 +82,7 @@ public abstract class SVGGradient {
 	// Methods for/from SuperClass/Interfaces
 	// ===========================================================
 
-	protected abstract SVGGradient copy(final String pID, final Matrix pMatrix, final String pXLink);
+	protected abstract SVGGradient copy(final String pID, final Matrix pMatrix, final String pHref);
 	public abstract Shader createShader();
 
 	// ===========================================================

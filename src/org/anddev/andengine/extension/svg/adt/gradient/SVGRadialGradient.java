@@ -24,8 +24,8 @@ public class SVGRadialGradient extends SVGGradient {
 	// Constructors
 	// ===========================================================
 
-	public SVGRadialGradient(final String pID, final float pCenterX, final float pCenterY, final float pRadius, final Matrix pMatrix, final String pXLink) {
-		super(pID, pMatrix, pXLink);
+	public SVGRadialGradient(final String pID, final float pCenterX, final float pCenterY, final float pRadius, final Matrix pMatrix, final String pHref) {
+		super(pID, pMatrix, pHref);
 		this.mCenterX = pCenterX;
 		this.mCenterY = pCenterY;
 		this.mRadius = pRadius;
@@ -40,8 +40,8 @@ public class SVGRadialGradient extends SVGGradient {
 	// ===========================================================
 
 	@Override
-	protected SVGGradient copy(final String pID, final Matrix pMatrix, final String pXLink) {
-		return new SVGRadialGradient(pID, this.mCenterX, this.mCenterY, this.mRadius, pMatrix, pXLink);
+	protected SVGGradient copy(final String pID, final Matrix pMatrix, final String pHref) {
+		return new SVGRadialGradient(pID, this.mCenterX, this.mCenterY, this.mRadius, pMatrix, pHref);
 	}
 
 	@Override
