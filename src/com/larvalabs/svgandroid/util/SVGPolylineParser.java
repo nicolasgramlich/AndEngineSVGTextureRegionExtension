@@ -1,11 +1,11 @@
 package com.larvalabs.svgandroid.util;
 
+import android.graphics.Canvas;
+import android.graphics.Path;
+
 import com.larvalabs.svgandroid.adt.SVGPaint;
 import com.larvalabs.svgandroid.adt.SVGProperties;
 import com.larvalabs.svgandroid.util.SVGNumberParser.SVGNumberParserFloatResult;
-
-import android.graphics.Canvas;
-import android.graphics.Path;
 
 /**
  * @author Nicolas Gramlich

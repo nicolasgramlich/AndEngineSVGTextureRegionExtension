@@ -24,7 +24,7 @@ public class SVG {
 
 	/** These are the estimated bounds of the SVG computed from the SVG elements while parsing.
 	 * Note that this could be null if there was a failure to compute limits (i.e. an empty SVG). */
-	private RectF mComputedBounds = null;
+	private final RectF mComputedBounds;
 
 	// ===========================================================
 	// Constructors
@@ -38,6 +38,7 @@ public class SVG {
 	public SVG(final Picture pPicture, final RectF pBounds, final RectF pComputedBounds) {
 		this.mPicture = pPicture;
 		this.mBounds = pBounds;
+		this.mComputedBounds = pComputedBounds;
 	}
 
 	// ===========================================================
@@ -57,7 +58,7 @@ public class SVG {
 	}
 
 	/**
-	 * Gets the computed bounding rectangle for the SVG that was computed upon parsing. 
+	 * Gets the computed bounding rectangle for the SVG that was computed upon parsing.
 	 * It may not be entirely accurate for certain curves or transformations, but is often better than nothing.
 	 * @return rectangle representing the computed bounds.
 	 */

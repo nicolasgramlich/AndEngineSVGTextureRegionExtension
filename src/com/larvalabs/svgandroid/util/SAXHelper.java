@@ -63,20 +63,6 @@ public class SAXHelper {
 		}
 	}
 
-	//	private static Integer getHexAttribute(final Attributes pAttributes, final String pAttributeName)  {
-	//		final String v = SAXHelper.getStringAttribute(pAttributes, pAttributeName, null);
-	//		if (v == null) {
-	//			return null;
-	//		} else {
-	//			try {
-	//				return Integer.parseInt(v.substring(1), 16);
-	//			} catch (final NumberFormatException nfe) {
-	//				// TODO - parse word-based color here
-	//				return null;
-	//			}
-	//		}
-	//	}
-
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================

@@ -72,8 +72,8 @@ public class SVGPathParser {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	
-	public void parse(SVGProperties pSVGProperties, Canvas pCanvas, SVGPaint pSVGPaint) {
+
+	public void parse(final SVGProperties pSVGProperties, final Canvas pCanvas, final SVGPaint pSVGPaint) {
 		final Path path = this.parse(pSVGProperties);
 		if (pSVGPaint.setFill(pSVGProperties)) {
 			pSVGPaint.ensureComputedBoundsInclude(path);

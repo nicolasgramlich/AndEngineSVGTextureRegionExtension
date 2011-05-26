@@ -41,7 +41,7 @@ public class SVGNumberParser {
 		for(int i = parts.length - 1; i >= 0; i--) {
 			numbers[i] = Float.parseFloat(parts[i]);
 		}
-		
+
 		return new SVGNumberParserFloatResult(numbers);
 	}
 
@@ -55,10 +55,10 @@ public class SVGNumberParser {
 		for(int i = parts.length - 1; i >= 0; i--) {
 			numbers[i] = Integer.parseInt(parts[i]);
 		}
-		
+
 		return new SVGNumberParserIntegerResult(numbers);
 	}
-	
+
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================
