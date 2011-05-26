@@ -176,30 +176,36 @@ public class SVGHandler extends DefaultHandler {
 		if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, "id"))) {
 			this.mBoundsMode = true;
 		}
-		final boolean hasTransform = this.pushTransform(pAttributes);
+		
 		final SVGGroup parentSVGGroup = this.mSVGGroupStack.peek();
 		final AttributesImpl attributesDeepCopy = new AttributesImpl(pAttributes);
+		final boolean hasTransform = this.pushTransform(pAttributes);
+		
 		this.mSVGGroupStack.push(new SVGGroup(parentSVGGroup, this.getSVGPropertiesFromAttributes(attributesDeepCopy), hasTransform));
 
-		this.mHidden = parentSVGGroup.isHidden();
+		this.updateHidden();
 	}
 
 	private void parseGroupEnd() {
 		if (this.mBoundsMode) {
 			this.mBoundsMode = false;
 		}
-		
+
 		/* Pop group transform if there was one pushed. */
 		if(this.mSVGGroupStack.pop().hasTransform()) {
 			this.popTransform();
 		}
+		this.updateHidden();
+		/* Clear shader map. */
+		this.mSVGPaint.clearGradientShaders();
+	}
+
+	private void updateHidden() {
 		if(this.mSVGGroupStack.size() == 0) {
 			this.mHidden = false;
 		} else {
 			this.mSVGGroupStack.peek().isHidden();
 		}
-		/* Clear shader map. */
-		this.mSVGPaint.clearGradientShaders();
 	}
 
 	private void parsePath(final Attributes pAttributes) {
