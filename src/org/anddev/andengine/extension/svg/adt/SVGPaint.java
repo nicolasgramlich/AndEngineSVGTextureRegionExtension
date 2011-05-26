@@ -147,17 +147,7 @@ public class SVGPaint implements ISVGConstants {
 		if(SVGProperties.isURLProperty(colorProperty)) {
 			final String id = SVGParserUtils.extractIDFromURLProperty(colorProperty);
 
-			Shader gradientShader = this.mSVGGradientShaderMap.get(id);
-			if(gradientShader == null) {
-				final SVGGradient svgGradient = this.mSVGGradientMap.get(id);
-				if(svgGradient == null) {
-					throw new SVGParseException("No gradient found for id: '" + id + "'.");
-				} else {
-					this.registerGradientShader(svgGradient);
-					gradientShader = this.mSVGGradientShaderMap.get(id);
-				}
-			}
-			this.mPaint.setShader(gradientShader);
+			this.mPaint.setShader(getGradientShader(id));
 			return true;
 		} else {
 			final Integer color = this.parseColor(colorProperty);
@@ -322,8 +312,12 @@ public class SVGPaint implements ISVGConstants {
 	// ===========================================================
 	// Methods for Gradient-Parsing
 	// ===========================================================
+	
+	public SVGFilter parseFilter(final Attributes pAttributes) {
+		return null; // TODO pretty much like parseGradient
+	}
 
-	public SVGGradient registerGradient(final Attributes pAttributes, final boolean pLinear) {
+	public SVGGradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
 		final String id = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_ID);
 		if(id == null) {
 			return null;
@@ -336,6 +330,9 @@ public class SVGPaint implements ISVGConstants {
 			}
 		}
 
+		/* TODO it might be better to simply put a SVGProperties object into the SVGGradient with a linear/radial flag. (Subclasses not really needed anymore.)
+		 * Parameters like x1,x1,y1,y2,... would be extracted when they are actually needed.
+		 * This would cover arbitrary deep inheritance of properties that are not covered by the ones extracted here (id,x1,x2,y1,y2,matrix,href). */
 		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_GRADIENT_TRANSFORM));
 		final SVGGradient svgGradient;
 		if(pLinear) {
@@ -371,6 +368,20 @@ public class SVGPaint implements ISVGConstants {
 		} else {
 			return ColorUtils.COLOR_MASK_32BIT_ARGB_ALPHA;
 		}
+	}
+
+	private Shader getGradientShader(final String id) {
+		Shader gradientShader = this.mSVGGradientShaderMap.get(id);
+		if(gradientShader == null) {
+			final SVGGradient svgGradient = this.mSVGGradientMap.get(id);
+			if(svgGradient == null) {
+				throw new SVGParseException("No gradient found for id: '" + id + "'.");
+			} else {
+				this.registerGradientShader(svgGradient);
+				gradientShader = this.mSVGGradientShaderMap.get(id);
+			}
+		}
+		return gradientShader;
 	}
 
 	// ===========================================================

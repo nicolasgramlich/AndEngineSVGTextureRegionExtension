@@ -17,6 +17,8 @@ public interface ISVGConstants {
 	public static final String TAG_DEFS = "defs";
 	public static final String TAG_LINEARGRADIENT = "linearGradient";
 	public static final String TAG_RADIALGRADIENT = "radialGradient";
+	public static final String TAG_FILTER = "filter";
+	public static final String TAG_FILTER_ELEMENT_FEGAUSSIANBLUR = "feGaussianBlur";
 	public static final String TAG_STOP = "stop";
 
 	public static final String TAG_GROUP = "g";

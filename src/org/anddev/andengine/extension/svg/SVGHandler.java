@@ -3,6 +3,7 @@ package org.anddev.andengine.extension.svg;
 import java.util.Stack;
 
 import org.anddev.andengine.extension.svg.adt.ISVGColorMapper;
+import org.anddev.andengine.extension.svg.adt.SVGFilter;
 import org.anddev.andengine.extension.svg.adt.SVGGroup;
 import org.anddev.andengine.extension.svg.adt.SVGPaint;
 import org.anddev.andengine.extension.svg.adt.SVGProperties;
@@ -55,6 +56,7 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	private final SVGPathParser mSVGPathParser = new SVGPathParser();
 
 	private SVGGradient mCurrentSVGGradient;
+	private SVGFilter mCurrentSVGFilter;
 
 	private boolean mHidden;
 
@@ -99,14 +101,16 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 			this.mCanvas = this.mPicture.beginRecording(width, height);
 		} else if(pLocalName.equals(TAG_DEFS)) {
 			// Ignore
+		} else if(pLocalName.equals(TAG_GROUP)) {
+			this.parseGroup(pAttributes);
 		} else if(pLocalName.equals(TAG_LINEARGRADIENT)) {
 			this.parseLinearGradient(pAttributes);
-		} else if(pLocalName.equals(TAG_RADIALGRADIENT)) {
+		}  else if(pLocalName.equals(TAG_RADIALGRADIENT)) {
 			this.parseRadialGradient(pAttributes);
 		} else if(pLocalName.equals(TAG_STOP)) {
 			this.parseGradientStop(pAttributes);
-		} else if(pLocalName.equals(TAG_GROUP)) {
-			this.parseGroup(pAttributes);
+		} else if(pLocalName.equals(TAG_FILTER)) {
+			this.parseFilter(pAttributes);
 		} else if(!this.mHidden) {
 			if(pLocalName.equals(TAG_RECTANGLE)) {
 				this.parseRect(pAttributes);
@@ -159,12 +163,16 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 		}
 	}
 
+	private void parseFilter(final Attributes pAttributes) {
+		this.mCurrentSVGFilter = this.mSVGPaint.parseFilter(pAttributes);
+	}
+
 	private void parseLinearGradient(final Attributes pAttributes) {
-		this.mCurrentSVGGradient = this.mSVGPaint.registerGradient(pAttributes, true);
+		this.mCurrentSVGGradient = this.mSVGPaint.parseGradient(pAttributes, true);
 	}
 
 	private void parseRadialGradient(final Attributes pAttributes) {
-		this.mCurrentSVGGradient = this.mSVGPaint.registerGradient(pAttributes, false);
+		this.mCurrentSVGGradient = this.mSVGPaint.parseGradient(pAttributes, false);
 	}
 
 	private void parseGradientStop(final Attributes pAttributes) {
