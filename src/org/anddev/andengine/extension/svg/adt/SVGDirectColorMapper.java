@@ -1,15 +1,12 @@
-package org.anddev.andengine.extension.svg.opengl.texture.source;
+package org.anddev.andengine.extension.svg.adt;
 
-import org.anddev.andengine.extension.svg.adt.SVG;
-import org.anddev.andengine.opengl.texture.source.PictureTextureSource;
-import org.anddev.andengine.util.Debug;
-
+import java.util.HashMap;
 
 /**
  * @author Nicolas Gramlich
- * @since 13:34:55 - 21.05.2011
+ * @since 09:21:33 - 25.05.2011
  */
-public class SVGBaseTextureSource extends PictureTextureSource {
+public class SVGDirectColorMapper implements ISVGColorMapper {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -18,26 +15,18 @@ public class SVGBaseTextureSource extends PictureTextureSource {
 	// Fields
 	// ===========================================================
 
-	private final SVG mSVG;
+	private final HashMap<Integer, Integer> mColorMappings = new HashMap<Integer, Integer>();
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public SVGBaseTextureSource(final SVG pSVG) {
-		super(pSVG.getPicture());
-		this.mSVG = pSVG;
+	public SVGDirectColorMapper() {
+
 	}
 
-	public SVGBaseTextureSource(final SVG pSVG, final int pWidth, final int pHeight) {
-		super(pSVG.getPicture(), pWidth, pHeight);
-		this.mSVG = pSVG;
-	}
-
-	@Override
-	public SVGBaseTextureSource clone() {
-		Debug.w("SVGBaseTextureSource.clone() does not actually clone the SVG!");
-		return new SVGBaseTextureSource(this.mSVG, this.mWidth, this.mHeight);
+	public SVGDirectColorMapper(final Integer pColorFrom, final Integer pColorTo) {
+		this.addColorMapping(pColorFrom, pColorTo);
 	}
 
 	// ===========================================================
@@ -51,6 +40,20 @@ public class SVGBaseTextureSource extends PictureTextureSource {
 	// ===========================================================
 	// Methods
 	// ===========================================================
+
+	public void addColorMapping(final Integer pColorFrom, final Integer pColorTo) {
+		this.mColorMappings.put(pColorFrom, pColorTo);
+	}
+
+	@Override
+	public Integer mapColor(final Integer pColor) {
+		final Integer mappedColor = this.mColorMappings.get(pColor);
+		if(mappedColor == null) {
+			return pColor;
+		} else {
+			return mappedColor;
+		}
+	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

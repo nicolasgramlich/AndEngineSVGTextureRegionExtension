@@ -1,15 +1,13 @@
-package org.anddev.andengine.extension.svg.opengl.texture.source;
+package org.anddev.andengine.extension.svg.adt;
 
-import org.anddev.andengine.extension.svg.adt.SVG;
-import org.anddev.andengine.opengl.texture.source.PictureTextureSource;
-import org.anddev.andengine.util.Debug;
-
+import java.util.HashMap;
 
 /**
+ * @author Larva Labs, LLC
  * @author Nicolas Gramlich
- * @since 13:34:55 - 21.05.2011
+ * @since 16:49:43 - 21.05.2011
  */
-public class SVGBaseTextureSource extends PictureTextureSource {
+public class SVGStyleSet {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -18,31 +16,29 @@ public class SVGBaseTextureSource extends PictureTextureSource {
 	// Fields
 	// ===========================================================
 
-	private final SVG mSVG;
+	private final HashMap<String, String> mStyleMap = new HashMap<String, String>();
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public SVGBaseTextureSource(final SVG pSVG) {
-		super(pSVG.getPicture());
-		this.mSVG = pSVG;
-	}
-
-	public SVGBaseTextureSource(final SVG pSVG, final int pWidth, final int pHeight) {
-		super(pSVG.getPicture(), pWidth, pHeight);
-		this.mSVG = pSVG;
-	}
-
-	@Override
-	public SVGBaseTextureSource clone() {
-		Debug.w("SVGBaseTextureSource.clone() does not actually clone the SVG!");
-		return new SVGBaseTextureSource(this.mSVG, this.mWidth, this.mHeight);
+	public SVGStyleSet(final String pString) {
+		final String[] styles = pString.split(";");
+		for (final String s : styles) {
+			final String[] style = s.split(":");
+			if (style.length == 2) {
+				this.mStyleMap.put(style[0], style[1]);
+			}
+		}
 	}
 
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
+
+	public String getStyle(final String pStyleName) {
+		return this.mStyleMap.get(pStyleName);
+	}
 
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces

@@ -1,15 +1,10 @@
-package org.anddev.andengine.extension.svg.opengl.texture.source;
-
-import org.anddev.andengine.extension.svg.adt.SVG;
-import org.anddev.andengine.opengl.texture.source.PictureTextureSource;
-import org.anddev.andengine.util.Debug;
-
+package org.anddev.andengine.extension.svg.adt;
 
 /**
  * @author Nicolas Gramlich
- * @since 13:34:55 - 21.05.2011
+ * @since 12:58:32 - 24.05.2011
  */
-public class SVGBaseTextureSource extends PictureTextureSource {
+public class SVGGroup {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -18,31 +13,29 @@ public class SVGBaseTextureSource extends PictureTextureSource {
 	// Fields
 	// ===========================================================
 
-	private final SVG mSVG;
+	private final SVGProperties mSVGProperties;
+	private final boolean mHasTransform;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public SVGBaseTextureSource(final SVG pSVG) {
-		super(pSVG.getPicture());
-		this.mSVG = pSVG;
-	}
-
-	public SVGBaseTextureSource(final SVG pSVG, final int pWidth, final int pHeight) {
-		super(pSVG.getPicture(), pWidth, pHeight);
-		this.mSVG = pSVG;
-	}
-
-	@Override
-	public SVGBaseTextureSource clone() {
-		Debug.w("SVGBaseTextureSource.clone() does not actually clone the SVG!");
-		return new SVGBaseTextureSource(this.mSVG, this.mWidth, this.mHeight);
+	public SVGGroup(final SVGProperties pSVGProperties, final boolean pHasTransform) {
+		this.mSVGProperties = pSVGProperties;
+		this.mHasTransform = pHasTransform;
 	}
 
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
+
+	public boolean hasTransform() {
+		return this.mHasTransform;
+	}
+
+	public SVGProperties getSVGProperties() {
+		return this.mSVGProperties;
+	}
 
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces

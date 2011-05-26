@@ -1,12 +1,12 @@
 package org.anddev.andengine.extension.svg.opengl.texture.source;
 
+import org.anddev.andengine.extension.svg.SVGParser;
+import org.anddev.andengine.extension.svg.adt.ISVGColorMapper;
+import org.anddev.andengine.extension.svg.adt.SVG;
 import org.anddev.andengine.util.Debug;
 
 import android.content.Context;
 
-import com.larvalabs.svgandroid.SVGParser;
-import com.larvalabs.svgandroid.adt.ISVGColorMapper;
-import com.larvalabs.svgandroid.adt.SVG;
 
 /**
  * @author Nicolas Gramlich

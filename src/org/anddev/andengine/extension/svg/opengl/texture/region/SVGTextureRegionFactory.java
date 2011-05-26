@@ -1,5 +1,7 @@
 package org.anddev.andengine.extension.svg.opengl.texture.region;
 
+import org.anddev.andengine.extension.svg.adt.ISVGColorMapper;
+import org.anddev.andengine.extension.svg.adt.SVG;
 import org.anddev.andengine.extension.svg.opengl.texture.source.SVGAssetTextureSource;
 import org.anddev.andengine.extension.svg.opengl.texture.source.SVGBaseTextureSource;
 import org.anddev.andengine.extension.svg.opengl.texture.source.SVGResourceTextureSource;
@@ -12,8 +14,6 @@ import org.anddev.andengine.opengl.texture.source.ITextureSource;
 
 import android.content.Context;
 
-import com.larvalabs.svgandroid.adt.ISVGColorMapper;
-import com.larvalabs.svgandroid.adt.SVG;
 
 /**
  * TODO Add possibility to set the bounds/clipping to be rendered. Useful to render only a specific region of a big svg file, which could be a spritesheet.
