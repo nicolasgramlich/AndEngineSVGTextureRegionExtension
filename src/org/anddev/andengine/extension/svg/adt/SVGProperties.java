@@ -51,6 +51,10 @@ public class SVGProperties {
 	// ===========================================================
 
 	public String getStringProperty(final String pPropertyName) {
+		return getStringProperty(pPropertyName, true);
+	}
+
+	public String getStringProperty(final String pPropertyName, final boolean pAllowParentSVGProperties) {
 		String s = null;
 		if (this.mSVGStyleSet != null) {
 			s = this.mSVGStyleSet.getStyle(pPropertyName);
@@ -58,7 +62,7 @@ public class SVGProperties {
 		if (s == null) {
 			s = SAXHelper.getStringAttribute(this.mAttributes, pPropertyName);
 		}
-		if(s == null) {
+		if(s == null && pAllowParentSVGProperties) {
 			if(this.mParentSVGProperties == null) {
 				return null;
 			} else {

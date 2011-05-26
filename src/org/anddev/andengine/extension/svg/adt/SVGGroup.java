@@ -1,5 +1,6 @@
 package org.anddev.andengine.extension.svg.adt;
 
+
 /**
  * @author Nicolas Gramlich
  * @since 12:58:32 - 24.05.2011
@@ -13,16 +14,20 @@ public class SVGGroup {
 	// Fields
 	// ===========================================================
 
+	private final SVGGroup mSVGroupParent;
 	private final SVGProperties mSVGProperties;
 	private final boolean mHasTransform;
+	private final boolean mHidden;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
 
-	public SVGGroup(final SVGProperties pSVGProperties, final boolean pHasTransform) {
+	public SVGGroup(final SVGGroup pSVGroupParent, final SVGProperties pSVGProperties, final boolean pHasTransform) {
+		this.mSVGroupParent = pSVGroupParent;
 		this.mSVGProperties = pSVGProperties;
 		this.mHasTransform = pHasTransform;
+		this.mHidden = this.mSVGroupParent.isHidden() || "none".equals(this.mSVGProperties.getStringProperty("display", false));
 	}
 
 	// ===========================================================
@@ -35,6 +40,10 @@ public class SVGGroup {
 
 	public SVGProperties getSVGProperties() {
 		return this.mSVGProperties;
+	}
+
+	public boolean isHidden() {
+		return this.mHidden;
 	}
 
 	// ===========================================================

@@ -55,9 +55,7 @@ public class SVGHandler extends DefaultHandler {
 
 	private SVGGradient mCurrentSVGGradient;
 
-	// TODO Put Hidden into SVGGroup?
 	private boolean mHidden;
-	private int mHiddenLevel;
 
 	/** Multi purpose dummy rectangle. */
 	private final RectF mRect = new RectF();
@@ -98,32 +96,36 @@ public class SVGHandler extends DefaultHandler {
 			final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, "width", 0f));
 			final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, "height", 0f));
 			this.mCanvas = this.mPicture.beginRecording(width, height);
-		} else if (pLocalName.equals("defs")) {
+		} else if(pLocalName.equals("defs")) {
 			// Ignore
-		} else if (pLocalName.equals("linearGradient")) {
+		} else if(pLocalName.equals("linearGradient")) {
 			this.parseLinearGradient(pAttributes);
-		} else if (pLocalName.equals("radialGradient")) {
+		} else if(pLocalName.equals("radialGradient")) {
 			this.parseRadialGradient(pAttributes);
-		} else if (pLocalName.equals("stop")) {
+		} else if(pLocalName.equals("stop")) {
 			this.parseGradientStop(pAttributes);
-		} else if (pLocalName.equals("g")) {
+		} else if(pLocalName.equals("g")) {
 			this.parseGroup(pAttributes);
-		} else if (!this.mHidden && pLocalName.equals("rect")) {
-			this.parseRect(pAttributes);
-		} else if (!this.mHidden && pLocalName.equals("line")) {
-			this.parseLine(pAttributes);
-		} else if (!this.mHidden && pLocalName.equals("circle")) {
-			this.parseCircle(pAttributes);
-		} else if (!this.mHidden && pLocalName.equals("ellipse")) {
-			this.parseEllipse(pAttributes);
-		} else if (!this.mHidden && pLocalName.equals("polyline")) {
-			this.parsePolyline(pAttributes);
-		}  else if (!this.mHidden && pLocalName.equals("polygon")) {
-			this.parsePolygon(pAttributes);
-		} else if (!this.mHidden && pLocalName.equals("path")) {
-			this.parsePath(pAttributes);
-		} else if (!this.mHidden) {
-			Debug.d("Unexpected SVG tag: '" + pLocalName +"'!");
+		} else if(!this.mHidden) {
+			if(pLocalName.equals("rect")) {
+				this.parseRect(pAttributes);
+			} else if(pLocalName.equals("line")) {
+				this.parseLine(pAttributes);
+			} else if(pLocalName.equals("circle")) {
+				this.parseCircle(pAttributes);
+			} else if(pLocalName.equals("ellipse")) {
+				this.parseEllipse(pAttributes);
+			} else if(pLocalName.equals("polyline")) {
+				this.parsePolyline(pAttributes);
+			} else if(pLocalName.equals("polygon")) {
+				this.parsePolygon(pAttributes);
+			} else if(pLocalName.equals("path")) {
+				this.parsePath(pAttributes);
+			} else {
+				Debug.d("Unexpected SVG tag: '" + pLocalName + "'.");
+			}
+		} else {
+			Debug.d("Unexpected SVG tag: '" + pLocalName + "'.");
 		}
 	}
 
@@ -175,35 +177,26 @@ public class SVGHandler extends DefaultHandler {
 			this.mBoundsMode = true;
 		}
 		final boolean hasTransform = this.pushTransform(pAttributes);
+		final SVGGroup parentSVGGroup = this.mSVGGroupStack.peek();
 		final AttributesImpl attributesDeepCopy = new AttributesImpl(pAttributes);
-		this.mSVGGroupStack.push(new SVGGroup(this.getSVGPropertiesFromAttributes(attributesDeepCopy), hasTransform));
+		this.mSVGGroupStack.push(new SVGGroup(parentSVGGroup, this.getSVGPropertiesFromAttributes(attributesDeepCopy), hasTransform));
 
-		if (this.mHidden) {
-			this.mHiddenLevel++;
-		}
-		/* Go in to hidden mode if display is "none". */
-		if ("none".equals(SAXHelper.getStringAttribute(pAttributes, "display"))) {
-			if (!this.mHidden) {
-				this.mHidden = true;
-				this.mHiddenLevel = 1;
-			}
-		}
+		this.mHidden = parentSVGGroup.isHidden();
 	}
 
 	private void parseGroupEnd() {
 		if (this.mBoundsMode) {
 			this.mBoundsMode = false;
 		}
+		
 		/* Pop group transform if there was one pushed. */
 		if(this.mSVGGroupStack.pop().hasTransform()) {
 			this.popTransform();
 		}
-		/* Break out of hidden mode. */
-		if (this.mHidden) {
-			this.mHiddenLevel--;
-			if (this.mHiddenLevel == 0) {
-				this.mHidden = false;
-			}
+		if(this.mSVGGroupStack.size() == 0) {
+			this.mHidden = false;
+		} else {
+			this.mSVGGroupStack.peek().isHidden();
 		}
 		/* Clear shader map. */
 		this.mSVGPaint.clearGradientShaders();
