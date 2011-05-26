@@ -8,6 +8,7 @@ import org.anddev.andengine.extension.svg.adt.gradient.SVGLinearGradient;
 import org.anddev.andengine.extension.svg.adt.gradient.SVGRadialGradient;
 import org.anddev.andengine.extension.svg.exception.SVGParseException;
 import org.anddev.andengine.extension.svg.util.SAXHelper;
+import org.anddev.andengine.extension.svg.util.SVGParserUtils;
 import org.anddev.andengine.extension.svg.util.SVGTransformParser;
 import org.anddev.andengine.extension.svg.util.constants.ColorUtils;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
@@ -144,7 +145,7 @@ public class SVGPaint implements ISVGConstants {
 		}
 
 		if(SVGProperties.isURLProperty(colorProperty)) {
-			final String id = SVGProperties.extractIDFromURLProperty(colorProperty);
+			final String id = SVGParserUtils.extractIDFromURLProperty(colorProperty);
 
 			Shader gradientShader = this.mSVGGradientShaderMap.get(id);
 			if(gradientShader == null) {
@@ -296,15 +297,15 @@ public class SVGPaint implements ISVGConstants {
 		if(pString == null) {
 			parsedColor = null;
 		} else if(SVGProperties.isHexProperty(pString)) {
-			parsedColor = SVGProperties.extractColorFromHexProperty(pString);
+			parsedColor = SVGParserUtils.extractColorFromHexProperty(pString);
 		} else if(SVGProperties.isRGBProperty(pString)) {
-			parsedColor = SVGProperties.extractColorFromRGBProperty(pString);
+			parsedColor = SVGParserUtils.extractColorFromRGBProperty(pString);
 		} else {
 			final Integer colorByName = ColorUtils.getColorByName(pString.trim());
 			if(colorByName != null) {
 				parsedColor = colorByName;
 			} else {
-				parsedColor = SVGProperties.extraColorIntegerProperty(pString);
+				parsedColor = SVGParserUtils.extraColorIntegerProperty(pString);
 			}
 		}
 		return this.applySVGColorMapper(parsedColor);

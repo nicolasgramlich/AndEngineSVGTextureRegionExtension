@@ -51,7 +51,7 @@ public class SAXHelper {
 	}
 
 	public static Float getFloatAttribute(final Attributes pAttributes, final String pAttributeName) {
-		return SVGParserUtils.parseFloatAttribute(SAXHelper.getStringAttribute(pAttributes, pAttributeName));
+		return SVGParserUtils.extractFloatAttribute(SAXHelper.getStringAttribute(pAttributes, pAttributeName));
 	}
 
 	public static float getFloatAttribute(final Attributes pAttributes, final String pAttributeName, final float pDefaultValue) {
