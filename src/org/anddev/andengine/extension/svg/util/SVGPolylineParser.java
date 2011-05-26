@@ -3,6 +3,7 @@ package org.anddev.andengine.extension.svg.util;
 import org.anddev.andengine.extension.svg.adt.SVGPaint;
 import org.anddev.andengine.extension.svg.adt.SVGProperties;
 import org.anddev.andengine.extension.svg.util.SVGNumberParser.SVGNumberParserFloatResult;
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 
 import android.graphics.Canvas;
 import android.graphics.Path;
@@ -12,7 +13,7 @@ import android.graphics.Path;
  * @author Nicolas Gramlich
  * @since 19:23:07 - 24.05.2011
  */
-public class SVGPolylineParser {
+public class SVGPolylineParser implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -38,7 +39,7 @@ public class SVGPolylineParser {
 	// ===========================================================
 
 	public static void parse(final SVGProperties pSVGProperties, final Canvas pCanvas, final SVGPaint pSVGPaint) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pSVGProperties.getStringAttribute("points"));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pSVGProperties.getStringAttribute(ATTRIBUTE_POINTS));
 		if (svgNumberParserFloatResult != null) {
 			final float[] points = svgNumberParserFloatResult.getNumbers();
 			if (points.length >= 2) {

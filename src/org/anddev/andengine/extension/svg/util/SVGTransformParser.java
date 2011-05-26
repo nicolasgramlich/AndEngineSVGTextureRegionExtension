@@ -2,6 +2,7 @@ package org.anddev.andengine.extension.svg.util;
 
 import org.anddev.andengine.extension.svg.exception.SVGParseException;
 import org.anddev.andengine.extension.svg.util.SVGNumberParser.SVGNumberParserFloatResult;
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 
 import android.graphics.Matrix;
 
@@ -12,7 +13,7 @@ import android.graphics.Matrix;
  * @author Nicolas Gramlich
  * @since 16:56:54 - 21.05.2011
  */
-public class SVGTransformParser {
+public class SVGTransformParser implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -47,17 +48,17 @@ public class SVGTransformParser {
 		 */
 
 		try {
-			if (pString.startsWith("matrix(")) {
+			if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_MATRIX)) {
 				return SVGTransformParser.parseTransformMatrix(pString);
-			} else if (pString.startsWith("translate(")) {
+			} else if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_TRANSLATE)) {
 				return SVGTransformParser.parseTransformTranslate(pString);
-			} else if (pString.startsWith("scale(")) {
+			} else if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_SCALE)) {
 				return SVGTransformParser.parseTransformScale(pString);
-			} else if (pString.startsWith("skewX(")) {
+			} else if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_SKEW_X)) {
 				return SVGTransformParser.parseTransformSkewX(pString);
-			} else if (pString.startsWith("skewY(")) {
+			} else if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_SKEW_Y)) {
 				return SVGTransformParser.parseTransformSkewY(pString);
-			} else if (pString.startsWith("rotate(")) {
+			} else if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_ROTATE)) {
 				return SVGTransformParser.parseTransformRotate(pString);
 			} else {
 				throw new SVGParseException("Unexpected transform type: '" + pString + "'.");
@@ -68,7 +69,7 @@ public class SVGTransformParser {
 	}
 
 	public static Matrix parseTransformRotate(final String pString) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("rotate(".length(), pString.indexOf(')')));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring(ATTRIBUTE_TRANSFORM_VALUE_ROTATE.length() + 1, pString.indexOf(')')));
 		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 
 		final float angle = svgNumberParserFloatResult.getNumber(0);
@@ -86,7 +87,7 @@ public class SVGTransformParser {
 	}
 
 	private static Matrix parseTransformSkewY(final String pString) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("skewY(".length(), pString.indexOf(')')));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring(ATTRIBUTE_TRANSFORM_VALUE_SKEW_Y.length() + 1, pString.indexOf(')')));
 		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 
 		final float angle = svgNumberParserFloatResult.getNumber(0);
@@ -96,7 +97,7 @@ public class SVGTransformParser {
 	}
 
 	private static Matrix parseTransformSkewX(final String pString) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("skewX(".length(), pString.indexOf(')')));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring(ATTRIBUTE_TRANSFORM_VALUE_SKEW_X.length() + 1, pString.indexOf(')')));
 		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 
 		final float angle = svgNumberParserFloatResult.getNumber(0);
@@ -106,7 +107,7 @@ public class SVGTransformParser {
 	}
 
 	private static Matrix parseTransformScale(final String pString) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("scale(".length(), pString.indexOf(')')));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring(ATTRIBUTE_TRANSFORM_VALUE_SCALE.length() + 1, pString.indexOf(')')));
 		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 		final float sx = svgNumberParserFloatResult.getNumber(0);
 		float sy = 0;
@@ -119,7 +120,7 @@ public class SVGTransformParser {
 	}
 
 	private static Matrix parseTransformTranslate(final String pString) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("translate(".length(), pString.indexOf(')')));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring(ATTRIBUTE_TRANSFORM_VALUE_TRANSLATE.length() + 1, pString.indexOf(')')));
 		SVGTransformParser.assertNumberParserResultNumberCountMinimum(svgNumberParserFloatResult, 1);
 		final float tx = svgNumberParserFloatResult.getNumber(0);
 		float ty = 0;
@@ -132,7 +133,7 @@ public class SVGTransformParser {
 	}
 
 	private static Matrix parseTransformMatrix(final String pString) {
-		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring("matrix(".length(), pString.indexOf(')')));
+		final SVGNumberParserFloatResult svgNumberParserFloatResult = SVGNumberParser.parseFloats(pString.substring(ATTRIBUTE_TRANSFORM_VALUE_MATRIX.length() + 1, pString.indexOf(')')));
 		SVGTransformParser.assertNumberParserResultNumberCount(svgNumberParserFloatResult, 6);
 		final Matrix matrix = new Matrix();
 		matrix.setValues(new float[]{

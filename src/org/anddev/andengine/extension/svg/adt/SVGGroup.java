@@ -1,11 +1,13 @@
 package org.anddev.andengine.extension.svg.adt;
 
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
+
 
 /**
  * @author Nicolas Gramlich
  * @since 12:58:32 - 24.05.2011
  */
-public class SVGGroup {
+public class SVGGroup implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -27,7 +29,7 @@ public class SVGGroup {
 		this.mSVGroupParent = pSVGroupParent;
 		this.mSVGProperties = pSVGProperties;
 		this.mHasTransform = pHasTransform;
-		this.mHidden = this.mSVGroupParent.isHidden() || "none".equals(this.mSVGProperties.getStringProperty("display", false));
+		this.mHidden = this.mSVGroupParent.isHidden() || isDisplayNone();
 	}
 
 	// ===========================================================
@@ -53,6 +55,10 @@ public class SVGGroup {
 	// ===========================================================
 	// Methods
 	// ===========================================================
+
+	private boolean isDisplayNone() {
+		return VALUE_NONE.equals(this.mSVGProperties.getStringProperty(ATTRIBUTE_DISPLAY, false));
+	}
 
 	// ===========================================================
 	// Inner and Anonymous Classes

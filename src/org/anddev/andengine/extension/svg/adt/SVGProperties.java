@@ -2,6 +2,7 @@ package org.anddev.andengine.extension.svg.adt;
 
 import org.anddev.andengine.extension.svg.util.SAXHelper;
 import org.anddev.andengine.extension.svg.util.SVGParserUtils;
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.xml.sax.Attributes;
 
 
@@ -10,7 +11,7 @@ import org.xml.sax.Attributes;
  * @author Nicolas Gramlich
  * @since 16:49:55 - 21.05.2011
  */
-public class SVGProperties {
+public class SVGProperties implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -30,7 +31,7 @@ public class SVGProperties {
 	public SVGProperties(final Attributes pAttributes, final SVGProperties pParentSVGProperties) {
 		this.mAttributes = pAttributes;
 		this.mParentSVGProperties = pParentSVGProperties;
-		final String styleAttr = SAXHelper.getStringAttribute(pAttributes, "style");
+		final String styleAttr = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_STYLE);
 		if (styleAttr != null) {
 			this.mSVGStyleSet = new SVGStyleSet(styleAttr);
 		} else {

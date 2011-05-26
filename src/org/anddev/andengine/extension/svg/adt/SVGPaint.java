@@ -12,6 +12,7 @@ import org.anddev.andengine.extension.svg.util.SVGNumberParser;
 import org.anddev.andengine.extension.svg.util.SVGTransformParser;
 import org.anddev.andengine.extension.svg.util.SVGNumberParser.SVGNumberParserIntegerResult;
 import org.anddev.andengine.extension.svg.util.constants.ColorUtils;
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.xml.sax.Attributes;
 
 import android.graphics.Color;
@@ -30,7 +31,7 @@ import android.graphics.Shader;
  * @author Nicolas Gramlich
  * @since 22:01:39 - 23.05.2011
  */
-public class SVGPaint {
+public class SVGPaint implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -90,9 +91,9 @@ public class SVGPaint {
 
 		this.resetPaint(Paint.Style.FILL);
 
-		final String fillProperty = pSVGProperties.getStringProperty("fill");
+		final String fillProperty = pSVGProperties.getStringProperty(ATTRIBUTE_FILL);
 		if(fillProperty == null) {
-			if(pSVGProperties.getStringProperty("stroke") == null) {
+			if(pSVGProperties.getStringProperty(ATTRIBUTE_STROKE) == null) {
 				/* Default is black fill. */
 				this.mPaint.setColor(0xFF000000); // TODO Respect color mapping?
 				return true;
@@ -115,15 +116,15 @@ public class SVGPaint {
 	}
 
 	private boolean isDisplayNone(final SVGProperties pSVGProperties) {
-		return "none".equals(pSVGProperties.getStringProperty("display"));
+		return VALUE_NONE.equals(pSVGProperties.getStringProperty(ATTRIBUTE_DISPLAY));
 	}
 
 	private boolean isFillNone(final SVGProperties pSVGProperties) {
-		return "none".equals(pSVGProperties.getStringProperty("fill"));
+		return VALUE_NONE.equals(pSVGProperties.getStringProperty(ATTRIBUTE_FILL));
 	}
 
 	private boolean isStrokeNone(final SVGProperties pSVGProperties) {
-		return "none".equals(pSVGProperties.getStringProperty("stroke"));
+		return VALUE_NONE.equals(pSVGProperties.getStringProperty(ATTRIBUTE_STROKE));
 	}
 
 	public boolean setPaintProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
@@ -139,7 +140,7 @@ public class SVGPaint {
 	}
 
 	private boolean applyColorProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
-		final String colorProperty = pSVGProperties.getStringProperty(pModeFill ? "fill" : "stroke");
+		final String colorProperty = pSVGProperties.getStringProperty(pModeFill ? ATTRIBUTE_FILL : ATTRIBUTE_STROKE);
 		if(colorProperty == null) {
 			return false;
 		}
@@ -175,24 +176,24 @@ public class SVGPaint {
 	}
 
 	private boolean applyStrokeProperties(final SVGProperties pSVGProperties) {
-		final Float width = pSVGProperties.getFloatProperty("stroke-width");
+		final Float width = pSVGProperties.getFloatProperty(ATTRIBUTE_STROKE_WIDTH);
 		if (width != null) {
 			this.mPaint.setStrokeWidth(width);
 		}
-		final String linecap = pSVGProperties.getStringProperty("stroke-linecap");
-		if ("round".equals(linecap)) {
+		final String linecap = pSVGProperties.getStringProperty(ATTRIBUTE_STROKE_LINECAP);
+		if (ATTRIBUTE_STROKE_LINECAP_VALUE_ROUND.equals(linecap)) {
 			this.mPaint.setStrokeCap(Paint.Cap.ROUND);
-		} else if ("square".equals(linecap)) {
+		} else if (ATTRIBUTE_STROKE_LINECAP_VALUE_SQUARE.equals(linecap)) {
 			this.mPaint.setStrokeCap(Paint.Cap.SQUARE);
-		} else if ("butt".equals(linecap)) {
+		} else if (ATTRIBUTE_STROKE_LINECAP_VALUE_BUTT.equals(linecap)) {
 			this.mPaint.setStrokeCap(Paint.Cap.BUTT);
 		}
-		final String linejoin = pSVGProperties.getStringProperty("stroke-linejoin");
-		if ("miter".equals(linejoin)) {
+		final String linejoin = pSVGProperties.getStringProperty(ATTRIBUTE_STROKE_LINEJOIN_VALUE_);
+		if (ATTRIBUTE_STROKE_LINEJOIN_VALUE_MITER.equals(linejoin)) {
 			this.mPaint.setStrokeJoin(Paint.Join.MITER);
-		} else if ("round".equals(linejoin)) {
+		} else if (ATTRIBUTE_STROKE_LINEJOIN_VALUE_ROUND.equals(linejoin)) {
 			this.mPaint.setStrokeJoin(Paint.Join.ROUND);
-		} else if ("bevel".equals(linejoin)) {
+		} else if (ATTRIBUTE_STROKE_LINEJOIN_VALUE_BEVEL.equals(linejoin)) {
 			this.mPaint.setStrokeJoin(Paint.Join.BEVEL);
 		}
 		return true;
@@ -205,9 +206,9 @@ public class SVGPaint {
 	}
 
 	private static int parseAlpha(final SVGProperties pSVGProperties, final boolean pModeFill) {
-		Float opacity = pSVGProperties.getFloatProperty("opacity");
+		Float opacity = pSVGProperties.getFloatProperty(ATTRIBUTE_OPACITY);
 		if(opacity == null) {
-			opacity = pSVGProperties.getFloatProperty(pModeFill ? "fill-opacity" : "stroke-opacity");
+			opacity = pSVGProperties.getFloatProperty(pModeFill ? ATTRIBUTE_FILL_OPACITY : ATTRIBUTE_STROKE_OPACITY);
 		}
 		if(opacity == null) {
 			return 255;
@@ -341,12 +342,12 @@ public class SVGPaint {
 	// ===========================================================
 
 	public SVGGradient registerGradient(final Attributes pAttributes, final boolean pLinear) {
-		final String id = SAXHelper.getStringAttribute(pAttributes, "id");
+		final String id = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_ID);
 		if(id == null) {
 			return null;
 		}
-		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, "gradientTransform"));
-		String xlink = SAXHelper.getStringAttribute(pAttributes, "href");
+		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_GRADIENT_TRANSFORM));
+		String xlink = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_HREF);
 		if(xlink != null) {
 			if(xlink.startsWith("#")) {
 				xlink = xlink.substring(1);
@@ -354,15 +355,15 @@ public class SVGPaint {
 		}
 		final SVGGradient svgGradient;
 		if(pLinear) {
-			final float x1 = SAXHelper.getFloatAttribute(pAttributes, "x1", 0f);
-			final float x2 = SAXHelper.getFloatAttribute(pAttributes, "x2", 0f);
-			final float y1 = SAXHelper.getFloatAttribute(pAttributes, "y1", 0f);
-			final float y2 = SAXHelper.getFloatAttribute(pAttributes, "y2", 0f);
+			final float x1 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X1, 0f);
+			final float x2 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X2, 0f);
+			final float y1 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y1, 0f);
+			final float y2 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y2, 0f);
 			svgGradient = new SVGLinearGradient(id, x1, x2, y1, y2, matrix, xlink);
 		} else {
-			final float centerX = SAXHelper.getFloatAttribute(pAttributes, "cx", 0f);
-			final float centerY = SAXHelper.getFloatAttribute(pAttributes, "cy", 0f);
-			final float radius = SAXHelper.getFloatAttribute(pAttributes, "r", 0f);
+			final float centerX = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_CENTER_X, 0f);
+			final float centerY = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_CENTER_Y, 0f);
+			final float radius = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_RADIUS, 0f);
 			svgGradient = new SVGRadialGradient(id, centerX, centerY, radius, matrix, xlink);
 		}
 		this.mSVGGradientMap.put(id, svgGradient);
@@ -370,15 +371,15 @@ public class SVGPaint {
 	}
 
 	public Stop parseGradientStop(final SVGProperties pSVGProperties) {
-		final float offset = pSVGProperties.getFloatProperty("offset", 0f);
-		final String stopColor = pSVGProperties.getStringProperty("stop-color");
+		final float offset = pSVGProperties.getFloatProperty(ATTRIBUTE_OFFSET, 0f);
+		final String stopColor = pSVGProperties.getStringProperty(ATTRIBUTE_STOP_COLOR);
 		final int rgb = this.parseColor(stopColor.trim(), Color.BLACK);
 		final int alpha = this.parseGradientStopAlpha(pSVGProperties);
 		return new Stop(offset, alpha | rgb);
 	}
 
 	private int parseGradientStopAlpha(final SVGProperties pSVGProperties) {
-		final String opacityStyle = pSVGProperties.getStringProperty("stop-opacity");
+		final String opacityStyle = pSVGProperties.getStringProperty(ATTRIBUTE_STOP_OPACITY);
 		if(opacityStyle != null) {
 			final float alpha = Float.parseFloat(opacityStyle);
 			final int alphaInt = Math.round(255 * alpha);

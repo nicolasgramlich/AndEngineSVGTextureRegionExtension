@@ -5,7 +5,7 @@ import java.util.Queue;
 
 import org.anddev.andengine.extension.svg.adt.SVGPaint;
 import org.anddev.andengine.extension.svg.adt.SVGProperties;
-import org.anddev.andengine.util.Debug;
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.anddev.andengine.util.MathUtils;
 
 import android.graphics.Canvas;
@@ -25,7 +25,7 @@ import android.util.FloatMath;
  * @author Nicolas Gramlich
  * @since 17:16:39 - 21.05.2011
  */
-public class SVGPathParser {
+public class SVGPathParser implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -105,7 +105,7 @@ public class SVGPathParser {
 	 * Numbers are separate by whitespace, comma or nothing at all (!) if they are self-delimiting, (ie. begin with a - sign)
 	 */
 	private Path parse(final SVGProperties pSVGProperties) {
-		final String pathString = pSVGProperties.getStringProperty("d");
+		final String pathString = pSVGProperties.getStringProperty(ATTRIBUTE_PATHDATA);
 		if(pathString == null) {
 			return null;
 		}
@@ -122,9 +122,9 @@ public class SVGPathParser {
 			return this.mPath;
 		}
 
-		final String fillrule = pSVGProperties.getStringProperty("fill-rule");
+		final String fillrule = pSVGProperties.getStringProperty(ATTRIBUTE_FILLRULE);
 		if(fillrule != null) {
-			if("evenodd".equals(fillrule)) {
+			if(ATTRIBUTE_FILLRULE_VALUE_EVENODD.equals(fillrule)) {
 				this.mPath.setFillType(FillType.EVEN_ODD);
 			} else {
 				this.mPath.setFillType(FillType.WINDING);
@@ -173,7 +173,7 @@ public class SVGPathParser {
 	private void generatePathElement() {
 		boolean wasCubicBezierCurve = false;
 		boolean wasQuadraticBezierCurve = false;
-		switch (this.mCommand) {
+		switch (this.mCommand) { // TODO Extract to constants
 			case 'm':
 				this.generateMove(false);
 				break;
@@ -478,9 +478,7 @@ public class SVGPathParser {
 	}
 
 	private void generateArc(final boolean pAbsolute) {
-		// TODO This implementation might be useful: https://code.google.com/p/svg-edit/source/browse/trunk/editor/canvg/canvg.js?r=2031#1244
 		this.assertParameterCountMinimum(7);
-		Debug.w("The arc command ('A'/'a') is not supported yet!");
 		if(pAbsolute) {
 			while(this.mCommandParameters.size() >= 7) {
 				final float rx = this.mCommandParameters.poll();

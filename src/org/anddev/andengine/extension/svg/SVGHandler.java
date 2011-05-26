@@ -17,6 +17,7 @@ import org.anddev.andengine.extension.svg.util.SVGPolygonParser;
 import org.anddev.andengine.extension.svg.util.SVGPolylineParser;
 import org.anddev.andengine.extension.svg.util.SVGRectParser;
 import org.anddev.andengine.extension.svg.util.SVGTransformParser;
+import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.anddev.andengine.util.Debug;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -34,7 +35,7 @@ import android.graphics.RectF;
  * @author Nicolas Gramlich
  * @since 16:50:02 - 21.05.2011
  */
-public class SVGHandler extends DefaultHandler {
+public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -92,34 +93,34 @@ public class SVGHandler extends DefaultHandler {
 			this.parseBounds(pLocalName, pAttributes);
 			return;
 		}
-		if (pLocalName.equals("svg")) {
-			final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, "width", 0f));
-			final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, "height", 0f));
+		if (pLocalName.equals(TAG_SVG)) {
+			final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_WIDTH, 0f));
+			final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_HEIGHT, 0f));
 			this.mCanvas = this.mPicture.beginRecording(width, height);
-		} else if(pLocalName.equals("defs")) {
+		} else if(pLocalName.equals(TAG_DEFS)) {
 			// Ignore
-		} else if(pLocalName.equals("linearGradient")) {
+		} else if(pLocalName.equals(TAG_LINEARGRADIENT)) {
 			this.parseLinearGradient(pAttributes);
-		} else if(pLocalName.equals("radialGradient")) {
+		} else if(pLocalName.equals(TAG_RADIALGRADIENT)) {
 			this.parseRadialGradient(pAttributes);
-		} else if(pLocalName.equals("stop")) {
+		} else if(pLocalName.equals(TAG_STOP)) {
 			this.parseGradientStop(pAttributes);
-		} else if(pLocalName.equals("g")) {
+		} else if(pLocalName.equals(TAG_GROUP)) {
 			this.parseGroup(pAttributes);
 		} else if(!this.mHidden) {
-			if(pLocalName.equals("rect")) {
+			if(pLocalName.equals(TAG_RECTANGLE)) {
 				this.parseRect(pAttributes);
-			} else if(pLocalName.equals("line")) {
+			} else if(pLocalName.equals(TAG_LINE)) {
 				this.parseLine(pAttributes);
-			} else if(pLocalName.equals("circle")) {
+			} else if(pLocalName.equals(TAG_CIRCLE)) {
 				this.parseCircle(pAttributes);
-			} else if(pLocalName.equals("ellipse")) {
+			} else if(pLocalName.equals(TAG_ELLIPSE)) {
 				this.parseEllipse(pAttributes);
-			} else if(pLocalName.equals("polyline")) {
+			} else if(pLocalName.equals(TAG_POLYLINE)) {
 				this.parsePolyline(pAttributes);
-			} else if(pLocalName.equals("polygon")) {
+			} else if(pLocalName.equals(TAG_POLYGON)) {
 				this.parsePolygon(pAttributes);
-			} else if(pLocalName.equals("path")) {
+			} else if(pLocalName.equals(TAG_PATH)) {
 				this.parsePath(pAttributes);
 			} else {
 				Debug.d("Unexpected SVG tag: '" + pLocalName + "'.");
@@ -137,9 +138,9 @@ public class SVGHandler extends DefaultHandler {
 	@Override
 	public void endElement(final String pNamespace, final String pLocalName, final String pQualifiedName)
 	throws SAXException {
-		if (pLocalName.equals("svg")) {
+		if (pLocalName.equals(TAG_SVG)) {
 			this.mPicture.endRecording();
-		} else if (pLocalName.equals("g")) {
+		} else if (pLocalName.equals(TAG_GROUP)) {
 			this.parseGroupEnd();
 		}
 	}
@@ -149,11 +150,11 @@ public class SVGHandler extends DefaultHandler {
 	// ===========================================================
 
 	private void parseBounds(final String pLocalName, final Attributes pAttributes) {
-		if (pLocalName.equals("rect")) {
-			final float x = SAXHelper.getFloatAttribute(pAttributes, "x", 0f);
-			final float y = SAXHelper.getFloatAttribute(pAttributes, "y", 0f);
-			final float width = SAXHelper.getFloatAttribute(pAttributes, "width", 0f);
-			final float height = SAXHelper.getFloatAttribute(pAttributes, "height", 0f);
+		if (pLocalName.equals(TAG_RECTANGLE)) {
+			final float x = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X, 0f);
+			final float y = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y, 0f);
+			final float width = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_WIDTH, 0f);
+			final float height = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_HEIGHT, 0f);
 			this.mBounds = new RectF(x, y, x + width, y + height);
 		}
 	}
@@ -173,14 +174,14 @@ public class SVGHandler extends DefaultHandler {
 
 	private void parseGroup(final Attributes pAttributes) {
 		/* Check to see if this is the "bounds" layer. */
-		if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, "id"))) {
+		if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_ID))) {
 			this.mBoundsMode = true;
 		}
-		
+
 		final SVGGroup parentSVGGroup = this.mSVGGroupStack.peek();
 		final AttributesImpl attributesDeepCopy = new AttributesImpl(pAttributes);
 		final boolean hasTransform = this.pushTransform(pAttributes);
-		
+
 		this.mSVGGroupStack.push(new SVGGroup(parentSVGGroup, this.getSVGPropertiesFromAttributes(attributesDeepCopy), hasTransform));
 
 		this.updateHidden();
@@ -280,7 +281,7 @@ public class SVGHandler extends DefaultHandler {
 	}
 
 	private boolean pushTransform(final Attributes pAttributes) {
-		final String transform = SAXHelper.getStringAttribute(pAttributes, "transform");
+		final String transform = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_TRANSFORM);
 		if(transform == null) {
 			return false;
 		} else {
