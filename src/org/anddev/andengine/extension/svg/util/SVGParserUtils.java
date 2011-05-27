@@ -3,6 +3,7 @@ package org.anddev.andengine.extension.svg.util;
 import org.anddev.andengine.extension.svg.util.SVGNumberParser.SVGNumberParserIntegerResult;
 import org.anddev.andengine.extension.svg.util.constants.ColorUtils;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
+import org.xml.sax.Attributes;
 
 import android.graphics.Color;
 
@@ -83,6 +84,16 @@ public class SVGParserUtils implements ISVGConstants {
 		} else {
 			return null;
 		}
+	}
+
+	public static String parseHref(final Attributes pAttributes) {
+		String href = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_HREF);
+		if(href != null) {
+			if(href.startsWith("#")) {
+				href = href.substring(1);
+			}
+		}
+		return href;
 	}
 
 	// ===========================================================

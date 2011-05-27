@@ -3,12 +3,13 @@ package org.anddev.andengine.extension.svg;
 import java.util.Stack;
 
 import org.anddev.andengine.extension.svg.adt.ISVGColorMapper;
-import org.anddev.andengine.extension.svg.adt.SVGFilter;
+import org.anddev.andengine.extension.svg.adt.SVGGradient;
+import org.anddev.andengine.extension.svg.adt.SVGGradient.SVGGradientStop;
 import org.anddev.andengine.extension.svg.adt.SVGGroup;
 import org.anddev.andengine.extension.svg.adt.SVGPaint;
 import org.anddev.andengine.extension.svg.adt.SVGProperties;
-import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient;
-import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient.Stop;
+import org.anddev.andengine.extension.svg.adt.filter.SVGFilter;
+import org.anddev.andengine.extension.svg.adt.filter.element.ISVGFilterElement;
 import org.anddev.andengine.extension.svg.util.SAXHelper;
 import org.anddev.andengine.extension.svg.util.SVGCircleParser;
 import org.anddev.andengine.extension.svg.util.SVGEllipseParser;
@@ -22,7 +23,6 @@ import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.anddev.andengine.util.Debug;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.graphics.Canvas;
@@ -96,9 +96,7 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 			return;
 		}
 		if (pLocalName.equals(TAG_SVG)) {
-			final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_WIDTH, 0f));
-			final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_HEIGHT, 0f));
-			this.mCanvas = this.mPicture.beginRecording(width, height);
+			this.parseSVG(pAttributes);
 		} else if(pLocalName.equals(TAG_DEFS)) {
 			// Ignore
 		} else if(pLocalName.equals(TAG_GROUP)) {
@@ -111,6 +109,8 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 			this.parseGradientStop(pAttributes);
 		} else if(pLocalName.equals(TAG_FILTER)) {
 			this.parseFilter(pAttributes);
+		} else if(pLocalName.equals(TAG_FILTER_ELEMENT_FEGAUSSIANBLUR)) {
+			this.parseFilterElementGaussianBlur(pAttributes);
 		} else if(!this.mHidden) {
 			if(pLocalName.equals(TAG_RECTANGLE)) {
 				this.parseRect(pAttributes);
@@ -135,13 +135,7 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	}
 
 	@Override
-	public void characters(final char pCharacters[], final int pStart, final int pLength) {
-		/* Nothing. */
-	}
-
-	@Override
-	public void endElement(final String pNamespace, final String pLocalName, final String pQualifiedName)
-	throws SAXException {
+	public void endElement(final String pNamespace, final String pLocalName, final String pQualifiedName) throws SAXException {
 		if (pLocalName.equals(TAG_SVG)) {
 			this.mPicture.endRecording();
 		} else if (pLocalName.equals(TAG_GROUP)) {
@@ -152,6 +146,12 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	// ===========================================================
 	// Methods
 	// ===========================================================
+
+	private void parseSVG(final Attributes pAttributes) {
+		final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_WIDTH, 0f));
+		final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_HEIGHT, 0f));
+		this.mCanvas = this.mPicture.beginRecording(width, height);
+	}
 
 	private void parseBounds(final String pLocalName, final Attributes pAttributes) {
 		if (pLocalName.equals(TAG_RECTANGLE)) {
@@ -167,6 +167,11 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 		this.mCurrentSVGFilter = this.mSVGPaint.parseFilter(pAttributes);
 	}
 
+	private void parseFilterElementGaussianBlur(final Attributes pAttributes) {
+		final ISVGFilterElement svgFilterElement = this.mSVGPaint.parseFilterElementGaussianBlur(pAttributes);
+		this.mCurrentSVGFilter.addFilterElement(svgFilterElement);
+	}
+
 	private void parseLinearGradient(final Attributes pAttributes) {
 		this.mCurrentSVGGradient = this.mSVGPaint.parseGradient(pAttributes, true);
 	}
@@ -176,21 +181,20 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	}
 
 	private void parseGradientStop(final Attributes pAttributes) {
-		final Stop gradientStop = this.mSVGPaint.parseGradientStop(this.getSVGPropertiesFromAttributes(pAttributes));
-		this.mCurrentSVGGradient.addGradientStop(gradientStop);
+		final SVGGradientStop svgGradientStop = this.mSVGPaint.parseGradientStop(this.getSVGPropertiesFromAttributes(pAttributes));
+		this.mCurrentSVGGradient.addSVGGradientStop(svgGradientStop);
 	}
 
 	private void parseGroup(final Attributes pAttributes) {
 		/* Check to see if this is the "bounds" layer. */
-		if ("bounds".equalsIgnoreCase(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_ID))) {
+		if ("bounds".equals(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_ID))) {
 			this.mBoundsMode = true;
 		}
 
-		final SVGGroup parentSVGGroup = this.mSVGGroupStack.peek();
-		final AttributesImpl attributesDeepCopy = new AttributesImpl(pAttributes);
+		final SVGGroup parentSVGGroup = (this.mSVGGroupStack.size() > 0) ? this.mSVGGroupStack.peek() : null;
 		final boolean hasTransform = this.pushTransform(pAttributes);
 
-		this.mSVGGroupStack.push(new SVGGroup(parentSVGGroup, this.getSVGPropertiesFromAttributes(attributesDeepCopy), hasTransform));
+		this.mSVGGroupStack.push(new SVGGroup(parentSVGGroup, this.getSVGPropertiesFromAttributes(pAttributes, true), hasTransform));
 
 		this.updateHidden();
 	}
@@ -205,8 +209,6 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 			this.popTransform();
 		}
 		this.updateHidden();
-		/* Clear shader map. */
-		this.mSVGPaint.clearGradientShaders();
 	}
 
 	private void updateHidden() {
@@ -281,10 +283,14 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	}
 
 	private SVGProperties getSVGPropertiesFromAttributes(final Attributes pAttributes) {
+		return this.getSVGPropertiesFromAttributes(pAttributes, false);
+	}
+
+	private SVGProperties getSVGPropertiesFromAttributes(final Attributes pAttributes, final boolean pDeepCopy) {
 		if(this.mSVGGroupStack.size() > 0) {
-			return new SVGProperties(pAttributes, this.mSVGGroupStack.peek().getSVGProperties());
+			return new SVGProperties(this.mSVGGroupStack.peek().getSVGProperties(), pAttributes, pDeepCopy);
 		} else {
-			return new SVGProperties(pAttributes, null);
+			return new SVGProperties(null, pAttributes, pDeepCopy);
 		}
 	}
 

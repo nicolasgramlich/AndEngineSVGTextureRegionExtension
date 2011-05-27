@@ -29,7 +29,7 @@ public class SVGGroup implements ISVGConstants {
 		this.mSVGroupParent = pSVGroupParent;
 		this.mSVGProperties = pSVGProperties;
 		this.mHasTransform = pHasTransform;
-		this.mHidden = this.mSVGroupParent.isHidden() || this.isDisplayNone();
+		this.mHidden = (this.mSVGroupParent != null && this.mSVGroupParent.isHidden()) || this.isDisplayNone();
 	}
 
 	// ===========================================================

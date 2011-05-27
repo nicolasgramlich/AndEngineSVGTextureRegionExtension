@@ -2,20 +2,17 @@ package org.anddev.andengine.extension.svg.adt;
 
 import java.util.HashMap;
 
-import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient;
-import org.anddev.andengine.extension.svg.adt.gradient.SVGGradient.Stop;
-import org.anddev.andengine.extension.svg.adt.gradient.SVGLinearGradient;
-import org.anddev.andengine.extension.svg.adt.gradient.SVGRadialGradient;
+import org.anddev.andengine.extension.svg.adt.SVGGradient.SVGGradientStop;
+import org.anddev.andengine.extension.svg.adt.filter.SVGFilter;
+import org.anddev.andengine.extension.svg.adt.filter.element.SVGFilterElementGaussianBlur;
 import org.anddev.andengine.extension.svg.exception.SVGParseException;
 import org.anddev.andengine.extension.svg.util.SAXHelper;
 import org.anddev.andengine.extension.svg.util.SVGParserUtils;
-import org.anddev.andengine.extension.svg.util.SVGTransformParser;
 import org.anddev.andengine.extension.svg.util.constants.ColorUtils;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.xml.sax.Attributes;
 
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
@@ -24,9 +21,6 @@ import android.graphics.Shader;
 
 
 /**
- * TODO Add ColorMapping - maybe a HashMap<Integer,Integer> and make us of it in
- * parseColor(...). Constructor should take such a ColorMapping object then.
- * 
  * @author Nicolas Gramlich
  * @since 22:01:39 - 23.05.2011
  */
@@ -41,13 +35,14 @@ public class SVGPaint implements ISVGConstants {
 
 	private final Paint mPaint = new Paint();
 
+	private final ISVGColorMapper mSVGColorMapper;
+
 	/** Multi purpose dummy rectangle. */
 	private final RectF mRect = new RectF();
 	private final RectF mComputedBounds = new RectF(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
 
-	private final HashMap<String, Shader> mSVGGradientShaderMap = new HashMap<String, Shader>();
 	private final HashMap<String, SVGGradient> mSVGGradientMap = new HashMap<String, SVGGradient>();
-	private final ISVGColorMapper mSVGColorMapper;
+	private final HashMap<String, SVGFilter> mSVGFilterMap = new HashMap<String, SVGFilter>();
 
 	// ===========================================================
 	// Constructors
@@ -83,6 +78,9 @@ public class SVGPaint implements ISVGConstants {
 		this.mPaint.setStyle(pStyle);
 	}
 
+	/**
+	 *  TODO Would it be better/cleaner to throw a SVGParseException when sth could not be parsed instead of simply returning false?
+	 */
 	public boolean setFill(final SVGProperties pSVGProperties) {
 		if(this.isDisplayNone(pSVGProperties) || this.isFillNone(pSVGProperties)) {
 			return false;
@@ -138,16 +136,27 @@ public class SVGPaint implements ISVGConstants {
 		}
 	}
 
-	private boolean applyColorProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
+	private boolean applyColorProperties(final SVGProperties pSVGProperties, final boolean pModeFill) { // TODO throw SVGParseException
 		final String colorProperty = pSVGProperties.getStringProperty(pModeFill ? ATTRIBUTE_FILL : ATTRIBUTE_STROKE);
 		if(colorProperty == null) {
 			return false;
 		}
 
-		if(SVGProperties.isURLProperty(colorProperty)) {
-			final String id = SVGParserUtils.extractIDFromURLProperty(colorProperty);
+		final String filterProperty = pSVGProperties.getStringProperty(ATTRIBUTE_FILTER);
+		if(filterProperty != null) {
+			if(SVGProperties.isURLProperty(filterProperty)) {
+				final String filterID = SVGParserUtils.extractIDFromURLProperty(filterProperty);
 
-			this.mPaint.setShader(this.getGradientShader(id));
+				this.getFilter(filterID).applyFilterElements(this.mPaint);
+			} else {
+				return false;
+			}
+		}
+
+		if(SVGProperties.isURLProperty(colorProperty)) {
+			final String gradientID = SVGParserUtils.extractIDFromURLProperty(colorProperty);
+
+			this.mPaint.setShader(this.getGradientShader(gradientID));
 			return true;
 		} else {
 			final Integer color = this.parseColor(colorProperty);
@@ -206,34 +215,6 @@ public class SVGPaint implements ISVGConstants {
 		}
 	}
 
-	private void registerGradientShader(final SVGGradient pSVGGradient) {
-		final String gradientID = pSVGGradient.getID();
-		if(pSVGGradient.hasHref()) {
-			final SVGGradient parent = this.mSVGGradientMap.get(pSVGGradient.getHref());
-			if(parent == null) {
-				throw new SVGParseException("Could not resolve href: '" + pSVGGradient.getHref() + "' of gradient: '" + gradientID + "'.");
-			} else {
-				if(parent.hasHref() && !this.hasGradientShader(parent)) {
-					this.registerGradientShader(parent);
-				}
-				final SVGGradient svgGradient = SVGGradient.deriveChild(parent, pSVGGradient);
-
-				this.mSVGGradientMap.put(gradientID, svgGradient);
-				this.mSVGGradientShaderMap.put(gradientID, svgGradient.createShader());
-			}
-		} else {
-			this.mSVGGradientShaderMap.put(gradientID, pSVGGradient.createShader());
-		}
-	}
-
-	private boolean hasGradientShader(final SVGGradient pSVGGradient) {
-		return this.mSVGGradientShaderMap.containsKey(pSVGGradient.getID());
-	}
-
-	public void clearGradientShaders() {
-		this.mSVGGradientShaderMap.clear();
-	}
-
 	public void ensureComputedBoundsInclude(final float pX, final float pY) {
 		if (pX < this.mComputedBounds.left) {
 			this.mComputedBounds.left = pX;
@@ -261,7 +242,7 @@ public class SVGPaint implements ISVGConstants {
 	}
 
 	// ===========================================================
-	// Methods for Color-Parsing
+	// Methods for Colors
 	// ===========================================================
 
 	private Integer parseColor(final String pString, final Integer pDefault) {
@@ -299,20 +280,27 @@ public class SVGPaint implements ISVGConstants {
 		return this.applySVGColorMapper(parsedColor);
 	}
 
-	private Integer applySVGColorMapper(final Integer parsedColor) {
+	private Integer applySVGColorMapper(final Integer pColor) {
 		if(this.mSVGColorMapper == null) {
-			return parsedColor;
+			return pColor;
 		} else {
-			return this.mSVGColorMapper.mapColor(parsedColor);
+			return this.mSVGColorMapper.mapColor(pColor);
 		}
 	}
 
 	// ===========================================================
-	// Methods for Gradient-Parsing
+	// Methods for Gradients
 	// ===========================================================
 
 	public SVGFilter parseFilter(final Attributes pAttributes) {
-		return null; // TODO pretty much like parseGradient
+		final String id = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_ID);
+		if(id == null) {
+			return null;
+		}
+
+		final SVGFilter svgFilter = new SVGFilter(id, pAttributes);
+		this.mSVGFilterMap.put(id, svgFilter);
+		return svgFilter;
 	}
 
 	public SVGGradient parseGradient(final Attributes pAttributes, final boolean pLinear) {
@@ -321,40 +309,17 @@ public class SVGPaint implements ISVGConstants {
 			return null;
 		}
 
-		String href = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_HREF);
-		if(href != null) {
-			if(href.startsWith("#")) {
-				href = href.substring(1);
-			}
-		}
-
-		/* TODO it might be better to simply put a SVGProperties object into the SVGGradient with a linear/radial boolean flag. (Subclasses of SVGGradient then not really needed anymore.)
-		 * Parameters like x1,x1,y1,y2,... would be extracted from the SVGProperties when they are actually needed.
-		 * This would cover arbitrary deep inheritance of properties that are not covered by the ones extracted here (id,x1,x2,y1,y2,matrix,href). */
-		final Matrix matrix = SVGTransformParser.parseTransform(SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_GRADIENT_TRANSFORM));
-		final SVGGradient svgGradient;
-		if(pLinear) {
-			final float x1 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X1, 0f);
-			final float x2 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_X2, 0f);
-			final float y1 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y1, 0f);
-			final float y2 = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_Y2, 0f);
-			svgGradient = new SVGLinearGradient(id, x1, x2, y1, y2, matrix, href);
-		} else {
-			final float centerX = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_CENTER_X, 0f);
-			final float centerY = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_CENTER_Y, 0f);
-			final float radius = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_RADIUS, 0f);
-			svgGradient = new SVGRadialGradient(id, centerX, centerY, radius, matrix, href);
-		}
+		final SVGGradient svgGradient = new SVGGradient(id, pLinear, pAttributes);
 		this.mSVGGradientMap.put(id, svgGradient);
 		return svgGradient;
 	}
 
-	public Stop parseGradientStop(final SVGProperties pSVGProperties) {
+	public SVGGradientStop parseGradientStop(final SVGProperties pSVGProperties) {
 		final float offset = pSVGProperties.getFloatProperty(ATTRIBUTE_OFFSET, 0f);
 		final String stopColor = pSVGProperties.getStringProperty(ATTRIBUTE_STOP_COLOR);
 		final int rgb = this.parseColor(stopColor.trim(), Color.BLACK);
 		final int alpha = this.parseGradientStopAlpha(pSVGProperties);
-		return new Stop(offset, alpha | rgb);
+		return new SVGGradientStop(offset, alpha | rgb);
 	}
 
 	private int parseGradientStopAlpha(final SVGProperties pSVGProperties) {
@@ -368,21 +333,38 @@ public class SVGPaint implements ISVGConstants {
 		}
 	}
 
-	private Shader getGradientShader(final String id) {
-		final Shader gradientShader = this.mSVGGradientShaderMap.get(id);
-		if(gradientShader == null) {
-			final SVGGradient svgGradient = this.mSVGGradientMap.get(id);
-			if(svgGradient == null) {
-				throw new SVGParseException("No gradient found for id: '" + id + "'.");
-			} else {
-				if(!this.hasGradientShader(svgGradient)) {
-					this.registerGradientShader(svgGradient);
-				}
-				return this.mSVGGradientShaderMap.get(id);
-			}
+	private Shader getGradientShader(final String pGradientShaderID) {
+		final SVGGradient svgGradient = this.mSVGGradientMap.get(pGradientShaderID);
+		if(svgGradient == null) {
+			throw new SVGParseException("No SVGGradient found for id: '" + pGradientShaderID + "'.");
 		} else {
-			return gradientShader;
+			final Shader gradientShader = svgGradient.getShader();
+			if(gradientShader != null) {
+				return gradientShader;
+			} else {
+				svgGradient.ensureHrefResolved(this.mSVGGradientMap);
+				return svgGradient.createShader();
+			}
 		}
+	}
+
+	// ===========================================================
+	// Methods for Filters
+	// ===========================================================
+
+	private SVGFilter getFilter(final String pSVGFilterID) {
+		final SVGFilter svgFilter = this.mSVGFilterMap.get(pSVGFilterID);
+		if(svgFilter == null) {
+			return null; // TODO Better a SVGParseException here?
+		} else {
+			svgFilter.ensureHrefResolved(this.mSVGFilterMap);
+			return svgFilter;
+		}
+	}
+
+	public SVGFilterElementGaussianBlur parseFilterElementGaussianBlur(final Attributes pAttributes) {
+		final float standardDeviation = SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_FILTER_ELEMENT_FEGAUSSIANBLUR_STANDARDDEVIATION);
+		return new SVGFilterElementGaussianBlur(standardDeviation);
 	}
 
 	// ===========================================================

@@ -60,6 +60,7 @@ public interface ISVGConstants {
 	public static final String ATTRIBUTE_PATHDATA = "d";
 	public static final String ATTRIBUTE_FILLRULE = "fill-rule";
 	public static final String ATTRIBUTE_FILLRULE_VALUE_EVENODD = "evenodd";
+	public static final String ATTRIBUTE_FILTER_ELEMENT_FEGAUSSIANBLUR_STANDARDDEVIATION = "stdDeviation";
 
 	public static final String ATTRIBUTE_GRADIENT_TRANSFORM = "gradientTransform";
 	public static final String ATTRIBUTE_STOP_OPACITY = "stop-opacity";
@@ -67,6 +68,7 @@ public interface ISVGConstants {
 	public static final String ATTRIBUTE_OFFSET = "offset";
 
 	public static final String ATTRIBUTE_OPACITY = "opacity";
+	public static final String ATTRIBUTE_FILTER = "filter";
 	public static final String ATTRIBUTE_FILL = "fill";
 	public static final String ATTRIBUTE_FILL_OPACITY = "fill-opacity";
 	public static final String ATTRIBUTE_STROKE = "stroke";

@@ -1,10 +1,14 @@
-package org.anddev.andengine.extension.svg.adt;
+package org.anddev.andengine.extension.svg.adt.filter.element;
+
+import android.graphics.BlurMaskFilter;
+import android.graphics.BlurMaskFilter.Blur;
+import android.graphics.Paint;
 
 /**
  * @author Nicolas Gramlich
- * @since 15:12:03 - 26.05.2011
+ * @since 16:55:28 - 26.05.2011
  */
-public class SVGFilter {
+public class SVGFilterElementGaussianBlur implements ISVGFilterElement {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -13,9 +17,16 @@ public class SVGFilter {
 	// Fields
 	// ===========================================================
 
+	private final BlurMaskFilter mBlurMaskFilter;
+
 	// ===========================================================
 	// Constructors
 	// ===========================================================
+
+	public SVGFilterElementGaussianBlur(final float pStandardDeviation) {
+		final float radius = pStandardDeviation * 2;
+		this.mBlurMaskFilter = new BlurMaskFilter(radius, Blur.NORMAL);
+	}
 
 	// ===========================================================
 	// Getter & Setter
@@ -24,6 +35,11 @@ public class SVGFilter {
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces
 	// ===========================================================
+
+	@Override
+	public void apply(final Paint pPaint) {
+		pPaint.setMaskFilter(this.mBlurMaskFilter);
+	}
 
 	// ===========================================================
 	// Methods

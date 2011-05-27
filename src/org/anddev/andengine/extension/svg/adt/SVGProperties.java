@@ -4,6 +4,7 @@ import org.anddev.andengine.extension.svg.util.SAXHelper;
 import org.anddev.andengine.extension.svg.util.SVGParserUtils;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
 
 
 /**
@@ -26,10 +27,10 @@ public class SVGProperties implements ISVGConstants {
 
 	// ===========================================================
 	// Constructors
-	// ===========================================================
+	// ===========================================================#
 
-	public SVGProperties(final Attributes pAttributes, final SVGProperties pParentSVGProperties) {
-		this.mAttributes = pAttributes;
+	public SVGProperties(final SVGProperties pParentSVGProperties, final Attributes pAttributes, final boolean pAttributesDeepCopy) {
+		this.mAttributes = (pAttributesDeepCopy) ? new AttributesImpl(pAttributes) : pAttributes;
 		this.mParentSVGProperties = pParentSVGProperties;
 		final String styleAttr = SAXHelper.getStringAttribute(pAttributes, ATTRIBUTE_STYLE);
 		if (styleAttr != null) {
@@ -51,7 +52,16 @@ public class SVGProperties implements ISVGConstants {
 	// Methods
 	// ===========================================================
 
-	public String getStringProperty(final String pPropertyName) {
+	public String getStringProperty(final String pPropertyName, final String pDefaultValue) {
+		final String s = this.getStringProperty(pPropertyName);
+		if (s == null) {
+			return pDefaultValue;
+		} else {
+			return s;
+		}
+	}
+
+	public String getStringProperty(final String pPropertyName) { // TODO Remove this method and make all others take 'pAllowParentSVGProperties' too.
 		return this.getStringProperty(pPropertyName, true);
 	}
 
@@ -69,15 +79,6 @@ public class SVGProperties implements ISVGConstants {
 			} else {
 				return this.mParentSVGProperties.getStringProperty(pPropertyName);
 			}
-		} else {
-			return s;
-		}
-	}
-
-	public String getStringProperty(final String pPropertyName, final String pDefaultValue) {
-		final String s = this.getStringProperty(pPropertyName);
-		if (s == null) {
-			return pDefaultValue;
 		} else {
 			return s;
 		}
