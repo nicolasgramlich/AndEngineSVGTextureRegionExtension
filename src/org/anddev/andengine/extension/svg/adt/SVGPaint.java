@@ -98,7 +98,7 @@ public class SVGPaint implements ISVGConstants {
 				return false;
 			}
 		} else {
-			return this.setPaintProperties(pSVGProperties, true);
+			return this.applyPaintProperties(pSVGProperties, true);
 		}
 	}
 
@@ -109,7 +109,7 @@ public class SVGPaint implements ISVGConstants {
 
 		this.resetPaint(Paint.Style.STROKE);
 
-		return this.setPaintProperties(pSVGProperties, false);
+		return this.applyPaintProperties(pSVGProperties, false);
 	}
 
 	private boolean isDisplayNone(final SVGProperties pSVGProperties) {
@@ -124,8 +124,8 @@ public class SVGPaint implements ISVGConstants {
 		return VALUE_NONE.equals(pSVGProperties.getStringProperty(ATTRIBUTE_STROKE));
 	}
 
-	public boolean setPaintProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
-		if(this.applyColorProperties(pSVGProperties, pModeFill)) {
+	public boolean applyPaintProperties(final SVGProperties pSVGProperties, final boolean pModeFill) {
+		if(this.setColorProperties(pSVGProperties, pModeFill)) {
 			if(pModeFill) {
 				return this.applyFillProperties(pSVGProperties);
 			} else {
@@ -136,7 +136,7 @@ public class SVGPaint implements ISVGConstants {
 		}
 	}
 
-	private boolean applyColorProperties(final SVGProperties pSVGProperties, final boolean pModeFill) { // TODO throw SVGParseException
+	private boolean setColorProperties(final SVGProperties pSVGProperties, final boolean pModeFill) { // TODO throw SVGParseException
 		final String colorProperty = pSVGProperties.getStringProperty(pModeFill ? ATTRIBUTE_FILL : ATTRIBUTE_STROKE);
 		if(colorProperty == null) {
 			return false;

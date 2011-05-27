@@ -119,7 +119,7 @@ public class SVGGradient implements ISVGConstants {
 	}
 
 	private TileMode getTileMode() {
-		// TODO this.mSVGAttributes.getStringAttribute(ATTR, pAllowParentSVGAttributes)
+//		 TODO this.mSVGAttributes.getStringAttribute(ATTR, pAllowParentSVGAttributes)
 		return Shader.TileMode.CLAMP;
 	}
 
