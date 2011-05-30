@@ -28,7 +28,7 @@ public class SVGGradient implements ISVGConstants {
 	// ===========================================================
 	// Fields
 	// ===========================================================
-
+	
 	private final String mID;
 	private final String mHref;
 	private SVGGradient mParent;
@@ -96,19 +96,20 @@ public class SVGGradient implements ISVGConstants {
 			this.buildSVGGradientStopsArrays();
 		}
 
+		final TileMode tileMode = this.getTileMode();
 		if(this.mLinear) {
 			final float x1 =this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_X1, true, 0f);
 			final float x2 = this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_X2, true, 0f);
 			final float y1 = this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_Y1, true, 0f);
 			final float y2 = this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_Y2, true, 0f);
 
-			this.mShader = new LinearGradient(x1, y1, x2, y2, this.mSVGGradientStopsColors, this.mSVGGradientStopsPositions, this.getTileMode());
+			this.mShader = new LinearGradient(x1, y1, x2, y2, this.mSVGGradientStopsColors, this.mSVGGradientStopsPositions, tileMode);
 		} else {
 			final float centerX = this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_CENTER_X, true, 0f);
 			final float centerY = this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_CENTER_Y, true, 0f);
 			final float radius = this.mSVGAttributes.getFloatAttribute(ATTRIBUTE_RADIUS, true, 0f);
 
-			this.mShader = new RadialGradient(centerX, centerY, radius, this.mSVGGradientStopsColors, this.mSVGGradientStopsPositions, this.getTileMode());
+			this.mShader = new RadialGradient(centerX, centerY, radius, this.mSVGGradientStopsColors, this.mSVGGradientStopsPositions, tileMode);
 		}
 		this.mMatrix = this.getTransform();
 		if (this.mMatrix != null) {
@@ -119,8 +120,16 @@ public class SVGGradient implements ISVGConstants {
 	}
 
 	private TileMode getTileMode() {
-//		 TODO this.mSVGAttributes.getStringAttribute(ATTR, pAllowParentSVGAttributes)
-		return Shader.TileMode.CLAMP;
+		final String spreadMethod = this.mSVGAttributes.getStringAttribute(ATTRIBUTE_SPREADMETHOD, true);
+		if(spreadMethod == null || ATTRIBUTE_SPREADMETHOD_VALUE_PAD.equals(spreadMethod)) {
+			return TileMode.CLAMP;
+		} else if(ATTRIBUTE_SPREADMETHOD_VALUE_REFLECT.equals(spreadMethod)) {
+			return TileMode.MIRROR;
+		} else if(ATTRIBUTE_SPREADMETHOD_VALUE_REPEAT.equals(spreadMethod)) {
+			return TileMode.REPEAT;
+		} else {
+			throw new SVGParseException("Unexpected spreadmethod: '" + spreadMethod + "'.");
+		}
 	}
 
 	private Matrix getTransform() {

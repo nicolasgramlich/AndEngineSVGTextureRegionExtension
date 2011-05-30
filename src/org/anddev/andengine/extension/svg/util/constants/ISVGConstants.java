@@ -61,6 +61,10 @@ public interface ISVGConstants {
 	public static final String ATTRIBUTE_FILLRULE = "fill-rule";
 	public static final String ATTRIBUTE_FILLRULE_VALUE_EVENODD = "evenodd";
 	public static final String ATTRIBUTE_FILTER_ELEMENT_FEGAUSSIANBLUR_STANDARDDEVIATION = "stdDeviation";
+	public static final String ATTRIBUTE_SPREADMETHOD = "speardMethod";
+	public static final String ATTRIBUTE_SPREADMETHOD_VALUE_PAD = "pad";
+	public static final String ATTRIBUTE_SPREADMETHOD_VALUE_REFLECT = "reflect";
+	public static final String ATTRIBUTE_SPREADMETHOD_VALUE_REPEAT = "repeat";
 
 	public static final String ATTRIBUTE_GRADIENT_TRANSFORM = "gradientTransform";
 	public static final String ATTRIBUTE_STOP_OPACITY = "stop-opacity";
