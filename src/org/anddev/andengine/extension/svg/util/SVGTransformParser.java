@@ -55,14 +55,18 @@ public class SVGTransformParser implements ISVGConstants {
 		if(singleTransform) {
 			return SVGTransformParser.parseTransformSingle(pString);
 		} else {
-			final Matcher matcher = MULTITRANSFORM_PATTERN.matcher(pString);
-
-			final Matrix matrix = new Matrix();
-			while(matcher.find()) {
-				matrix.preConcat(SVGTransformParser.parseTransformSingle(matcher.group(1)));
-			}
-			return matrix;
+			return SVGTransformParser.parseTransformMultiple(pString);
 		}
+	}
+
+	private static Matrix parseTransformMultiple(final String pString) {
+		final Matcher matcher = MULTITRANSFORM_PATTERN.matcher(pString);
+
+		final Matrix matrix = new Matrix();
+		while(matcher.find()) {
+			matrix.preConcat(SVGTransformParser.parseTransformSingle(matcher.group(1)));
+		}
+		return matrix;
 	}
 
 	private static Matrix parseTransformSingle(final String pString) {
