@@ -1,5 +1,8 @@
 package org.anddev.andengine.extension.svg.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.anddev.andengine.extension.svg.exception.SVGParseException;
 import org.anddev.andengine.extension.svg.util.SVGNumberParser.SVGNumberParserFloatResult;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
@@ -17,6 +20,8 @@ public class SVGTransformParser implements ISVGConstants {
 	// ===========================================================
 	// Constants
 	// ===========================================================
+
+	private static final Pattern MULTITRANSFORM_PATTERN = Pattern.compile("(\\w+\\([\\d\\s\\-eE,]*\\))");
 
 	// ===========================================================
 	// Fields
@@ -43,10 +48,24 @@ public class SVGTransformParser implements ISVGConstants {
 			return null;
 		}
 
-		/* TODO SVG allows transformations like this:
-		 * transform="translate(-10,-20) scale(2) rotate(45) translate(5,10)"
-		 */
+		/* If ')' is contained only once, we have a simple/single transform.
+		 * Otherwise, we have to split multi-transforms like this:
+		 * "translate(-10,-20) scale(2) rotate(45) translate(5,10)". */
+		final boolean singleTransform = pString.indexOf(')') == pString.lastIndexOf(')');
+		if(singleTransform) {
+			return SVGTransformParser.parseTransformSingle(pString);
+		} else {
+			final Matcher matcher = MULTITRANSFORM_PATTERN.matcher(pString);
 
+			final Matrix matrix = new Matrix();
+			while(matcher.find()) {
+				matrix.preConcat(SVGTransformParser.parseTransformSingle(matcher.group(1)));
+			}
+			return matrix;
+		}
+	}
+
+	private static Matrix parseTransformSingle(final String pString) {
 		try {
 			if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_MATRIX)) {
 				return SVGTransformParser.parseTransformMatrix(pString);
