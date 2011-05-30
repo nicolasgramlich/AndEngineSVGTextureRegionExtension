@@ -44,14 +44,20 @@ public class SVGEllipseParser implements ISVGConstants {
 		final Float radiusY = pSVGProperties.getFloatAttribute(ATTRIBUTE_RADIUS_Y);
 		if (centerX != null && centerY != null && radiusX != null && radiusY != null) {
 			pRect.set(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY);
-			if (pSVGPaint.setFill(pSVGProperties)) {
-				pSVGPaint.ensureComputedBoundsInclude(centerX - radiusX, centerY - radiusY);
-				pSVGPaint.ensureComputedBoundsInclude(centerX + radiusX, centerY + radiusY);
+
+			final boolean fill = pSVGPaint.setFill(pSVGProperties);
+			if (fill) {
 				pCanvas.drawOval(pRect, pSVGPaint.getPaint());
 			}
-			if (pSVGPaint.setStroke(pSVGProperties)) {
-				// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+
+			final boolean stroke = pSVGPaint.setStroke(pSVGProperties);
+			if (stroke) {
 				pCanvas.drawOval(pRect, pSVGPaint.getPaint());
+			}
+
+			if(fill || stroke) {
+				pSVGPaint.ensureComputedBoundsInclude(centerX - radiusX, centerY - radiusY);
+				pSVGPaint.ensureComputedBoundsInclude(centerX + radiusX, centerY + radiusY);
 			}
 		}
 	}

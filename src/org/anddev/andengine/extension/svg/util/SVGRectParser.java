@@ -66,21 +66,26 @@ public class SVGRectParser implements ISVGConstants {
 			ry = 0;
 		}
 
-		if (pSVGPaint.setFill(pSVGProperties)) {
-			pSVGPaint.ensureComputedBoundsInclude(x, y, width, height);
+		final boolean fill = pSVGPaint.setFill(pSVGProperties);
+		if (fill) {
 			if(rounded) {
 				pCanvas.drawRoundRect(pRect, rx, ry, pSVGPaint.getPaint());
 			} else {
 				pCanvas.drawRect(pRect, pSVGPaint.getPaint());
 			}
 		}
-		if (pSVGPaint.setStroke(pSVGProperties)) {
-			// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+
+		final boolean stroke = pSVGPaint.setStroke(pSVGProperties);
+		if (stroke) {
 			if(rounded) {
 				pCanvas.drawRoundRect(pRect, rx, ry, pSVGPaint.getPaint());
 			} else {
 				pCanvas.drawRect(pRect, pSVGPaint.getPaint());
 			}
+		}
+
+		if(fill || stroke) {
+			pSVGPaint.ensureComputedBoundsInclude(x, y, width, height);
 		}
 	}
 

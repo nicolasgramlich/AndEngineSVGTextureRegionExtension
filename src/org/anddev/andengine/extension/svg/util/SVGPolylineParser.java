@@ -44,13 +44,19 @@ public class SVGPolylineParser implements ISVGConstants {
 			final float[] points = svgNumberParserFloatResult.getNumbers();
 			if (points.length >= 2) {
 				final Path path = SVGPolylineParser.parse(points);
-				if (pSVGPaint.setFill(pSVGProperties)) {
-					pSVGPaint.ensureComputedBoundsInclude(path);
+
+				final boolean fill = pSVGPaint.setFill(pSVGProperties);
+				if (fill) {
 					pCanvas.drawPath(path, pSVGPaint.getPaint());
 				}
-				if (pSVGPaint.setStroke(pSVGProperties)) {
-					// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+
+				final boolean stroke = pSVGPaint.setStroke(pSVGProperties);
+				if (stroke) {
 					pCanvas.drawPath(path, pSVGPaint.getPaint());
+				}
+
+				if(fill || stroke) {
+					pSVGPaint.ensureComputedBoundsInclude(path);
 				}
 			}
 		}

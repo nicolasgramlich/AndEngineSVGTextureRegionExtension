@@ -41,14 +41,19 @@ public class SVGCircleParser implements ISVGConstants {
 		final Float centerY = pSVGProperties.getFloatAttribute(ATTRIBUTE_CENTER_Y);
 		final Float radius = pSVGProperties.getFloatAttribute(ATTRIBUTE_RADIUS);
 		if (centerX != null && centerY != null && radius != null) {
-			if (pSVGPaint.setFill(pSVGProperties)) {
-				pSVGPaint.ensureComputedBoundsInclude(centerX - radius, centerY - radius);
-				pSVGPaint.ensureComputedBoundsInclude(centerX + radius, centerY + radius);
+			final boolean fill = pSVGPaint.setFill(pSVGProperties);
+			if (fill) {
 				pCanvas.drawCircle(centerX, centerY, radius, pSVGPaint.getPaint());
 			}
-			if (pSVGPaint.setStroke(pSVGProperties)) {
-				// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+
+			final boolean stroke = pSVGPaint.setStroke(pSVGProperties);
+			if (stroke) {
 				pCanvas.drawCircle(centerX, centerY, radius, pSVGPaint.getPaint());
+			}
+
+			if(fill || stroke) {
+				pSVGPaint.ensureComputedBoundsInclude(centerX - radius, centerY - radius);
+				pSVGPaint.ensureComputedBoundsInclude(centerX + radius, centerY + radius);
 			}
 		}
 	}

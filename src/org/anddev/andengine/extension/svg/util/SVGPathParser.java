@@ -75,13 +75,19 @@ public class SVGPathParser implements ISVGConstants {
 
 	public void parse(final SVGProperties pSVGProperties, final Canvas pCanvas, final SVGPaint pSVGPaint) {
 		final Path path = this.parse(pSVGProperties);
-		if (pSVGPaint.setFill(pSVGProperties)) {
-			pSVGPaint.ensureComputedBoundsInclude(path);
+
+		final boolean fill = pSVGPaint.setFill(pSVGProperties);
+		if (fill) {
 			pCanvas.drawPath(path, pSVGPaint.getPaint());
 		}
-		if (pSVGPaint.setStroke(pSVGProperties)) {
-			// TODO are we missing a this.ensureComputedBoundsInclude(...); here?
+
+		final boolean stroke = pSVGPaint.setStroke(pSVGProperties);
+		if (stroke) {
 			pCanvas.drawPath(path, pSVGPaint.getPaint());
+		}
+
+		if(fill || stroke) {
+			pSVGPaint.ensureComputedBoundsInclude(path);
 		}
 	}
 
