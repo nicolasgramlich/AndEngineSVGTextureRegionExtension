@@ -53,23 +53,23 @@ public class SVGTransformParser implements ISVGConstants {
 		 * "translate(-10,-20) scale(2) rotate(45) translate(5,10)". */
 		final boolean singleTransform = pString.indexOf(')') == pString.lastIndexOf(')');
 		if(singleTransform) {
-			return SVGTransformParser.parseTransformSingle(pString);
+			return SVGTransformParser.parseSingleTransform(pString);
 		} else {
-			return SVGTransformParser.parseTransformMultiple(pString);
+			return SVGTransformParser.parseMultiTransform(pString);
 		}
 	}
 
-	private static Matrix parseTransformMultiple(final String pString) {
+	private static Matrix parseMultiTransform(final String pString) {
 		final Matcher matcher = MULTITRANSFORM_PATTERN.matcher(pString);
 
 		final Matrix matrix = new Matrix();
 		while(matcher.find()) {
-			matrix.preConcat(SVGTransformParser.parseTransformSingle(matcher.group(1)));
+			matrix.preConcat(SVGTransformParser.parseSingleTransform(matcher.group(1)));
 		}
 		return matrix;
 	}
 
-	private static Matrix parseTransformSingle(final String pString) {
+	private static Matrix parseSingleTransform(final String pString) {
 		try {
 			if (pString.startsWith(ATTRIBUTE_TRANSFORM_VALUE_MATRIX)) {
 				return SVGTransformParser.parseTransformMatrix(pString);
