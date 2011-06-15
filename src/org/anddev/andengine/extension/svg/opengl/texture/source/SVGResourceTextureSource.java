@@ -33,12 +33,23 @@ public class SVGResourceTextureSource extends SVGBaseTextureSource {
 		this(pContext, pRawResourceID, null);
 	}
 
+	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final float pScale) {
+		this(pContext, pRawResourceID, pScale, null);
+	}
+
 	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight) {
 		this(pContext, pRawResourceID, pWidth, pHeight, null);
 	}
 
 	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final ISVGColorMapper pSVGColorMapper) {
 		super(SVGResourceTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper));
+		this.mContext = pContext;
+		this.mRawResourceID = pRawResourceID;
+		this.mSVGColorMapper = pSVGColorMapper;
+	}
+
+	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final float pScale, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pScale);
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;

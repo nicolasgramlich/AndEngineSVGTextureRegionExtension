@@ -37,8 +37,19 @@ public class SVGAssetTextureSource extends SVGBaseTextureSource {
 		this(pContext, pAssetPath, pWidth, pHeight, null);
 	}
 
+	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final float pScale) {
+		this(pContext, pAssetPath, pScale, null);
+	}
+
 	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final ISVGColorMapper pSVGColorMapper) {
 		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath, pSVGColorMapper));
+		this.mContext = pContext;
+		this.mAssetPath = pAssetPath;
+		this.mSVGColorMapper = pSVGColorMapper;
+	}
+
+	public SVGAssetTextureSource(final Context pContext, final String pAssetPath, final float pScale, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGAssetTextureSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pScale);
 		this.mContext = pContext;
 		this.mAssetPath = pAssetPath;
 		this.mSVGColorMapper = pSVGColorMapper;

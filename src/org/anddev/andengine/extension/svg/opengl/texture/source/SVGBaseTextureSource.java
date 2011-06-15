@@ -29,6 +29,11 @@ public class SVGBaseTextureSource extends PictureTextureSource {
 		this.mSVG = pSVG;
 	}
 
+	public SVGBaseTextureSource(final SVG pSVG, final float pScale) {
+		super(pSVG.getPicture(), pScale);
+		this.mSVG = pSVG;
+	}
+
 	public SVGBaseTextureSource(final SVG pSVG, final int pWidth, final int pHeight) {
 		super(pSVG.getPicture(), pWidth, pHeight);
 		this.mSVG = pSVG;
