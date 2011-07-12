@@ -12,7 +12,7 @@ import android.content.Context;
  * @author Nicolas Gramlich
  * @since 13:22:48 - 21.05.2011
  */
-public class SVGResourceTextureSource extends SVGBaseTextureSource {
+public class SVGResourceBitmapTextureSource extends SVGBaseBitmapTextureSource {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -29,34 +29,34 @@ public class SVGResourceTextureSource extends SVGBaseTextureSource {
 	// Constructors
 	// ===========================================================
 
-	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID) {
-		this(pContext, pRawResourceID, null);
+	public SVGResourceBitmapTextureSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY) {
+		this(pContext, pRawResourceID, pTexturePositionX, pTexturePositionY, null);
 	}
 
-	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final float pScale) {
-		this(pContext, pRawResourceID, pScale, null);
+	public SVGResourceBitmapTextureSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final float pScale) {
+		this(pContext, pRawResourceID, pTexturePositionX, pTexturePositionY, pScale, null);
 	}
 
-	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight) {
-		this(pContext, pRawResourceID, pWidth, pHeight, null);
+	public SVGResourceBitmapTextureSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight) {
+		this(pContext, pRawResourceID, pTexturePositionX, pTexturePositionY, pWidth, pHeight, null);
 	}
 
-	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGResourceTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper));
+	public SVGResourceBitmapTextureSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceBitmapTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTexturePositionX, pTexturePositionY);
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
-	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final float pScale, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGResourceTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pScale);
+	public SVGResourceBitmapTextureSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final float pScale, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceBitmapTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTexturePositionX, pTexturePositionY, pScale);
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
-	public SVGResourceTextureSource(final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGResourceTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pWidth, pHeight);
+	public SVGResourceBitmapTextureSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceBitmapTextureSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTexturePositionX, pTexturePositionY, pWidth, pHeight);
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;
@@ -71,8 +71,8 @@ public class SVGResourceTextureSource extends SVGBaseTextureSource {
 	// ===========================================================
 
 	@Override
-	public SVGResourceTextureSource clone() {
-		return new SVGResourceTextureSource(this.mContext, this.mRawResourceID, this.mWidth, this.mHeight, this.mSVGColorMapper);
+	public SVGResourceBitmapTextureSource clone() {
+		return new SVGResourceBitmapTextureSource(this.mContext, this.mRawResourceID, this.mTexturePositionX, this.mTexturePositionY, this.mWidth, this.mHeight, this.mSVGColorMapper);
 	}
 
 	// ===========================================================
@@ -83,7 +83,7 @@ public class SVGResourceTextureSource extends SVGBaseTextureSource {
 		try {
 			return SVGParser.parseSVGFromResource(pContext.getResources(), pRawResourceID, pSVGColorMapper);
 		} catch (final Throwable t) {
-			Debug.e("Failed loading SVG in SVGResourceTextureSource. RawResourceID: " + pRawResourceID, t);
+			Debug.e("Failed loading SVG in SVGResourceBitmapTextureSource. RawResourceID: " + pRawResourceID, t);
 			return null;
 		}
 	}

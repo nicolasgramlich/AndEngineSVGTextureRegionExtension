@@ -2,15 +2,16 @@ package org.anddev.andengine.extension.svg.opengl.texture.region;
 
 import org.anddev.andengine.extension.svg.adt.ISVGColorMapper;
 import org.anddev.andengine.extension.svg.adt.SVG;
-import org.anddev.andengine.extension.svg.opengl.texture.source.SVGAssetTextureSource;
-import org.anddev.andengine.extension.svg.opengl.texture.source.SVGBaseTextureSource;
-import org.anddev.andengine.extension.svg.opengl.texture.source.SVGResourceTextureSource;
-import org.anddev.andengine.opengl.texture.BuildableTexture;
-import org.anddev.andengine.opengl.texture.Texture;
+import org.anddev.andengine.extension.svg.opengl.texture.source.SVGAssetBitmapTextureSource;
+import org.anddev.andengine.extension.svg.opengl.texture.source.SVGBaseBitmapTextureSource;
+import org.anddev.andengine.extension.svg.opengl.texture.source.SVGResourceBitmapTextureSource;
+import org.anddev.andengine.opengl.texture.bitmap.BitmapTexture;
+import org.anddev.andengine.opengl.texture.bitmap.BitmapTextureRegionFactory;
+import org.anddev.andengine.opengl.texture.bitmap.BuildableBitmapTexture;
+import org.anddev.andengine.opengl.texture.bitmap.source.IBitmapTextureSource;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
 import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
-import org.anddev.andengine.opengl.texture.source.ITextureSource;
 
 import android.content.Context;
 
@@ -79,104 +80,104 @@ public class SVGTextureRegionFactory {
 	// Methods using Texture
 	// ===========================================================
 
-	public static TextureRegion createFromSVG(final Texture pTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
-		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
-		return TextureRegionFactory.createFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY);
+	public static TextureRegion createFromSVG(final BitmapTexture pBitmapTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
+		final IBitmapTextureSource textureSource = new SVGBaseBitmapTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return BitmapTextureRegionFactory.createFromSource(pBitmapTexture, textureSource, pTexturePositionX, pTexturePositionY);
 	}
 
-	public static TiledTextureRegion createTiledFromSVG(final Texture pTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
-		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
-		return TextureRegionFactory.createTiledFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
-	}
-
-
-	public static TextureRegion createFromAsset(final Texture pTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
-		return SVGTextureRegionFactory.createFromAsset(pTexture, pContext, pAssetPath, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY);
-	}
-
-	public static TiledTextureRegion createTiledFromAsset(final Texture pTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
-		return SVGTextureRegionFactory.createTiledFromAsset(pTexture, pContext, pAssetPath, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
-	}
-
-	public static TextureRegion createFromAsset(final Texture pTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY) {
-		final ITextureSource textureSource = new SVGAssetTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY);
-	}
-
-	public static TiledTextureRegion createTiledFromAsset(final Texture pTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
-		final ITextureSource textureSource = new SVGAssetTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createTiledFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
+	public static TiledTextureRegion createTiledFromSVG(final BitmapTexture pBitmapTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
+		final IBitmapTextureSource textureSource = new SVGBaseBitmapTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return BitmapTextureRegionFactory.createTiledFromSource(pBitmapTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
 	}
 
 
-	public static TextureRegion createFromResource(final Texture pTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
-		return SVGTextureRegionFactory.createFromResource(pTexture, pContext, pRawResourceID, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY);
+	public static TextureRegion createFromAsset(final BitmapTexture pBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
+		return SVGTextureRegionFactory.createFromAsset(pBitmapTexture, pContext, pAssetPath, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY);
 	}
 
-	public static TiledTextureRegion createTiledFromResource(final Texture pTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
-		return SVGTextureRegionFactory.createTiledFromResource(pTexture, pContext, pRawResourceID, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
+	public static TiledTextureRegion createTiledFromAsset(final BitmapTexture pBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
+		return SVGTextureRegionFactory.createTiledFromAsset(pBitmapTexture, pContext, pAssetPath, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
 	}
 
-	public static TextureRegion createFromResource(final Texture pTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY) {
-		final ITextureSource textureSource = new SVGResourceTextureSource(pContext, pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY);
+	public static TextureRegion createFromAsset(final BitmapTexture pBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY) {
+		final IBitmapTextureSource textureSource = new SVGAssetBitmapTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
+		return BitmapTextureRegionFactory.createFromSource(pBitmapTexture, textureSource, pTexturePositionX, pTexturePositionY);
 	}
 
-	public static TiledTextureRegion createTiledFromResource(final Texture pTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
-		final ITextureSource textureSource = new SVGResourceTextureSource(pContext, pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createTiledFromSource(pTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
+	public static TiledTextureRegion createTiledFromAsset(final BitmapTexture pBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
+		final IBitmapTextureSource textureSource = new SVGAssetBitmapTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
+		return BitmapTextureRegionFactory.createTiledFromSource(pBitmapTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
+	}
+
+
+	public static TextureRegion createFromResource(final BitmapTexture pBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY) {
+		return SVGTextureRegionFactory.createFromResource(pBitmapTexture, pContext, pRawResourceID, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY);
+	}
+
+	public static TiledTextureRegion createTiledFromResource(final BitmapTexture pBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
+		return SVGTextureRegionFactory.createTiledFromResource(pBitmapTexture, pContext, pRawResourceID, pWidth, pHeight, null, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
+	}
+
+	public static TextureRegion createFromResource(final BitmapTexture pBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY) {
+		final IBitmapTextureSource textureSource = new SVGResourceBitmapTextureSource(pContext, SVGTextureRegionFactory.applyScaleFactor(pHeight), pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), pSVGColorMapper);
+		return BitmapTextureRegionFactory.createFromSource(pBitmapTexture, textureSource, pTexturePositionX, pTexturePositionY);
+	}
+
+	public static TiledTextureRegion createTiledFromResource(final BitmapTexture pBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTexturePositionX, final int pTexturePositionY, final int pTileColumns, final int pTileRows) {
+		final IBitmapTextureSource textureSource = new SVGResourceBitmapTextureSource(pContext, SVGTextureRegionFactory.applyScaleFactor(pHeight), pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), pSVGColorMapper);
+		return BitmapTextureRegionFactory.createTiledFromSource(pBitmapTexture, textureSource, pTexturePositionX, pTexturePositionY, pTileColumns, pTileRows);
 	}
 
 	// ===========================================================
 	// Methods using BuildableTexture
 	// ===========================================================
 
-	public static TextureRegion createFromSVG(final BuildableTexture pBuildableTexture, final SVG pSVG, final int pWidth, final int pHeight) {
-		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
-		return TextureRegionFactory.createFromSource(pBuildableTexture, textureSource);
+	public static TextureRegion createFromSVG(final BuildableBitmapTexture pBuildableBitmapTexture, final SVG pSVG, final int pWidth, final int pHeight) {
+		final IBitmapTextureSource textureSource = new SVGBaseBitmapTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return TextureRegionFactory.createFromSource(pBuildableBitmapTexture, textureSource);
 	}
 
-	public static TiledTextureRegion createTiledFromSVG(final BuildableTexture pBuildableTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
-		final ITextureSource textureSource = new SVGBaseTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
-		return TextureRegionFactory.createTiledFromSource(pBuildableTexture, textureSource, pTileColumns, pTileRows);
-	}
-
-
-	public static TextureRegion createFromAsset(final BuildableTexture pBuildableTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight) {
-		return SVGTextureRegionFactory.createFromAsset(pBuildableTexture, pContext, pAssetPath, pWidth, pHeight, null);
-	}
-
-	public static TiledTextureRegion createTiledFromAsset(final BuildableTexture pBuildableTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
-		return SVGTextureRegionFactory.createTiledFromAsset(pBuildableTexture, pContext, pAssetPath, pWidth, pHeight, null, pTileColumns, pTileRows);
-	}
-
-	public static TextureRegion createFromAsset(final BuildableTexture pBuildableTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
-		final ITextureSource textureSource = new SVGAssetTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createFromSource(pBuildableTexture, textureSource);
-	}
-
-	public static TiledTextureRegion createTiledFromAsset(final BuildableTexture pBuildableTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTileColumns, final int pTileRows) {
-		final ITextureSource textureSource = new SVGAssetTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createTiledFromSource(pBuildableTexture, textureSource, pTileColumns, pTileRows);
+	public static TiledTextureRegion createTiledFromSVG(final BuildableBitmapTexture pBuildableBitmapTexture, final SVG pSVG, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
+		final IBitmapTextureSource textureSource = new SVGBaseBitmapTextureSource(pSVG, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight));
+		return TextureRegionFactory.createTiledFromSource(pBuildableBitmapTexture, textureSource, pTileColumns, pTileRows);
 	}
 
 
-	public static TextureRegion createFromResource(final BuildableTexture pBuildableTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight) {
-		return SVGTextureRegionFactory.createFromResource(pBuildableTexture, pContext, pRawResourceID, pWidth, pHeight, null);
+	public static TextureRegion createFromAsset(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight) {
+		return SVGTextureRegionFactory.createFromAsset(pBuildableBitmapTexture, pContext, pAssetPath, pWidth, pHeight, null);
 	}
 
-	public static TiledTextureRegion createTiledFromResource(final BuildableTexture pBuildableTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
-		return SVGTextureRegionFactory.createTiledFromResource(pBuildableTexture, pContext, pRawResourceID, pWidth, pHeight, null, pTileColumns, pTileRows);
+	public static TiledTextureRegion createTiledFromAsset(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
+		return SVGTextureRegionFactory.createTiledFromAsset(pBuildableBitmapTexture, pContext, pAssetPath, pWidth, pHeight, null, pTileColumns, pTileRows);
 	}
 
-	public static TextureRegion createFromResource(final BuildableTexture pBuildableTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
-		final ITextureSource textureSource = new SVGResourceTextureSource(pContext, pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createFromSource(pBuildableTexture, textureSource);
+	public static TextureRegion createFromAsset(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
+		final IBitmapTextureSource textureSource = new SVGAssetBitmapTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
+		return TextureRegionFactory.createFromSource(pBuildableBitmapTexture, textureSource);
 	}
 
-	public static TiledTextureRegion createTiledFromResource(final BuildableTexture pBuildableTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTileColumns, final int pTileRows) {
-		final ITextureSource textureSource = new SVGResourceTextureSource(pContext, pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
-		return TextureRegionFactory.createTiledFromSource(pBuildableTexture, textureSource, pTileColumns, pTileRows);
+	public static TiledTextureRegion createTiledFromAsset(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final String pAssetPath, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTileColumns, final int pTileRows) {
+		final IBitmapTextureSource textureSource = new SVGAssetBitmapTextureSource(pContext, SVGTextureRegionFactory.sAssetBasePath + pAssetPath, SVGTextureRegionFactory.applyScaleFactor(pWidth), SVGTextureRegionFactory.applyScaleFactor(pHeight), pSVGColorMapper);
+		return TextureRegionFactory.createTiledFromSource(pBuildableBitmapTexture, textureSource, pTileColumns, pTileRows);
+	}
+
+
+	public static TextureRegion createFromResource(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight) {
+		return SVGTextureRegionFactory.createFromResource(pBuildableBitmapTexture, pContext, pRawResourceID, pWidth, pHeight, null);
+	}
+
+	public static TiledTextureRegion createTiledFromResource(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final int pTileColumns, final int pTileRows) {
+		return SVGTextureRegionFactory.createTiledFromResource(pBuildableBitmapTexture, pContext, pRawResourceID, pWidth, pHeight, null, pTileColumns, pTileRows);
+	}
+
+	public static TextureRegion createFromResource(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
+		final IBitmapTextureSource textureSource = new SVGResourceBitmapTextureSource(pContext, SVGTextureRegionFactory.applyScaleFactor(pHeight), pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), pSVGColorMapper);
+		return TextureRegionFactory.createFromSource(pBuildableBitmapTexture, textureSource);
+	}
+
+	public static TiledTextureRegion createTiledFromResource(final BuildableBitmapTexture pBuildableBitmapTexture, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper, final int pTileColumns, final int pTileRows) {
+		final IBitmapTextureSource textureSource = new SVGResourceBitmapTextureSource(pContext, SVGTextureRegionFactory.applyScaleFactor(pHeight), pRawResourceID, SVGTextureRegionFactory.applyScaleFactor(pWidth), pSVGColorMapper);
+		return TextureRegionFactory.createTiledFromSource(pBuildableBitmapTexture, textureSource, pTileColumns, pTileRows);
 	}
 
 	// ===========================================================
