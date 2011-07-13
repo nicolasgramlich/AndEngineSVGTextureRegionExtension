@@ -2,6 +2,9 @@ package org.anddev.andengine.extension.svg.exception;
 
 /**
  * @author Larva Labs, LLC
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 17:00:21 - 21.05.2011
  */

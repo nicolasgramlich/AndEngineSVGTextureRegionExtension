@@ -13,6 +13,9 @@ import org.xml.sax.Attributes;
 import android.graphics.Paint;
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 15:12:03 - 26.05.2011
  */

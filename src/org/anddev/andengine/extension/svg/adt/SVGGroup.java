@@ -4,6 +4,9 @@ import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
 
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 12:58:32 - 24.05.2011
  */

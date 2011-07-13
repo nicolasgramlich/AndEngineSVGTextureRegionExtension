@@ -4,6 +4,9 @@ import java.util.HashMap;
 
 /**
  * @author Larva Labs, LLC
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 16:49:43 - 21.05.2011
  */

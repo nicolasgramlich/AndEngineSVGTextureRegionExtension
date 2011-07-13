@@ -9,6 +9,9 @@ import android.content.Context;
 
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 13:22:48 - 21.05.2011
  */

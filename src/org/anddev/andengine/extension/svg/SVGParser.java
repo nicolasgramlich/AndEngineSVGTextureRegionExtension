@@ -22,6 +22,9 @@ import android.graphics.Picture;
  * TODO Eventually add support for ".svgz" format. (Not totally useful as the apk itself gets zipped anyway. But might be useful, when loading from an external source.)
  * 
  * @author Larva Labs, LLC
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 17:00:16 - 21.05.2011
  */

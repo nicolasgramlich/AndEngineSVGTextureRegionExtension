@@ -1,6 +1,9 @@
 package org.anddev.andengine.extension.svg.util.constants;
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 12:13:38 - 24.05.2011
  */

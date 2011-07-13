@@ -6,6 +6,9 @@ import org.anddev.andengine.util.Debug;
 
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 13:34:55 - 21.05.2011
  */

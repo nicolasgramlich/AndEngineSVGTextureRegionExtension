@@ -9,6 +9,9 @@ import android.graphics.RectF;
 
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 19:27:42 - 25.05.2011
  */

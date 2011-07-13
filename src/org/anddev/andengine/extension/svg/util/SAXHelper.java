@@ -3,6 +3,9 @@ package org.anddev.andengine.extension.svg.util;
 import org.xml.sax.Attributes;
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 14:22:28 - 22.05.2011
  */

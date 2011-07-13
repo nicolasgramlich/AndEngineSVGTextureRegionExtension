@@ -19,6 +19,9 @@ import android.content.Context;
 /**
  * TODO Add possibility to set the bounds/clipping to be rendered. Useful to render only a specific region of a big svg file, which could be a spritesheet.
  * 
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 12:47:31 - 21.05.2011
  */

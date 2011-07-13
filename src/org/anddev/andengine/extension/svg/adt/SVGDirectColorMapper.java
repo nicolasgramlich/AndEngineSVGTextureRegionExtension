@@ -3,6 +3,9 @@ package org.anddev.andengine.extension.svg.adt;
 import java.util.HashMap;
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 09:21:33 - 25.05.2011
  */
