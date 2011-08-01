@@ -10,6 +10,9 @@ import android.graphics.Path;
 
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 19:23:07 - 24.05.2011
  */

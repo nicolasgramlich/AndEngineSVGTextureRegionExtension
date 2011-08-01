@@ -9,6 +9,9 @@ import android.graphics.Color;
 
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 17:43:24 - 22.05.2011
  */

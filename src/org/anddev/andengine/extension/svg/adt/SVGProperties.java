@@ -9,6 +9,9 @@ import org.xml.sax.helpers.AttributesImpl;
 
 /**
  * @author Larva Labs, LLC
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 16:49:55 - 21.05.2011
  */

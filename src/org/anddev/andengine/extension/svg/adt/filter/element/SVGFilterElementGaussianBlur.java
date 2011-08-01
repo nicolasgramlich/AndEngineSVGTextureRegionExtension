@@ -5,6 +5,9 @@ import android.graphics.BlurMaskFilter.Blur;
 import android.graphics.Paint;
 
 /**
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 16:55:28 - 26.05.2011
  */

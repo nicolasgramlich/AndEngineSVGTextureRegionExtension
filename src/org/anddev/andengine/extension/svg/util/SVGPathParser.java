@@ -22,6 +22,9 @@ import android.util.FloatMath;
  *
  * @see <a href="http://www.w3.org/TR/SVG/paths.html">Specification</a>.
  * 
+ * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
  * @author Nicolas Gramlich
  * @since 17:16:39 - 21.05.2011
  */
@@ -616,7 +619,10 @@ public class SVGPathParser implements ISVGConstants {
 	 *
 	 * @author Apache Software Foundation
 	 * @author Larva Labs LLC
-	 * @author Nicolas Gramlich
+	 * (c) 2010 Nicolas Gramlich 
+ * (c) 2011 Zynga Inc.
+ * 
+ * @author Nicolas Gramlich
 	 */
 	public class PathParserHelper {
 		// ===========================================================
