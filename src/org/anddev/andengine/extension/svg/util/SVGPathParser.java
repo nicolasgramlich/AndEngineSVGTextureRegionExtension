@@ -6,7 +6,7 @@ import java.util.Queue;
 import org.anddev.andengine.extension.svg.adt.SVGPaint;
 import org.anddev.andengine.extension.svg.adt.SVGProperties;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
-import org.anddev.andengine.util.MathUtils;
+import org.anddev.andengine.util.math.MathUtils;
 
 import android.graphics.Canvas;
 import android.graphics.Path;
