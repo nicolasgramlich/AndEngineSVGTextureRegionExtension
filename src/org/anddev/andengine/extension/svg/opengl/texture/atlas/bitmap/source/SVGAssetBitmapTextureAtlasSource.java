@@ -64,6 +64,11 @@ public class SVGAssetBitmapTextureAtlasSource extends SVGBaseBitmapTextureAtlasS
 		this.mAssetPath = pAssetPath;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
+	
+	@Override
+	public SVGAssetBitmapTextureAtlasSource deepCopy() {
+		return new SVGAssetBitmapTextureAtlasSource(this.mContext, this.mAssetPath, this.mTexturePositionX, this.mTexturePositionY, this.mWidth, this.mHeight, this.mSVGColorMapper);
+	}
 
 	// ===========================================================
 	// Getter & Setter
@@ -72,11 +77,6 @@ public class SVGAssetBitmapTextureAtlasSource extends SVGBaseBitmapTextureAtlasS
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces
 	// ===========================================================
-
-	@Override
-	public SVGAssetBitmapTextureAtlasSource clone() {
-		return new SVGAssetBitmapTextureAtlasSource(this.mContext, this.mAssetPath, this.mTexturePositionX, this.mTexturePositionY, this.mWidth, this.mHeight, this.mSVGColorMapper);
-	}
 
 	// ===========================================================
 	// Methods
