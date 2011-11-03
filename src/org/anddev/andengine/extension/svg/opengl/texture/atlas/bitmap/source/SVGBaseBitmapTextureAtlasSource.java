@@ -2,7 +2,7 @@ package org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.source;
 
 import org.anddev.andengine.extension.svg.adt.SVG;
 import org.anddev.andengine.opengl.texture.atlas.bitmap.source.PictureBitmapTextureAtlasSource;
-import org.anddev.andengine.util.Debug;
+import org.anddev.andengine.util.debug.Debug;
 
 
 /**

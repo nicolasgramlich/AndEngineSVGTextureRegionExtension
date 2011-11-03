@@ -20,7 +20,7 @@ import org.anddev.andengine.extension.svg.util.SVGPolylineParser;
 import org.anddev.andengine.extension.svg.util.SVGRectParser;
 import org.anddev.andengine.extension.svg.util.SVGTransformParser;
 import org.anddev.andengine.extension.svg.util.constants.ISVGConstants;
-import org.anddev.andengine.util.Debug;
+import org.anddev.andengine.util.debug.Debug;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;

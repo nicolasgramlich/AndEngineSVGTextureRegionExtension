@@ -3,7 +3,7 @@ package org.anddev.andengine.extension.svg.opengl.texture.atlas.bitmap.source;
 import org.anddev.andengine.extension.svg.SVGParser;
 import org.anddev.andengine.extension.svg.adt.ISVGColorMapper;
 import org.anddev.andengine.extension.svg.adt.SVG;
-import org.anddev.andengine.util.Debug;
+import org.anddev.andengine.util.debug.Debug;
 
 import android.content.Context;
 
