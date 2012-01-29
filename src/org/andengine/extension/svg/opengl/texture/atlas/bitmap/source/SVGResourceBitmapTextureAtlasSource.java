@@ -32,34 +32,37 @@ public class SVGResourceBitmapTextureAtlasSource extends SVGBaseBitmapTextureAtl
 	// Constructors
 	// ===========================================================
 
-	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY) {
-		this(pContext, pRawResourceID, pTexturePositionX, pTexturePositionY, null);
+	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTextureX, final int pTextureY) {
+		this(pContext, pRawResourceID, pTextureX, pTextureY, null);
 	}
 
-	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final float pScale) {
-		this(pContext, pRawResourceID, pTexturePositionX, pTexturePositionY, pScale, null);
+	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTextureX, final int pTextureY, final float pScale) {
+		this(pContext, pRawResourceID, pTextureX, pTextureY, pScale, null);
 	}
 
-	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight) {
-		this(pContext, pRawResourceID, pTexturePositionX, pTexturePositionY, pWidth, pHeight, null);
+	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTextureX, final int pTextureY, final int pTextureWidth, final int pTextureHeight) {
+		this(pContext, pRawResourceID, pTextureX, pTextureY, pTextureWidth, pTextureHeight, null);
 	}
 
-	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGResourceBitmapTextureAtlasSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTexturePositionX, pTexturePositionY);
+	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTextureX, final int pTextureY, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceBitmapTextureAtlasSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTextureX, pTextureY);
+
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
-	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final float pScale, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGResourceBitmapTextureAtlasSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTexturePositionX, pTexturePositionY, pScale);
+	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTextureX, final int pTextureY, final float pScale, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceBitmapTextureAtlasSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTextureX, pTextureY, pScale);
+
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
-	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGResourceBitmapTextureAtlasSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTexturePositionX, pTexturePositionY, pWidth, pHeight);
+	public SVGResourceBitmapTextureAtlasSource(final Context pContext, final int pRawResourceID, final int pTextureX, final int pTextureY, final int pTextureWidth, final int pTextureHeight, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGResourceBitmapTextureAtlasSource.getSVG(pContext, pRawResourceID, pSVGColorMapper), pTextureX, pTextureY, pTextureWidth, pTextureHeight);
+
 		this.mContext = pContext;
 		this.mRawResourceID = pRawResourceID;
 		this.mSVGColorMapper = pSVGColorMapper;

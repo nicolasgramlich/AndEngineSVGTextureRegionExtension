@@ -35,8 +35,8 @@ public class SVGBaseBitmapTextureAtlasSource extends PictureBitmapTextureAtlasSo
 		this(pSVG, 0, 0, pScale);
 	}
 
-	public SVGBaseBitmapTextureAtlasSource(final SVG pSVG, final int pTexturePositionX, final int pTexturePositionY, final float pScale) {
-		super(pSVG.getPicture(), pTexturePositionX, pTexturePositionY, pScale);
+	public SVGBaseBitmapTextureAtlasSource(final SVG pSVG, final int pTextureX, final int pTextureY, final float pScale) {
+		super(pSVG.getPicture(), pTextureX, pTextureY, pScale);
 		this.mSVG = pSVG;
 	}
 
@@ -44,8 +44,8 @@ public class SVGBaseBitmapTextureAtlasSource extends PictureBitmapTextureAtlasSo
 		this(pSVG, 0, 0, pWidth, pHeight);
 	}
 
-	public SVGBaseBitmapTextureAtlasSource(final SVG pSVG, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight) {
-		super(pSVG.getPicture(), pTexturePositionX, pTexturePositionY, pWidth, pHeight);
+	public SVGBaseBitmapTextureAtlasSource(final SVG pSVG, final int pTextureX, final int pTextureY, final int pTextureWidth, final int pTextureHeight) {
+		super(pSVG.getPicture(), pTextureX, pTextureY, pTextureWidth, pTextureHeight);
 		this.mSVG = pSVG;
 	}
 

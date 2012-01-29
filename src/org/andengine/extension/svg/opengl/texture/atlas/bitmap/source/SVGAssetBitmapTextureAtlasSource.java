@@ -32,34 +32,34 @@ public class SVGAssetBitmapTextureAtlasSource extends SVGBaseBitmapTextureAtlasS
 	// Constructors
 	// ===========================================================
 
-	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTexturePositionX, final int pTexturePositionY) {
-		this(pContext, pAssetPath, pTexturePositionX, pTexturePositionY, null);
+	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTextureX, final int pTextureY) {
+		this(pContext, pAssetPath, pTextureX, pTextureY, null);
 	}
 
-	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight) {
-		this(pContext, pAssetPath, pTexturePositionX, pTexturePositionY, pWidth, pHeight, null);
+	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTextureX, final int pTextureY, final int pTextureWidth, final int pTextureHeight) {
+		this(pContext, pAssetPath, pTextureX, pTextureY, pTextureWidth, pTextureHeight, null);
 	}
 
-	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTexturePositionX, final int pTexturePositionY, final float pScale) {
-		this(pContext, pAssetPath, pTexturePositionX, pTexturePositionY, pScale, null);
+	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTextureX, final int pTextureY, final float pScale) {
+		this(pContext, pAssetPath, pTextureX, pTextureY, pScale, null);
 	}
 
-	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTexturePositionX, final int pTexturePositionY, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGAssetBitmapTextureAtlasSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pTexturePositionX, pTexturePositionY);
+	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTextureX, final int pTextureY, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGAssetBitmapTextureAtlasSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pTextureX, pTextureY);
 		this.mContext = pContext;
 		this.mAssetPath = pAssetPath;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
-	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTexturePositionX, final int pTexturePositionY, final float pScale, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGAssetBitmapTextureAtlasSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pTexturePositionX, pTexturePositionY, pScale);
+	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTextureX, final int pTextureY, final float pScale, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGAssetBitmapTextureAtlasSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pTextureX, pTextureY, pScale);
 		this.mContext = pContext;
 		this.mAssetPath = pAssetPath;
 		this.mSVGColorMapper = pSVGColorMapper;
 	}
 
-	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTexturePositionX, final int pTexturePositionY, final int pWidth, final int pHeight, final ISVGColorMapper pSVGColorMapper) {
-		super(SVGAssetBitmapTextureAtlasSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pTexturePositionX, pTexturePositionY, pWidth, pHeight);
+	public SVGAssetBitmapTextureAtlasSource(final Context pContext, final String pAssetPath, final int pTextureX, final int pTextureY, final int pTextureWidth, final int pTextureHeight, final ISVGColorMapper pSVGColorMapper) {
+		super(SVGAssetBitmapTextureAtlasSource.getSVG(pContext, pAssetPath, pSVGColorMapper), pTextureX, pTextureY, pTextureWidth, pTextureHeight);
 		this.mContext = pContext;
 		this.mAssetPath = pAssetPath;
 		this.mSVGColorMapper = pSVGColorMapper;
