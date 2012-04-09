@@ -1,6 +1,6 @@
 package org.andengine.extension.svg.adt;
 
-import java.util.HashMap;
+import android.util.SparseIntArray;
 
 /**
  * (c) 2010 Nicolas Gramlich 
@@ -18,7 +18,7 @@ public class SVGDirectColorMapper implements ISVGColorMapper {
 	// Fields
 	// ===========================================================
 
-	private final HashMap<Integer, Integer> mColorMappings = new HashMap<Integer, Integer>();
+	private final SparseIntArray mColorMappings = new SparseIntArray();
 
 	// ===========================================================
 	// Constructors

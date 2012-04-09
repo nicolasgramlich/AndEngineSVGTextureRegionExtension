@@ -29,6 +29,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Picture;
 import android.graphics.RectF;
+import android.util.FloatMath;
 
 
 /**
@@ -151,8 +152,8 @@ public class SVGHandler extends DefaultHandler implements ISVGConstants {
 	// ===========================================================
 
 	private void parseSVG(final Attributes pAttributes) {
-		final int width = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_WIDTH, 0f));
-		final int height = (int) Math.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_HEIGHT, 0f));
+		final int width = (int) FloatMath.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_WIDTH, 0f));
+		final int height = (int) FloatMath.ceil(SAXHelper.getFloatAttribute(pAttributes, ATTRIBUTE_HEIGHT, 0f));
 		this.mCanvas = this.mPicture.beginRecording(width, height);
 	}
 
