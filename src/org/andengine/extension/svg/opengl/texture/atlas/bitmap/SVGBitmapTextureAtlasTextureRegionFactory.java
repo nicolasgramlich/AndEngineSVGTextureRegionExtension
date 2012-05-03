@@ -1,5 +1,7 @@
 package org.andengine.extension.svg.opengl.texture.atlas.bitmap;
 
+import java.io.IOException;
+
 import org.andengine.extension.svg.adt.ISVGColorMapper;
 import org.andengine.extension.svg.adt.SVG;
 import org.andengine.extension.svg.opengl.texture.atlas.bitmap.source.SVGAssetBitmapTextureAtlasSource;
@@ -12,6 +14,7 @@ import org.andengine.opengl.texture.atlas.buildable.BuildableTextureAtlasTexture
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
+import org.andengine.opengl.texture.region.TiledTextureRegion;
 
 import android.content.Context;
 
@@ -180,6 +183,36 @@ public class SVGBitmapTextureAtlasTextureRegionFactory {
 		return BuildableTextureAtlasTextureRegionFactory.createTiledFromSource(pBuildableBitmapTextureAtlas, textureSource, pTileColumns, pTileRows);
 	}
 
+	/**
+	 * Loads all files from a given assets directory (in alphabetical order) as
+	 * consecutive tiles of ITiledTextureRegion which it returns
+	 *
+	 * @param pBuildableBitmapTextureAtlas
+	 * @param pContext
+	 * @param pAssetsSubdirectory to load all files from "gfx/flowers" put "flowers" here (assuming, that you've used setAssetBasePath("gfx/") on this factory)
+	 * @param pWidth all tiles will have this width
+	 * @param pHeight all tiles will have this height
+	 * @return
+	 */
+	public static ITiledTextureRegion createTiledFromAssetDirectory(final BuildableBitmapTextureAtlas pBuildableBitmapTextureAtlas, final Context pContext, final String pAssetsSubdirectory, final int pWidth, final int pHeight) {
+		ITextureRegion textures[];
+		String[] files;
+
+		try {
+			files = pContext.getAssets().list(getAssetBasePath() + pAssetsSubdirectory);
+			textures = new ITextureRegion[files.length];
+		} catch (IOException ioex) {
+			throw new RuntimeException("Listing assets directory failed! " + getAssetBasePath() + pAssetsSubdirectory + " does not exist?", ioex);
+		}
+
+		int i = 0;
+		for (String file : files) {
+			file = pAssetsSubdirectory + "/" + file;
+			textures[i++] = SVGBitmapTextureAtlasTextureRegionFactory.createFromAsset(pBuildableBitmapTextureAtlas, pContext, file, pWidth, pHeight);
+		}
+
+		return new TiledTextureRegion(pBuildableBitmapTextureAtlas, textures);
+	}
 
 	public static ITextureRegion createFromResource(final BuildableBitmapTextureAtlas pBuildableBitmapTextureAtlas, final Context pContext, final int pRawResourceID, final int pWidth, final int pHeight) {
 		return SVGBitmapTextureAtlasTextureRegionFactory.createFromResource(pBuildableBitmapTextureAtlas, pContext, pRawResourceID, pWidth, pHeight, null);
