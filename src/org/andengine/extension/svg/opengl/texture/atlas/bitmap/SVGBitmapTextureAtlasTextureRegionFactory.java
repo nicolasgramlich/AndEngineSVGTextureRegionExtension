@@ -56,6 +56,10 @@ public class SVGBitmapTextureAtlasTextureRegionFactory {
 		}
 	}
 
+	public static String getAssetBasePath() {
+		return sAssetBasePath;
+	}
+
 	/**
 	 * @param pScaleFactor must be > 0;
 	 */
