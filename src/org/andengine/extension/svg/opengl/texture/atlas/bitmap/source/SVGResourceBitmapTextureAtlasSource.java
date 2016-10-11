@@ -70,7 +70,7 @@ public class SVGResourceBitmapTextureAtlasSource extends SVGBaseBitmapTextureAtl
 	
 	@Override
 	public SVGResourceBitmapTextureAtlasSource deepCopy() {
-		return new SVGResourceBitmapTextureAtlasSource(this.mContext, this.mRawResourceID, this.mTextureX, this.mTextureY, this.mTextureWidth, this.mTextureHeight, this.mSVGColorMapper);
+		return new SVGResourceBitmapTextureAtlasSource(this.mContext, this.mRawResourceID, this.mTexturePositionX, this.mTexturePositionY, this.mWidth, this.mHeight, this.mSVGColorMapper);
 	}
 
 	// ===========================================================

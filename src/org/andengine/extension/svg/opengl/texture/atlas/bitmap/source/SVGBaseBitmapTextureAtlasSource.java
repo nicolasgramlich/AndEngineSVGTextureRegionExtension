@@ -52,7 +52,7 @@ public class SVGBaseBitmapTextureAtlasSource extends PictureBitmapTextureAtlasSo
 	@Override
 	public SVGBaseBitmapTextureAtlasSource deepCopy() {
 		Debug.w(this.getClass().getSimpleName() + ".deepCopy() does not actually deepCopy the SVG!");
-		return new SVGBaseBitmapTextureAtlasSource(this.mSVG, this.mTextureX, this.mTextureY, this.mTextureWidth, this.mTextureHeight);
+		return new SVGBaseBitmapTextureAtlasSource(this.mSVG, this.mTexturePositionX, this.mTexturePositionY, this.mWidth, this.mHeight);
 	}
 
 	// ===========================================================
